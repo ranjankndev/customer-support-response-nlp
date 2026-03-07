@@ -175,6 +175,8 @@ def compute_rouge(predictions: list, references: list) -> dict:
 
 def compute_bertscore(predictions: list, references: list) -> float:
     try:
+        if not predictions or not references:   # ← add this guard
+            return None
         from bert_score import score as bscore
         _, _, F = bscore(predictions, references, lang='en', verbose=False)
         return round(float(F.mean()), 4)
@@ -354,9 +356,16 @@ def run(aspects_path: str,
     df = pd.read_csv(aspects_path) if aspects_path.endswith('.csv') \
          else pd.read_excel(aspects_path)
 
-    # Must have answer column for metric computation
+# ── Merge answer column from original data if missing ─────────────────
     if 'answer' not in df.columns:
-        log.warning("No 'answer' column found — metrics vs reference will be skipped")
+        log.warning("'answer' column missing from aspects file — trying to merge from original data")
+        try:
+            orig = pd.read_csv("/kaggle/input/datasets/ranjankumarnayak/cs-dataset/customer_support_28k_fixed.csv",
+                               usecols=['answer'])
+            df['answer'] = orig['answer'].values
+            log.info("✓ answer column merged from original CSV")
+        except Exception as e:
+            log.warning(f"Could not merge answer column: {e} — metrics vs reference will be skipped")
 
     if n:
         df = df.sample(min(n, len(df)), random_state=42).reset_index(drop=True)
