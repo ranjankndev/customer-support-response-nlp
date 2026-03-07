@@ -171,18 +171,21 @@ def compute_rouge(predictions: list, references: list) -> dict:
     except ImportError:
         log.warning("rouge_score not installed — pip install rouge-score")
         return {'ROUGE-1': None, 'ROUGE-2': None, 'ROUGE-L': None}
-
-
+    
 def compute_bertscore(predictions: list, references: list) -> float:
     try:
-        if not predictions or not references:   # ← add this guard
+        if not predictions or not references:
             return None
         from bert_score import score as bscore
-        _, _, F = bscore(predictions, references, lang='en', verbose=False)
+        _, _, F = bscore(
+            predictions, references,
+            model_type='distilbert-base-uncased',  # ← lighter, faster
+            verbose=False
+        )
         return round(float(F.mean()), 4)
     except ImportError:
         log.warning("bert_score not installed — pip install bert-score")
-        return None
+        return None    
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
