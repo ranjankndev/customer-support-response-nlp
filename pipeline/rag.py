@@ -81,8 +81,10 @@ except ImportError:
 # ─────────────────────────────────────────────────────────────────────────────
 
 _PRETRAINED_SBERT = 'paraphrase-multilingual-mpnet-base-v2'
-_FINETUNED_DIR    = Path(__file__).parent / 'finetuned_sbert'
-
+_FINETUNED_DIRS = [
+    Path(__file__).parent / 'finetuned_sbert',                           # local
+    Path('/kaggle/input/datasets/ranjankumarnayak/finetuned-sbert-customer-support/finetuned_sbert'),  # Kaggle
+]
 def _resolve_sbert_model(config: dict = None) -> str:
     """
     Return model path: finetuned_sbert/ if it exists, else pretrained name.
@@ -247,8 +249,7 @@ class RAGSystem:
         log.info(f'[RAG] device={self.device}')
 
         if config is None:
-            from config_loader import load_config
-            config = load_config(Path(__file__).parent / 'baseline.yaml')
+            config = {}   # use defaults — top_k=5, no reranker
 
         # Fine-tuned SBERT if available, pretrained fallback
         sbert_name    = _resolve_sbert_model(config)
