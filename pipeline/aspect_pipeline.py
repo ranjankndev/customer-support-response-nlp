@@ -448,9 +448,8 @@ if __name__ == '__main__':
     parser.add_argument(
         '--input',  default=DEFAULT_INPUT,
         help='Input CSV or XLSX file')
-    parser.add_argument(
     args = parser.parse_args()
-    run(args.input, args.model)
+    run(args.input)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
