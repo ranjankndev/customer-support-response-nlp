@@ -55,7 +55,7 @@ from pathlib import Path
 # CONFIG — change these at the top, nowhere else
 # ═══════════════════════════════════════════════════════════════════════════════
 
-T5_MODEL        = 'google/flan-t5-base'   # swap to 'finetuned_t5/' after training
+T5_MODEL        = 'google/flan-t5-large'   # swap to 'finetuned_t5/' after training
 BODY_LEN        = 800                     # max chars from body in baseline prompt
 MAX_NEW_TOKENS  = 200                     # max tokens T5 generates per response
 NUM_BEAMS       = 4                       # beam search width
@@ -97,16 +97,18 @@ def generate_response(prompt: str, tok, model, device: str) -> str:
         prompt,
         return_tensors='pt',
         truncation=True,
-        max_length=512,
+        max_length=1024,    # RAG prompt with body+context can exceed 512
     ).to(device)
 
     with torch.no_grad():
         out = model.generate(
             **inputs,
-            max_new_tokens = MAX_NEW_TOKENS,
-            num_beams      = NUM_BEAMS,
-            early_stopping = True,
+            max_new_tokens       = MAX_NEW_TOKENS,
+            min_new_tokens       = 40,
+            num_beams            = NUM_BEAMS,
+            early_stopping       = True,
             no_repeat_ngram_size = 3,
+            length_penalty       = 2.0,
         )
     return tok.decode(out[0], skip_special_tokens=True).strip()
 
@@ -196,6 +198,7 @@ def build_baseline_prompt(row: pd.Series) -> str:
     subject = str(row.get('subject', '') or '')
     body    = str(row.get('body',    '') or '')[:BODY_LEN]
     return (
+        f"Write a professional customer support response to the following ticket.\n\n"
         f"Subject: {subject}\n"
         f"Complaint: {body}\n"
         f"Response:"
@@ -238,16 +241,19 @@ def run_baseline(df: pd.DataFrame, tok, model, device: str) -> pd.DataFrame:
 # RAG+ASPECT MODE — T5 on structured aspect-slot prompt from rag.py
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def run_rag(df: pd.DataFrame, tok, model, device: str) -> pd.DataFrame:
+def run_rag(df: pd.DataFrame, tok, model, device: str, kb_df: pd.DataFrame = None) -> pd.DataFrame:
     sys.path.insert(0, str(Path(__file__).parent))
     from rag import RAGSystem
 
     log.info("[RAG] Building index...")
     rag = RAGSystem()
 
-    # Use subset as KB if KB_SIZE set, else full df
-    kb_df = df.sample(min(KB_SIZE, len(df)), random_state=42) if KB_SIZE else df
-    rag.build_index(kb_df)
+    # KB: use passed kb_df if available, else fall back to query df
+    _kb = kb_df if kb_df is not None else (
+        df.sample(min(KB_SIZE, len(df)), random_state=42) if KB_SIZE else df
+    )
+    log.info(f"[RAG] KB size: {len(_kb)} | Query size: {len(df)}")
+    rag.build_index(_kb)
 
     log.info(f"[RAG] Generating {len(df)} responses...")
     t0   = time.time()
@@ -351,28 +357,41 @@ def print_metrics(label: str, df: pd.DataFrame, prefix: str):
 # ═══════════════════════════════════════════════════════════════════════════════
 
 def run(aspects_path: str,
-        mode: str      = 'both',
-        n: int         = None,
-        model_path: str = T5_MODEL):
+        mode: str       = 'both',
+        n: int          = None,
+        model_path: str = T5_MODEL,
+        kb_path: str    = None):
+    """
+    kb_path : path to full aspects CSV used as RAG knowledge base.
+              If None, uses aspects_path (same file) — ok for small tests,
+              but for proper eval pass the full 28k CSV here and use n= for
+              the query sample so the model doesn't retrieve itself.
+    """
 
     log.info(f"Loading aspects: {aspects_path}")
     df = pd.read_csv(aspects_path) if aspects_path.endswith('.csv') \
          else pd.read_excel(aspects_path)
 
-# ── Merge answer column from original data if missing ─────────────────
+    # ── body + answer must be present — aspect_pipeline.py now carries them ──
+    if 'body' not in df.columns:
+        log.warning("'body' column missing — RAG prompts will be empty. "
+                    "Re-run aspect_pipeline.py (body+answer now included).")
     if 'answer' not in df.columns:
-        log.warning("'answer' column missing from aspects file — trying to merge from original data")
-        try:
-            orig = pd.read_csv("/kaggle/input/datasets/ranjankumarnayak/cs-dataset/customer_support_28k_fixed.csv",
-                               usecols=['answer'])
-            df['answer'] = orig['answer'].values
-            log.info("✓ answer column merged from original CSV")
-        except Exception as e:
-            log.warning(f"Could not merge answer column: {e} — metrics vs reference will be skipped")
+        log.warning("'answer' column missing — metrics vs reference will be skipped.")
 
     if n:
         df = df.sample(min(n, len(df)), random_state=42).reset_index(drop=True)
-        log.info(f"Sampled {len(df)} rows")
+        log.info(f"Sampled {len(df)} rows for query")
+
+    # ── KB for RAG — use full dataset if kb_path provided ────────────────────
+    if kb_path:
+        log.info(f"Loading KB from: {kb_path}")
+        kb_df = pd.read_csv(kb_path) if kb_path.endswith('.csv') \
+                else pd.read_excel(kb_path)
+        log.info(f"KB size: {len(kb_df)} rows")
+    else:
+        kb_df = df   # same file — fine for quick tests, not for final eval
+        log.info(f"KB = query set ({len(kb_df)} rows) — pass kb_path= for proper eval")
 
     log.info(f"Dataset: {len(df)} rows | mode: {mode}")
 
@@ -391,7 +410,7 @@ def run(aspects_path: str,
 
     # ── RAG+Aspect ────────────────────────────────────────────────────────────
     if mode in ('rag', 'both'):
-        df_rag = run_rag(df, tok, model_t5, device)
+        df_rag = run_rag(df, tok, model_t5, device, kb_df=kb_df)
         out    = f"responses_{base}_rag.csv"
         df_rag.to_csv(out, index=False)
         log.info(f"Saved → {out}")
@@ -446,6 +465,8 @@ if __name__ == '__main__':
                    help='Number of rows to process (default: all)')
     p.add_argument('--model', default=T5_MODEL,
                    help=f'T5 model path (default: {T5_MODEL})')
+    p.add_argument('--kb', default=None,
+                   help='Path to full aspects CSV used as RAG KB (default: same as --aspects)')
     args = p.parse_args()
 
     run(
@@ -453,4 +474,5 @@ if __name__ == '__main__':
         mode         = args.mode,
         n            = args.n,
         model_path   = args.model,
+        kb_path      = args.kb,
     )

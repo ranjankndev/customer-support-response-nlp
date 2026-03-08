@@ -366,6 +366,8 @@ def run(input_path: str) -> pd.DataFrame:
             'ticket_type':   t_type,
             'queue':         queue,
             'subject':       subject,
+            'body':          body,                                  # needed by response_generator
+            'answer':        str(row.get('answer', '') or ''),     # needed for metrics
             # ── The 6 Aspects ─────────────────────────────────────────────
             'categorization':  bucket,
             'prob_sub':        qa_out['prob_sub'],
