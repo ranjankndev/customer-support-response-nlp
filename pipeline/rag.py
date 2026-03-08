@@ -496,8 +496,21 @@ class RAGSystem:
             for i, r in enumerate(retrieved[:2])
         )
 
+        # [OUR D] Level-1 aspect enforcement — explicit instruction per slot
+        urgency  = spans.get('urgency_vibe', 'neutral')
+        priority = spans.get('priority', 'medium')
+        prob     = spans.get('prob_sub', '') or spans.get('prob_statement', '')
+        cause    = spans.get('cause', '')
+
+        enforce_str = (
+            f"The response MUST directly address: {prob}. "
+            + (f"Root cause: {cause}. " if cause and cause != 'none' else "")
+            + f"Tone: {urgency}. Priority: {priority}."
+        )
+
         return (
-            f"Write a professional customer support response to the following ticket.\n\n"
+            f"Write a professional customer support response to the following ticket.\n"
+            f"{enforce_str}\n\n"
             f"Aspects: {asp_str}\n"
             f"Entities: {ent_str}\n"
             f"Metadata: {meta_str}\n"

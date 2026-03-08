@@ -97,7 +97,7 @@ def generate_response(prompt: str, tok, model, device: str) -> str:
         prompt,
         return_tensors='pt',
         truncation=True,
-        max_length=1024,    # RAG prompt with body+context can exceed 512
+        max_length=1024,   # RAG prompt with body+context can exceed 512
     ).to(device)
 
     with torch.no_grad():
@@ -248,7 +248,6 @@ def run_rag(df: pd.DataFrame, tok, model, device: str, kb_df: pd.DataFrame = Non
     log.info("[RAG] Building index...")
     rag = RAGSystem()
 
-    # KB: use passed kb_df if available, else fall back to query df
     _kb = kb_df if kb_df is not None else (
         df.sample(min(KB_SIZE, len(df)), random_state=42) if KB_SIZE else df
     )
@@ -281,11 +280,29 @@ def run_rag(df: pd.DataFrame, tok, model, device: str, kb_df: pd.DataFrame = Non
         prompt   = rag.build_prompt(row, retrieved, spans)
         response = generate_response(prompt, tok, model, device)
 
+        # [OUR] Level-2 aspect enforcement — verify coverage, retry if low
         cov = check_entity_coverage(
             spans.get('prob_sub', ''),
             spans.get('prob_statement', ''),
             response,
         )
+        if cov['entity_coverage'] < 0.5 and spans.get('prob_sub', ''):
+            prob  = spans.get('prob_sub', '')
+            cause = spans.get('cause', '')
+            stronger = prompt.replace(
+                "Write a professional customer support response to the following ticket.",
+                f"Write a detailed customer support response that MUST explicitly mention "
+                f"'{prob}'"
+                + (f" and address the root cause '{cause}'" if cause and cause != 'none' else "")
+                + "."
+            )
+            response = generate_response(stronger, tok, model, device)
+            cov = check_entity_coverage(
+                spans.get('prob_sub', ''),
+                spans.get('prob_statement', ''),
+                response,
+            )
+            log.debug(f"[RAG] Row {i} — retried (coverage was low)")
         rows.append({
             'idx':          row.get('idx', i),
             'language':     row.get('language', 'en'),
@@ -363,16 +380,15 @@ def run(aspects_path: str,
         kb_path: str    = None):
     """
     kb_path : path to full aspects CSV used as RAG knowledge base.
-              If None, uses aspects_path (same file) — ok for small tests,
-              but for proper eval pass the full 28k CSV here and use n= for
-              the query sample so the model doesn't retrieve itself.
+              If None, uses aspects_path — fine for small tests.
+              For proper eval pass full 28k CSV here and use n= for query sample.
     """
 
     log.info(f"Loading aspects: {aspects_path}")
     df = pd.read_csv(aspects_path) if aspects_path.endswith('.csv') \
          else pd.read_excel(aspects_path)
 
-    # ── body + answer must be present — aspect_pipeline.py now carries them ──
+    # body + answer must be present — aspect_pipeline.py now carries them
     if 'body' not in df.columns:
         log.warning("'body' column missing — RAG prompts will be empty. "
                     "Re-run aspect_pipeline.py (body+answer now included).")
@@ -383,14 +399,14 @@ def run(aspects_path: str,
         df = df.sample(min(n, len(df)), random_state=42).reset_index(drop=True)
         log.info(f"Sampled {len(df)} rows for query")
 
-    # ── KB for RAG — use full dataset if kb_path provided ────────────────────
+    # KB for RAG — use full dataset if kb_path provided
     if kb_path:
         log.info(f"Loading KB from: {kb_path}")
         kb_df = pd.read_csv(kb_path) if kb_path.endswith('.csv') \
                 else pd.read_excel(kb_path)
         log.info(f"KB size: {len(kb_df)} rows")
     else:
-        kb_df = df   # same file — fine for quick tests, not for final eval
+        kb_df = df
         log.info(f"KB = query set ({len(kb_df)} rows) — pass kb_path= for proper eval")
 
     log.info(f"Dataset: {len(df)} rows | mode: {mode}")
