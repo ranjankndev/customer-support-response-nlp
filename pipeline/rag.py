@@ -52,7 +52,10 @@ except ImportError:
         return logging.getLogger(name)
 
 log = get_logger('rag')
-from config import METADATA_FIELDS
+try:
+    from config import METADATA_FIELDS
+except ImportError:
+    METADATA_FIELDS = ['language', 'ticket_type', 'queue', 'priority']
 
 BODY_LEN   = 800   # max chars from ticket body used in retrieval
 ANSWER_LEN = 800   # max chars from answer used in reranking + prompt
@@ -86,17 +89,14 @@ _FINETUNED_DIRS = [
     Path('/kaggle/input/datasets/ranjankumarnayak/finetuned-sbert-customer-support/finetuned_sbert'),  # Kaggle
 ]
 def _resolve_sbert_model(config: dict = None) -> str:
-    """
-    Return model path: finetuned_sbert/ if it exists, else pretrained name.
-    config can override both via model.sentence_bert key.
-    """
-    if _FINETUNED_DIR.exists() and any(_FINETUNED_DIR.iterdir()):
-        log.info(f'[RAG] Loading fine-tuned SBERT from {_FINETUNED_DIR}')
-        return str(_FINETUNED_DIR)
+    for d in _FINETUNED_DIRS:
+        if d.exists() and any(d.iterdir()):
+            log.info(f'[RAG] Loading fine-tuned SBERT from {d}')
+            return str(d)
     fallback = (config or {}).get('model', {}).get(
         'sentence_bert', _PRETRAINED_SBERT
     )
-    log.info(f'[RAG] Fine-tuned model not found -- using pretrained: {fallback}')
+    log.info(f'[RAG] Fine-tuned SBERT not found -- using pretrained: {fallback}')
     return fallback
 
 
@@ -144,10 +144,12 @@ def aspect_query_vector(sbert,
     """[OUR A] Weighted combination of aspect span embeddings as query."""
     parts, weights = [], []
 
-    if spans.get('problem', 'none') != 'none':
-        parts.append(spans['problem']);  weights.append(2.0)
+    if spans.get('prob_sub', 'none') != 'none':
+        parts.append(spans['prob_sub']);       weights.append(2.0)
+    if spans.get('prob_statement', 'none') != 'none':
+        parts.append(spans['prob_statement']); weights.append(1.5)
     if spans.get('cause', 'none') != 'none':
-        parts.append(spans['cause']);    weights.append(1.0)
+        parts.append(spans['cause']);          weights.append(1.0)
 
     parts.append(subject or 'support ticket')
     weights.append(1.0)
@@ -186,7 +188,7 @@ def aspect_score(sbert,
     """[OUR C] Cosine similarity between query aspects and retrieved answer."""
     asp_text = ' '.join(
         v for k, v in spans.items()
-        if k in ('problem', 'cause') and v and v != 'none'
+        if k in ('prob_sub', 'prob_statement', 'cause') and v and v != 'none'
     ).strip()
     if not asp_text or not answer.strip():
         return 0.0
@@ -495,6 +497,7 @@ class RAGSystem:
         )
 
         return (
+            f"Write a professional customer support response to the following ticket.\n\n"
             f"Aspects: {asp_str}\n"
             f"Entities: {ent_str}\n"
             f"Metadata: {meta_str}\n"
