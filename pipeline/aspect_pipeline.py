@@ -10,20 +10,20 @@ ASPECT   SOURCE          METHOD
 3  prob_statement   subject+body      QA: roberta-base-squad2 (EN) / gelectra-base-germanquad (DE)
 4  cause            body              QA: roberta-base-squad2 (EN) / gelectra-base-germanquad (DE)
 5  priority         priority field    Pass-through (normalise casing)
-6  urgency_vibe     subject+body      Your exact get_vibe(text) via VADER
+6  urgency_vibe     subject+body      cardiffnlp/twitter-xlm-roberta-base-sentiment (EN+DE)
 ───────────────────────────────────────────────────────────────────────────────
 
 RUN (Kaggle GPU — recommended):
-  python aspect_pipeline_v4.py --input aspect_results_500.csv
-  python aspect_pipeline_v4.py --input customer_support_28k_fixed.csv
-  python aspect_pipeline_v4.py --input slected_record_cs.xlsx
+  python aspect_pipeline.py --input aspect_results_500.csv
+  python aspect_pipeline.py --input customer_support_28k_fixed.csv
+  python aspect_pipeline.py --input slected_record_cs.xlsx
 
 RUN (local CPU — slow but works):
-  pip install pandas openpyxl vaderSentiment transformers sentencepiece torch
-  python aspect_pipeline_v4.py --input your_data.xlsx
+  pip install pandas openpyxl transformers sentencepiece torch
+  python aspect_pipeline.py --input your_data.xlsx
 
 After fine-tuning (step3):
-  python aspect_pipeline_v4.py --input data.csv
+  python aspect_pipeline.py --input data.csv
 
 OUTPUT:
   aspects_{name}.csv    machine-readable, use for RAG / LLM labelling
@@ -37,7 +37,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 import pandas as pd
-from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+from transformers import pipeline as _hf_pipeline
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # CONFIG
@@ -245,37 +245,57 @@ def normalise_priority(val: str) -> str:
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # ASPECT 6: URGENCY VIBE
-# YOUR EXACT get_vibe(text) function — zero changes to the function body.
-# Applied to: subject + body combined into one text string.
+# Replaced VADER with cardiffnlp/twitter-xlm-roberta-base-sentiment.
+# Handles both EN and DE natively — VADER was EN-only.
+# Output labels are identical to the original get_vibe() so nothing
+# downstream (rag.py, instruct_generator.py tone map) needs to change.
 # ═══════════════════════════════════════════════════════════════════════════════
 
-_vader = SentimentIntensityAnalyzer()
+# Lazy-loaded on first call — avoids loading the model if only other
+# aspects are needed (e.g. during unit tests or categorization-only runs).
+_sentiment_pipe = None
+
+def _get_sentiment_pipe():
+    global _sentiment_pipe
+    if _sentiment_pipe is None:
+        import torch
+        _sentiment_pipe = _hf_pipeline(
+            'sentiment-analysis',
+            model   = 'cardiffnlp/twitter-xlm-roberta-base-sentiment',
+            device  = 0 if torch.cuda.is_available() else -1,
+            truncation = True,
+            max_length = 512,
+        )
+    return _sentiment_pipe
 
 
 def get_vibe(text: str) -> str:
     """
-    YOUR EXACT function from the specification — unchanged.
+    Maps multilingual sentiment → urgency_vibe label.
+    Uses cardiffnlp/twitter-xlm-roberta-base-sentiment (EN + DE).
 
-    Thresholds:
-      compound <= -0.5              → "Frustrated / Urgent"
-      -0.5 < compound <= -0.05     → "Disappointed"
-      -0.05 < compound < 0.05      → "Neutral / Professional"
-      compound >= 0.05             → "Positive / Satisfied"
+    Output labels (identical to original VADER version):
+      "Frustrated / Urgent"   — strong negative  (score > 0.80)
+      "Disappointed"          — mild negative     (score <= 0.80)
+      "Neutral / Professional"— neutral
+      "Positive / Satisfied"  — positive
     """
-    if not isinstance(text, str):
-        return "Neutral"
+    if not isinstance(text, str) or not text.strip():
+        return 'Neutral / Professional'
 
-    score    = _vader.polarity_scores(text)
-    compound = score['compound']
+    try:
+        result = _get_sentiment_pipe()(text[:512])[0]
+        label  = result['label'].lower()   # 'positive' | 'neutral' | 'negative'
+        score  = result['score']
 
-    if compound <= -0.5:
-        return "Frustrated / Urgent"
-    elif -0.5 < compound <= -0.05:
-        return "Disappointed"
-    elif -0.05 < compound < 0.05:
-        return "Neutral / Professional"
-    else:
-        return "Positive / Satisfied"
+        if label == 'negative':
+            return 'Frustrated / Urgent' if score > 0.80 else 'Disappointed'
+        elif label == 'positive':
+            return 'Positive / Satisfied'
+        else:
+            return 'Neutral / Professional'
+    except Exception:
+        return 'Neutral / Professional'
 
 
 def get_vibe_for_ticket(subject: str, body: str) -> str:
