@@ -1,0 +1,19 @@
+# Data and generated outputs
+data/
+output/
+logs/
+
+# Large file types
+*.csv
+*.xlsx
+*.parquet
+*.zip
+*.pkl
+*.h5
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.env
+*.log

@@ -1,0 +1,10 @@
+# config_preprocess.yaml — Split Configuration
+# ── Input / Output ────────────────────────────────────────────────────────────
+input_csv  : "data/raw/cs-support-multi.csv"
+output_dir : "data/processed"
+# ── Stratified Split ──────────────────────────────────────────────────────────
+split:
+  test_size     : 5420         # exact row count for test set
+  validate_size : 5420         # exact row count for validate set
+  stratify_col  : "language"   # column to stratify on (en / de balance preserved)
+  random_seed   : 42

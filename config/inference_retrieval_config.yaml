@@ -1,0 +1,31 @@
+# inference_retrieval_config.yaml
+# Minimal config for FAISS retriever at inference time.
+
+# Inference input
+input_path: data/processed/cs-support-multi-test.csv
+output_path: output/retrieval_hits_test_v2.csv
+
+# FAISS artifacts
+index_path: data/index/faiss_index.bin
+metadata_path: data/index/metadata.json
+
+# Embedder (must match what you indexed with)
+model_name: intfloat/multilingual-e5-large
+device: cuda
+batch_size: 64
+
+# Retrieval
+top_k: 5
+body_max_chars: 0
+prompt_body_max_chars: 0
+filter_by_language: false
+
+# Reranking
+# Cross-encoder used for EN tickets only (DE uses pure dense).
+# mmarco-mMiniLMv2-L12-H384-v1: multilingual, trained on MS MARCO EN+DE+24 langs.
+use_cross_encoder: true
+cross_encoder_model: cross-encoder/mmarco-mMiniLMv2-L12-H384-v1
+
+# aspect_rerank_weight: only applies to DE (pure dense) or when use_cross_encoder=false.
+# Reduced from 0.25 -> 0.1 to prevent aspect bonus flipping top-5 ranking.
+aspect_rerank_weight: 0.1

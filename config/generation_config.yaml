@@ -1,0 +1,36 @@
+# generation_config.yaml — Response Generator Configuration
+# ── Model ─────────────────────────────────────────────────────────────────────
+model_id        : "google/gemma-2-2b-it"
+device          : "cuda"
+torch_dtype     : "bfloat16"
+use_4bit        : true
+max_new_tokens  : 256
+do_sample       : false
+# ── Retrieval ─────────────────────────────────────────────────────────────────
+retrieval_config: "config/inference_retrieval_config.yaml"
+top_k           : 3
+# ── Data ──────────────────────────────────────────────────────────────────────
+# Primary: raw tickets (subject, body, language). Pipeline runs aspect_extractor
+# then RAG + generator. Optional column `answer` = gold text for metrics only.
+#input_tickets_csv: "data/input_inference/inference_tickets.csv"
+# Legacy / alternate: pre-extracted aspects CSV (all 5 aspect columns present).
+aspects_csv     : "output/aspects/aspects_test_v2.csv"
+# Aspect SFT model (see aspect_extractor.py).
+# aspect_extractor_config: "config_asp_sft.yaml"
+extract_aspects : true
+force_reextract_aspects: false
+# aspect_student_base: ""
+# aspect_adapter: ""
+# aspect_adapter_subfolder: ""
+# aspect_batch_size: 0
+body_max_chars  : 0
+# gemma-2-2b-it 4-bit NF4 on RTX 4090 — batch=24 safe (13.5GB/24GB VRAM) with RAG prompts (~800-1200 tokens)
+# reduce to 16 if OOM on very long DE tickets
+generation_batch_size: 24
+# ── Output ────────────────────────────────────────────────────────────────────
+output_dir      : "output/generation"
+checkpoint_every: 50
+# ── Metrics ───────────────────────────────────────────────────────────────────
+bertscore_model : "bert-base-multilingual-cased"
+bertscore_device: "cuda"
+bertscore_batch : 32

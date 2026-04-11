@@ -1,0 +1,36 @@
+# retrieval_config.yaml — Retrieval pipeline configuration
+
+# ── Input ─────────────────────────────────────────────────────────────────────
+# CSV produced by aspect_extractor.py on train set
+aspects_csv   : "output/aspect/aspects_train.csv"
+# original train CSV — merged automatically to bring answer column back
+train_csv     : "data/processed/cs-support-multi-train.csv"
+
+# Column names in aspects CSV
+col_ticket_id : "ticket_id"
+col_subject   : "subject"
+col_body      : "body"
+col_response  : "answer"
+col_language  : "language"
+# aspect columns extracted by SFT model — used for reranking after retrieval
+col_aspects   : ["prob_sub", "prob_statement", "cause", "intent", "ticket_type_nli"]
+
+# ── Output paths ──────────────────────────────────────────────────────────────
+index_path    : "data/index/faiss_index.bin"
+metadata_path : "data/index/metadata.json"
+
+# ── Dense embedder ────────────────────────────────────────────────────────────
+# Recommended: E5 multilingual for dense FAISS retrieval.
+model_name    : "intfloat/multilingual-e5-large"
+device        : "cuda"
+batch_size    : 64
+max_length    : 512
+# max chars from body used in embedding text
+body_max_chars: 1800
+
+# ── Retriever ─────────────────────────────────────────────────────────────────
+top_k              : 5
+# FAISS here is dense-only. Hybrid weights are ignored unless you add a BM25/sparse pipeline.
+retrieval_mode     : "dense"     # dense
+# if true, filter retrieved results to same language as query
+filter_by_language : false       # false = retrieve across EN+DE (recommended for BGE-M3)

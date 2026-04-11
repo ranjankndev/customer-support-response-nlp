@@ -1,0 +1,28 @@
+############################################################
+# config_asp_sft.yaml
+# SFT inference config — Sentence Ranker + Entity + SFT Labels
+############################################################
+
+# Input file (CSV or XLSX). Must have columns: subject, body
+# Optional column: language (defaults to "en")
+input: data/processed/cs-support-multi-test.csv
+
+# Output CSV path
+out: output/aspect/aspects_test_v2.csv
+
+# Sample size (0 = all rows)
+n: 0
+
+# Base + SFT adapter
+student_base: Qwen/Qwen2.5-1.5B-Instruct
+adapter: ranjan56cse/cs-support-labels
+adapter_subfolder: sft_checkpoint
+
+# Performance
+# SFT model now generates ONLY intent + ticket_type_nli (2 short labels).
+# prob_sub / prob_statement / cause come from the sentence ranker (CPU).
+# Prompt is much shorter (ranked spans ~230 tokens vs full body ~900).
+# Larger batch is safe because prompts are shorter.
+batch: 20
+max_seq_len: 512
+max_new_tokens: 40
