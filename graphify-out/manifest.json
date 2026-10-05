@@ -120,9 +120,9 @@
     "semantic_hash": ""
   },
   "UPGRADE_PLAN.md": {
-    "mtime": 1791169632.1836312,
-    "seen": 1791169706.3164506,
-    "ast_hash": "3f844fbb747b2f9d861cf9336a6ca956",
+    "mtime": 1791169795.3025398,
+    "seen": 1791178682.7733285,
+    "ast_hash": "6622dfa7e9ade069ee97acfeb9183796",
     "semantic_hash": ""
   },
   "config/config_asp_sft.yaml": {
@@ -167,12 +167,6 @@
     "ast_hash": "66bbf23530d84247efb9683b392b8bea",
     "semantic_hash": ""
   },
-  "docs/report/AspectForge_Report.pdf": {
-    "mtime": 1791169322.8884475,
-    "seen": 1791169417.4103472,
-    "ast_hash": "e515f9c66d77ad143ec8a7ee8e76cb32",
-    "semantic_hash": ""
-  },
   "docs/architecture_v3.png": {
     "mtime": 1791169322.7189703,
     "seen": 1791169417.4103472,
@@ -186,9 +180,33 @@
     "semantic_hash": ""
   },
   "PROGRESS.md": {
-    "mtime": 1791169672.9318414,
-    "seen": 1791169706.3164506,
-    "ast_hash": "d4e79bc51f347de59236fb002cd28ded",
+    "mtime": 1791169795.4373107,
+    "seen": 1791178682.7733285,
+    "ast_hash": "6cf25b515cceb7f98e2a3f54872d462d",
+    "semantic_hash": ""
+  },
+  "kaggle/hello/kernel-metadata.json": {
+    "mtime": 1791178497.2616107,
+    "seen": 1791178682.7733285,
+    "ast_hash": "7498422511bbf750b986e06425223253",
+    "semantic_hash": ""
+  },
+  "kaggle/hello/run.py": {
+    "mtime": 1791185527.660563,
+    "seen": 1791185917.054564,
+    "ast_hash": "37b33d84b0807aa9b6fcd988e6d7dd3a",
+    "semantic_hash": ""
+  },
+  "scripts/kaggle_job.py": {
+    "mtime": 1791178496.7262237,
+    "seen": 1791178682.7733285,
+    "ast_hash": "db85f961fdc46b7084b0a7f8f848059e",
+    "semantic_hash": ""
+  },
+  "tests/test_kaggle_job.py": {
+    "mtime": 1791183109.1035118,
+    "seen": 1791183510.121557,
+    "ast_hash": "c57603d1dc4ba2f47bafd4eccc9974fc",
     "semantic_hash": ""
   }
 }
