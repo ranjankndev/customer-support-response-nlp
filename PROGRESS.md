@@ -7,6 +7,8 @@ Legend: `[x]` done (date, sha) · `[~]` in progress · `[ ]` todo
 - [x] 2026-10-05 Repo moved out of OneDrive to `C:\dev\aspectforge`, synced with GitHub `main`
 - [x] 2026-10-05 graphify installed (project scope) and code graph built
 - [x] 2026-10-05 Plan extended: Aspect v2 (§A) + automation (§K); `CLAUDE.md` + this file added
+- [x] 2026-10-05 Kaggle CLI upgraded to 2.2.4 (auth OK, user `ranjankumarnayak`); T4×2 = `machine_shape: NvidiaTeslaT4`
+- [x] 2026-10-05 Work branch `v3-minimal-run` created and pushed. **Next agent starts at §10 step 0.**
 
 ## §10 steps
 - [ ] 0. Automation scaffold: `scripts/kaggle_job.py`, `kaggle/hello`, `tests/` + fixtures
