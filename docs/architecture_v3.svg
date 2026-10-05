@@ -1,0 +1,179 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 1010" width="960" height="1010" font-family="'Times New Roman', Times, serif">
+  <title>AspectForge v3 system architecture</title>
+  <style>
+    .t   { font-size: 14px; font-weight: bold; fill: #1f2328; text-anchor: middle; }
+    .s   { font-size: 11px; fill: #3d444d; text-anchor: middle; }
+    .g   { font-size: 12px; font-weight: bold; font-style: italic; }
+    .lbl { font-size: 10.5px; fill: #3d444d; font-style: italic; }
+    .new   { fill: #e6f4ea; stroke: #2f8a4e; stroke-width: 1.4; }
+    .old   { fill: #edf1f6; stroke: #7d8da3; stroke-width: 1.2; }
+    .off   { fill: #fff7e8; stroke: #b07d2b; stroke-width: 1.2; stroke-dasharray: 5 3; }
+    .io    { fill: #f3f3f3; stroke: #6e6e6e; stroke-width: 1.2; }
+    .grp-old { fill: none; stroke: #7d8da3; stroke-width: 1; stroke-dasharray: 6 4; }
+    .grp-new { fill: none; stroke: #2f8a4e; stroke-width: 1.2; stroke-dasharray: 6 4; }
+    .grp-off { fill: #fffcf5; stroke: #b07d2b; stroke-width: 1.2; stroke-dasharray: 6 4; }
+    .a    { fill: none; stroke: #444c56; stroke-width: 1.3; marker-end: url(#arr); }
+    .ad   { fill: none; stroke: #b07d2b; stroke-width: 1.3; stroke-dasharray: 4 3; marker-end: url(#arrO); }
+    .ln   { fill: none; stroke: #444c56; stroke-width: 1.3; }
+    .aa   { fill: none; stroke: #7d8da3; stroke-width: 1.2; stroke-dasharray: 4 3; marker-end: url(#arrB); }
+  </style>
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#444c56"/></marker>
+    <marker id="arrO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b07d2b"/></marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7d8da3"/></marker>
+  </defs>
+  <rect x="0" y="0" width="960" height="1010" fill="#ffffff"/>
+
+  <!-- ── Input ─────────────────────────────────────────── -->
+  <rect class="io" x="200" y="22" width="260" height="36" rx="18"/>
+  <text class="t" x="330" y="45">Support ticket (EN / DE)</text>
+  <path class="a" d="M330,58 V90"/>
+
+  <rect class="old" x="200" y="92" width="260" height="42" rx="6"/>
+  <text class="t" x="330" y="110">Preprocessing</text>
+  <text class="s" x="330" y="126">PII masking · encoding fix · cleaning</text>
+
+  <!-- ── Aspect extraction (unchanged) ──────────────────── -->
+  <rect class="grp-old" x="40" y="152" width="580" height="140" rx="8"/>
+  <text class="g" x="52" y="168" fill="#5b6b80">Aspect extraction (unchanged)</text>
+
+  <rect class="off" x="52" y="178" width="160" height="46" rx="6"/>
+  <text class="t" x="132" y="197">LLM-as-Judge</text>
+  <text class="s" x="132" y="213">Qwen2.5-7B → silver labels</text>
+
+  <rect class="old" x="240" y="178" width="180" height="46" rx="6"/>
+  <text class="t" x="330" y="197">Sentence ranker + SFT</text>
+  <text class="s" x="330" y="213">Qwen2.5-1.5B + LoRA</text>
+
+  <rect class="old" x="448" y="178" width="160" height="46" rx="6"/>
+  <text class="t" x="528" y="197">Rule-based fields</text>
+  <text class="s" x="528" y="213">entities · action · urgency</text>
+
+  <path class="ad" d="M212,201 H238"/>
+  <path class="a" d="M330,134 V176"/>
+  <path class="a" d="M460,113 H528 V176"/>
+
+  <rect class="old" x="90" y="240" width="480" height="40" rx="6"/>
+  <text class="t" x="330" y="257">8 aspect fields</text>
+  <text class="s" x="330" y="272">prob_sub · prob_statement · cause · intent · ticket_type · entities · action_taken · urgency</text>
+  <path class="a" d="M330,224 V238"/>
+  <path class="a" d="M528,224 V238"/>
+
+  <!-- aspect slots side line to prompts -->
+  <path class="aa" d="M90,260 H26 V705 H58"/>
+  <text class="lbl" transform="translate(20,500) rotate(-90)" text-anchor="middle">aspect slots → prompt</text>
+
+  <!-- ── Hybrid retrieval (NEW) ─────────────────────────── -->
+  <rect class="grp-new" x="40" y="318" width="580" height="244" rx="8"/>
+  <text class="g" x="52" y="334" fill="#2f8a4e">Hybrid retrieval · NEW</text>
+
+  <path class="a" d="M330,280 V340 H190 V348"/>
+  <path class="a" d="M330,340 H475 V348"/>
+
+  <rect class="new" x="70" y="350" width="240" height="48" rx="6"/>
+  <text class="t" x="190" y="370">Dense · BGE-M3</text>
+  <text class="s" x="190" y="387">aspect-weighted query (EN)</text>
+
+  <rect class="new" x="360" y="350" width="230" height="48" rx="6"/>
+  <text class="t" x="475" y="370">Sparse · BM25</text>
+  <text class="s" x="475" y="387">lexical match (bm25s)</text>
+
+  <path class="a" d="M190,398 V412 H330 V426"/>
+  <path class="ln" d="M475,398 V412 H330"/>
+
+  <rect class="new" x="190" y="428" width="280" height="44" rx="6"/>
+  <text class="t" x="330" y="447">Reciprocal Rank Fusion</text>
+  <text class="s" x="330" y="463">k = 60 · 50 candidates</text>
+  <path class="a" d="M330,472 V494"/>
+
+  <rect class="new" x="110" y="496" width="440" height="48" rx="6"/>
+  <text class="t" x="330" y="516">Cross-encoder rerank · bge-reranker-v2-m3</text>
+  <text class="s" x="330" y="533">EN + DE · score + α·aspect_score (α = 0.1) → top-3</text>
+
+  <!-- ── Index build (offline) ──────────────────────────── -->
+  <rect class="off" x="645" y="350" width="290" height="56" rx="6"/>
+  <text class="t" x="790" y="372">Index build (offline)</text>
+  <text class="s" x="790" y="390">train tickets → BGE-M3 FAISS + BM25 index</text>
+  <path class="ad" d="M645,378 H592"/>
+
+  <!-- ── CRAG router (NEW) ──────────────────────────────── -->
+  <path class="a" d="M330,544 V590"/>
+  <rect class="new" x="180" y="592" width="300" height="48" rx="24"/>
+  <text class="t" x="330" y="612">CRAG router · NEW</text>
+  <text class="s" x="330" y="629">top rerank score ≥ τ ?  (τ tuned on validation)</text>
+
+  <path class="a" d="M260,640 V660 H180 V678"/>
+  <path class="a" d="M400,640 V660 H480 V678"/>
+  <text class="lbl" x="200" y="655" text-anchor="end">yes · keep context</text>
+  <text class="lbl" x="460" y="655">no · drop context</text>
+
+  <rect class="new" x="60" y="680" width="240" height="50" rx="6"/>
+  <text class="t" x="180" y="700">RAG + aspects prompt</text>
+  <text class="s" x="180" y="717">top-k context · aspect slots · reply language</text>
+
+  <rect class="new" x="360" y="680" width="240" height="50" rx="6"/>
+  <text class="t" x="480" y="700">Aspect-only prompt</text>
+  <text class="s" x="480" y="717">empty context · aspect slots · reply language</text>
+
+  <path class="a" d="M180,730 V752 H330 V773"/>
+  <path class="ln" d="M480,730 V752 H330"/>
+
+  <!-- ── Generator (NEW) ────────────────────────────────── -->
+  <rect class="new" x="100" y="775" width="460" height="60" rx="6" style="stroke-width:2"/>
+  <text class="t" x="330" y="798">Generator · Gemma-3-4B-it (multilingual)</text>
+  <text class="s" x="330" y="816">+ Aspect-RAFT LoRA adapter · 4-bit (Unsloth) · stops at &lt;end_of_turn&gt;</text>
+
+  <path class="a" d="M330,835 V860"/>
+  <rect class="io" x="170" y="862" width="320" height="34" rx="17"/>
+  <text class="t" x="330" y="884">Final response (same language as ticket)</text>
+
+  <path class="a" d="M330,896 V923"/>
+  <rect class="old" x="60" y="925" width="540" height="56" rx="6" style="fill:#f6f1fa;stroke:#8a6aa8"/>
+  <text class="t" x="330" y="946">Evaluation · 500-ticket stratified sample (250 EN / 250 DE)</text>
+  <text class="s" x="330" y="964">ROUGE (Unicode) · sacreBLEU · BERTScore (XLM-R) · lang_match · paired bootstrap 95% CI</text>
+
+  <!-- ── Aspect-RAFT training (offline, NEW) ────────────── -->
+  <rect class="grp-off" x="645" y="455" width="290" height="393" rx="8"/>
+  <text class="g" x="657" y="473" fill="#b07d2b">Aspect-RAFT training · offline · NEW</text>
+
+  <rect class="new" x="665" y="494" width="250" height="46" rx="6"/>
+  <text class="t" x="790" y="513">Train sample (3,000)</text>
+  <text class="s" x="790" y="529">tickets + aspects + gold answers</text>
+  <path class="a" d="M790,540 V564"/>
+
+  <rect class="new" x="665" y="566" width="250" height="46" rx="6"/>
+  <text class="t" x="790" y="585">Retrieve context (same retriever)</text>
+  <text class="s" x="790" y="601">own ticket + near-duplicates excluded</text>
+  <path class="a" d="M790,612 V636"/>
+
+  <rect class="new" x="665" y="638" width="250" height="46" rx="6"/>
+  <text class="t" x="790" y="657">RAFT mixing</text>
+  <text class="s" x="790" y="673">20% distractor-only · 20% without aspects</text>
+  <path class="a" d="M790,684 V708"/>
+
+  <rect class="new" x="665" y="710" width="250" height="46" rx="6"/>
+  <text class="t" x="790" y="729">QLoRA fine-tune</text>
+  <text class="s" x="790" y="745">Unsloth · r = 16 · 1 epoch · response-only loss</text>
+  <path class="a" d="M790,756 V780"/>
+
+  <rect class="new" x="665" y="782" width="250" height="46" rx="6"/>
+  <text class="t" x="790" y="801">LoRA adapter</text>
+  <text class="s" x="790" y="817">saved + pushed to HF Hub</text>
+  <path class="ad" d="M665,805 H562"/>
+
+  <!-- same retriever / prompt builder link -->
+  <path class="ad" d="M550,520 C 600,520 610,589 663,589"/>
+
+  <!-- ── Legend ─────────────────────────────────────────── -->
+  <text class="t" x="657" y="890" style="text-anchor:start">Legend</text>
+  <rect class="new" x="657" y="902" width="26" height="14" rx="3"/>
+  <text class="s" x="692" y="913" style="text-anchor:start">new in v3</text>
+  <rect class="old" x="790" y="902" width="26" height="14" rx="3"/>
+  <text class="s" x="825" y="913" style="text-anchor:start">unchanged</text>
+  <rect class="off" x="657" y="928" width="26" height="14" rx="3"/>
+  <text class="s" x="692" y="939" style="text-anchor:start">offline (training / indexing)</text>
+  <path class="a" d="M657,962 H685"/>
+  <text class="s" x="692" y="966" style="text-anchor:start">inference flow</text>
+  <path class="ad" d="M790,962 H818"/>
+  <text class="s" x="825" y="966" style="text-anchor:start">offline artefact</text>
+</svg>

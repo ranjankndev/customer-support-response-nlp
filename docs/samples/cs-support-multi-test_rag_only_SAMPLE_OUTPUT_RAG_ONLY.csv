@@ -1,0 +1,115 @@
+idx,language,subject,answer,generated_answer,sentiment,severity,rag_only_prompt,rag_only_response,rag_only_length,n_retrieved
+0,en,Detected Unauthorized Access to Hospital System Following Phishing Incident,"<name>, please take the security of the hospital's system seriously and appreciate the prompt notification. Our team will review the user access logs and the audit results to determine the extent of the incident. We will investigate to prevent future occurrences. Kindly provide details of the phishing incident and the timestamp of when the affected user account was impacted. If necessary, contact <tel_num> for further discussion.","We understand there has been an attempted unauthorized access following a phishing incident targeting our patient data.  Please share any relevant details from the audit process for review. Our priority is ensuring all necessary actions are taken to prevent future incidents. If needed, contact us via phone number <tel_ num>.   
+
+
+Let me know if I can help clarify anything else!",neutral,critical,"Write a concise customer support reply (under 150 words). No markdown headers, bullet points, or invented examples.
+Sentiment: neutral (compound=0.000)
+Severity : critical
+The response MUST directly address: . 
+
+Aspects : GENERAL
+Context : [1] Subject: Detected Unauthorized Access to Hospital Systems
+     Response: We appreciate the prompt action taken by the team to address the unauthorized access attempt detected in the hospital's systems. To assist with the investigation, could you please provide information on the outdated security protocols that may have contributed to the issue? Additionally, we would like to schedule a follow-up call to discuss this matter further at your earliest convenience.
+[2] Subject: Detected Unauthorized Entry into Hospital Networks
+     Response: We received a notification regarding unauthorized access to the hospital's systems. Please escalate this incident to the security team. For further assistance, kindly provide details of the breach and the measures already taken. Contact <tel_num> to discuss the next steps in resolving this matter.
+[3] Subject: Unauthorized Access Detected in Hospital Systems
+     Response: You received an email regarding unauthorized access to the hospital's systems. Please forward this incident to the security team. To assist further, could you provide additional details about the incident and the measures already taken? Contact <tel_num> to discuss the next steps in resolving the problem.
+Subject : Detected Unauthorized Access to Hospital System Following Phishing Incident
+Message : There was an unauthorized access attempt on the hospital's system, triggered by a phishing incident. Security protocols have been activated, and user access logs have been audited.
+Support reply:","We understand there has been an attempted unauthorized access following a phishing incident targeting our patient data.  Please share any relevant details from the audit process for review. Our priority is ensuring all necessary actions are taken to prevent future incidents. If needed, contact us via phone number <tel_ num>.   
+
+
+Let me know if I can help clarify anything else!",60,3
+1,de,Klage über geringe Beteiligung an digitalen Strategien für Markenwachstum bei Markenagentur,"Sehr geehrte/n [Name],\n\nich verstehe, dass die Markenagentur über eine geringe Beteiligung an digitalen Strategien für Markenwachstum klagt. Um Ihnen besser zu helfen, würde ich einen Anruf vereinbaren, um die Angelegenheit genauer zu besprechen. Könnten Sie bitte eine geeignete Zeit für den Anruf angeben? Bitte geben Sie auch Ihre Anrufsprechnummer an, damit ich Fragen stellen und mehr über die Kampagnenmetriken und bisherigen Anpassungen erfahren kann. Zusammen können wir die Ursache der Probleme identifizieren und effektive Lösungen finden, um die Beteiligung und die Erreichung der Markenwachstumsziele zu verbessern.\n\nMit freundlichen Grüßen,\n[Your Name]","We understand your concern about the limited progress in implementing digital growth strategies for brand development. To better assist you, we would appreciate it if you could provide more details regarding the campaigns conducted, including segmentation and tactics used as well as metrics employed to measure engagement. This information will help us gain a clearer understanding of the situation and offer effective solutions. We are committed to working with you towards achieving positive results.  
+
+
+Let's schedule a call so that we can discuss this further and find appropriate solutions together.",neutral,low,"Write a concise customer support reply (under 150 words). No markdown headers, bullet points, or invented examples.
+Sentiment: neutral (compound=0.000)
+Severity : low
+The response MUST directly address: . 
+
+Aspects : GENERAL
+Context : [1] Subject: Besorgnis um die Digitalen Wachstumsstrategien
+     Response: Sehr geehrte [Name],\n\nich teile Ihre Bedenken bezüglich der mangelnden Fortschrittsmäßigkeit der digitalen Strategien, die zur Markenentwicklung beitragen sollen. Ich schätze Ihre aktive Anfrage, um unsere aktuelle Strategie zu überprüfen und Bereiche zur Verbesserung zu identifizieren. Um die Situation besser zu verstehen und effektive Lösungen anzubieten, benötigen wir zusätzliche Informationen. Könnten Sie bitte mehr Details zu den durchgeführten Kampagnen geben, einschließlich der Segmentierung und Taktiken, die verwendet wurden, sowie den Metriken, die das Engagement gemessen haben? Das hilft uns, eine präzisere Einschätzung zu gewinnen.\n\nMit freundlichen Grüßen,\n[Ihr Name]
+[2] Subject: Angst um den Markenagenturwachstum - digitaler Strategie-Anpassungen bedarf es
+     Response: Ich verstehe Ihre Besorgnis bezüglich der digitalen Strategien der Markenagentur. Um Ihnen besser zu helfen, möchte ich gerne Details der Analyse und Anpassungen der Werbeausgaben besprechen. Bitte bereiten Sie weitere Informationen vor, und wir können eine Telefonkonferenz vereinbaren, um das Problem genauer zu untersuchen und eine Lösung zu finden.
+[3] Subject: Untersuchung Abnahme der Beteiligung bei digitaler Strategie-Kampagne der Markenagentur
+     Response: Wir untersuchen die Abnahme der Beteiligung bei der digitalen Strategie-Kampagne der Markenagentur. Um Ihnen besser zu helfen, bitten wir Sie, mehr Details über die überprüften Kampagnen-Einstellungen bereitzustellen und die Kontaktaufnahme zur Unterstützung zu unterstützen. Zusätzlich wäre es hilfreich, zu wissen, wann die Abnahme begonnen hat. Außerdem benötigen wir Kontoinformationen wie die Kontonummer, um das Problem schneller zu lösen und eine mögliche Lösung anzubieten.
+Subject : Klage über geringe Beteiligung an digitalen Strategien für Markenwachstum bei Markenagentur
+Message : Markenagentur beklagt sich über geringe Beteiligung an digitalen Strategien für Markenwachstum. Unscheinbares Zielgruppenmarketing und unangebracht Inhalte könnten Ursache sein. Kampagnenmetriken wurden analysiert, Social-Media-Veröffentlichungszeiten angepasst, jedoch keine signifikanten Verbesserungen beobachtet. Weitere Analyse erforderlich, um Ursache zu identifizieren und effektive Lösungen umzusetzen.
+Support reply:","We understand your concern about the limited progress in implementing digital growth strategies for brand development. To better assist you, we would appreciate it if you could provide more details regarding the campaigns conducted, including segmentation and tactics used as well as metrics employed to measure engagement. This information will help us gain a clearer understanding of the situation and offer effective solutions. We are committed to working with you towards achieving positive results.  
+
+
+Let's schedule a call so that we can discuss this further and find appropriate solutions together.",90,3
+2,en,Report Security Breach Incident,"<name> takes the report of the potential security breach seriously and will assist in resolving it as soon as possible. To better understand the situation and provide immediate assistance, please provide information about the incident, including the date and time it was first detected, and any error messages received. <name> would like to schedule a call at the earliest convenience to discuss the issue in detail and determine the appropriate course of action. Please let us know a suitable time for the call at <tel_num>.",We understand this situation requires immediate attention.  Please share any available logs from attempted restarts/antivirus scans along with specific dates & times related to these incidents. This will help our investigation into the nature of the problem and determine appropriate next steps. Our priority is ensuring patient privacy and safety; please keep all communication regarding ongoing efforts confidential until resolved.,neutral,critical,"Write a concise customer support reply (under 150 words). No markdown headers, bullet points, or invented examples.
+Sentiment: neutral (compound=0.000)
+Severity : critical
+The response MUST directly address: . 
+
+Aspects : GENERAL
+Context : [1] Subject: Security Incident Report
+     Response: <name>, it is crucial to treat the potential security breach involving the hospital's medical data systems with utmost seriousness. We acknowledge the preliminary measures taken, such as conducting system scans and changing passwords. To thoroughly investigate and resolve the incident, we need detailed information about the suspected malware or hacking attempt, including the date and time when the first error messages appeared. Kindly provide a comprehensive account of the events that led to the discovery of the breach and the actions taken afterward. Thank you.
+[2] Subject: Incident Reported: Potential Security Breach
+     Response: We have received a report concerning a potential security breach. The security team will escalate the issue for further examination. Please provide additional details about the unauthorized access attempts to facilitate a thorough analysis.
+[3] Subject: Urgent Security Breach Report
+     Response: We have received your report of a security incident involving unauthorized access to sensitive medical data. We will investigate the matter and provide a detailed action plan. Please let us know a convenient time for a call to discuss further.
+Subject : Report Security Breach Incident
+Message : A customer has reported a potential security breach affecting medical data in hospital systems. There is a possibility of a malware intrusion attempt. Attempts to restart systems and run antivirus scans have been unsuccessful, and the issue continues to persist. Immediate assistance is needed to resolve the matter.
+Support reply:",We understand this situation requires immediate attention.  Please share any available logs from attempted restarts/antivirus scans along with specific dates & times related to these incidents. This will help our investigation into the nature of the problem and determine appropriate next steps. Our priority is ensuring patient privacy and safety; please keep all communication regarding ongoing efforts confidential until resolved.,60,3
+3,en,Query Concerning Cubase Software,We will review your inquiry regarding Cubase software and provide detailed information on its applications for investment analytics. Please allow us to call for a convenient time to discuss this further.,"We are happy to help!  Cubase's capabilities extend beyond traditional music production; we offer robust tools that facilitate financial analysis through our comprehensive suite of features. To learn more about specific use cases and integrations, please schedule a brief consultation so we can tailor our explanation to meet your needs. Our team is ready to answer all your questions.   
+
+
+Let me know what time works best for you.",neutral,medium,"Write a concise customer support reply (under 150 words). No markdown headers, bullet points, or invented examples.
+Sentiment: neutral (compound=0.000)
+Severity : medium
+The response MUST directly address: . 
+
+Aspects : GENERAL
+Context : [1] Subject: Query Regarding Cubase Software
+     Response: We will review your inquiry regarding Cubase software for investment analytics and provide detailed information with examples of successful implementations. Please allow us to call you for a more convenient discussion.
+[2] Subject: Query About Compatibility of Integration
+     Response: Thank you <n>e investment analytics platform. The platform offers a RESTful API along with a dedicated Python SDK, facilitating effortless connection to Python-based machine learning models. For real-time analytics and rule-based strategies, it supports streaming data connections via WebSocket and provides sample scripts for integrating live data within Python environments. We recommend using asynchronous calls to optimize resource management during real-time operations.
+[3] Subject: Inquiry Regarding Cubase Software
+     Response: We will review your inquiry regarding the Cubase software application for investment analytics and respond with detailed information, including examples of successful implementations, at your convenience. Please allow us to discuss further.
+Subject : Query Concerning Cubase Software
+Message : Hello Support Team, I am interested in learning about the potential applications of Cubase software for investment analytics. Could you provide detailed specifications and integration options? I would like to know more about how it can be used for analyzing and visualizing data, as well as any potential customization options available. Additionally, could you provide information on its compatibility with various systems and available tutorials and support resources? Your timely assistance is greatly appreciated, and I look forward to hearing back soon. Thank you.
+Support reply:","We are happy to help!  Cubase's capabilities extend beyond traditional music production; we offer robust tools that facilitate financial analysis through our comprehensive suite of features. To learn more about specific use cases and integrations, please schedule a brief consultation so we can tailor our explanation to meet your needs. Our team is ready to answer all your questions.   
+
+
+Let me know what time works best for you.",68,3
+4,en,Request for Assistance with Digital Brand Expansion Strategies,"<name>, thank you for your email. Please provide case studies of successful digital brand growth campaigns, including the metrics used to measure their success. We can also discuss how our services can support your brand's online expansion. If convenient, I am available for a call at <tel_num> to go over your requirements in detail.","Thank you for reaching out! We are happy to help you explore our service offerings related to digital brand expansion. To better understand your needs, could we schedule a brief phone call where we can delve into specifics regarding your goals and desired outcomes?  Please let me know what time works best for you by calling <tel_number>.   
+
+
+Let me know if this is helpful. If not, feel free to ask anything else. 😊",neutral,low,"Write a concise customer support reply (under 150 words). No markdown headers, bullet points, or invented examples.
+Sentiment: neutral (compound=0.000)
+Severity : low
+The response MUST directly address: . 
+
+Aspects : GENERAL
+Context : [1] Subject: Request for Assistance with Digital Brand Expansion
+     Response: <name>, thank you <n>ccessful digital brand growth campaigns, including the metrics used to measure success. I would also like to discuss how your services can support my brand's online expansion. Would you be available for a call at <tel_num> to go over the requirements in detail?
+[2] Subject: Assistance with Digital Brand Expansion Techniques
+     Response: <name>, thank you <n>. I am pleased to provide the information you requested. Please allow us to call <tel_num> to discuss your questions about the software products that can improve your online presence.
+[3] Subject: Customer Assistance
+     Response: Let's discuss your digital strategies and expected results for brand growth. Please permit us to arrange a call to provide further details.
+Subject : Request for Assistance with Digital Brand Expansion Strategies
+Message : Customer Support, I am seeking information on strategies for growing a digital brand through your services. Could you please share detailed case studies showcasing successful campaigns that utilized specific tools to boost brand visibility and engagement? I am particularly interested in learning about the methods and techniques employed to achieve substantial growth in the digital space. Additionally, I would appreciate any information on the metrics used to evaluate the success of these campaigns. I look forward to your response.
+Support reply:","Thank you for reaching out! We are happy to help you explore our service offerings related to digital brand expansion. To better understand your needs, could we schedule a brief phone call where we can delve into specifics regarding your goals and desired outcomes?  Please let me know what time works best for you by calling <tel_number>.   
+
+
+Let me know if this is helpful. If not, feel free to ask anything else. 😊",73,3
+5,de,Support for GIMP Required,I am pleased to assist with optimizing GIMP for data analysis. Please provide more context on specific requirements and needs to better support the investment sector.,"We'd be happy to help optimize GIMP for use with financial data analysis. To best tailor our assistance, could you tell us what aspects of GIMP are causing challenges within an investment setting?  Please also share any relevant information regarding your workflow and desired outcomes.   Let me know if there is anything else that might be helpful.",neutral,low,"Write a concise customer support reply (under 150 words). No markdown headers, bullet points, or invented examples.
+Sentiment: neutral (compound=0.000)
+Severity : low
+The response MUST directly address: . 
+
+Aspects : GENERAL
+Context : [1] Subject: Assistance Required for GIMP
+     Response: I would be glad to assist in optimizing GIMP for data analytics. Please provide more details about your specific needs to better assist in the investment context.
+[2] Subject: Support Required for Investment Analytics Optimization
+     Response: <name>, please review the request for optimizing investment analytics using Wolfram Mathematica and Elasticsearch 7.13. Kindly provide recommendations to improve performance and allow us to contact you at <tel_num> for further discussion.
+[3] Subject: Support in Data Analytics
+     Response: We can provide guidance on using data analytics for investment optimization. Please provide details about your current setup and specific requirements so we can offer tailored support and determine the next steps for you.
+Subject : Support for GIMP Required
+Message : Could you provide guidelines on optimizing GIMP for data analysis in the investment sector? Thank you!
+Support reply:","We'd be happy to help optimize GIMP for use with financial data analysis. To best tailor our assistance, could you tell us what aspects of GIMP are causing challenges within an investment setting?  Please also share any relevant information regarding your workflow and desired outcomes.   Let me know if there is anything else that might be helpful.",57,3

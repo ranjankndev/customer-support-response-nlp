@@ -1,0 +1,23 @@
+{
+  "0": "response_generator_v2.py",
+  "1": "retriever.py",
+  "2": "ProgressCallback",
+  "3": "utils.py",
+  "4": "indexer.py",
+  "5": "aspect_extractor.py",
+  "6": "baseline_t5.py",
+  "7": "preprocessing.py",
+  "8": "File Descriptions",
+  "9": "AspectForge v3 — Minimal Run on Kaggle (end-to-end plan)",
+  "10": "BaselineGenerator",
+  "11": "AspectForge v3 — Progress",
+  "12": "Profiler",
+  "13": "AspectForge — Claude Code instructions",
+  "14": ".claude/CLAUDE.md",
+  "15": "LINKS.md",
+  "16": "aspect/__init__.py",
+  "17": "baseline/__init__.py",
+  "18": "generation/__init__.py",
+  "19": "src/__init__.py",
+  "20": "retrieval/__init__.py"
+}

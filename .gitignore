@@ -17,3 +17,15 @@ __pycache__/
 *.pyo
 .env
 *.log
+# keep the 10-record samples (test fixtures)
+!docs/samples/*.csv
+
+# graphify: keep graph + report, skip cache/backups
+graphify-out/cache/
+graphify-out/20*/
+
+# kaggle run downloads
+runs/
+
+# local only (contains personal details; not published)
+docs/report/

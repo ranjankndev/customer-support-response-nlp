@@ -1,0 +1,194 @@
+{
+  ".claude/settings.json": {
+    "mtime": 1791169694.165395,
+    "seen": 1791169706.3154411,
+    "ast_hash": "f771a9d154d48e645a10345624bdb897",
+    "semantic_hash": ""
+  },
+  "preprocessing.py": {
+    "mtime": 1791169221.1049821,
+    "seen": 1791169417.4103472,
+    "ast_hash": "745aa7d1f549c17583b4b0f43bf3e8fa",
+    "semantic_hash": ""
+  },
+  "src/__init__.py": {
+    "mtime": 1791169221.1062458,
+    "seen": 1791169417.4103472,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": ""
+  },
+  "src/aspect/__init__.py": {
+    "mtime": 1791169221.1062458,
+    "seen": 1791169417.4103472,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": ""
+  },
+  "src/aspect/aspect_extractor.py": {
+    "mtime": 1791169221.1072695,
+    "seen": 1791169417.4103472,
+    "ast_hash": "e04c13f3237a0d6f4d9ce89411c39103",
+    "semantic_hash": ""
+  },
+  "src/baseline/__init__.py": {
+    "mtime": 1791169221.108271,
+    "seen": 1791169417.4103472,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": ""
+  },
+  "src/baseline/baseline_t5.py": {
+    "mtime": 1791169221.108271,
+    "seen": 1791169417.4103472,
+    "ast_hash": "02e0c2305141c34ce15ee7c8e73c884c",
+    "semantic_hash": ""
+  },
+  "src/generation/__init__.py": {
+    "mtime": 1791169221.108271,
+    "seen": 1791169417.4103472,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": ""
+  },
+  "src/generation/response_generator_v2.py": {
+    "mtime": 1791169221.1097393,
+    "seen": 1791169417.4103472,
+    "ast_hash": "c76243fd0a33b4d028106a49107da7c7",
+    "semantic_hash": ""
+  },
+  "src/preprocessing.py": {
+    "mtime": 1791169322.8101192,
+    "seen": 1791169417.4103472,
+    "ast_hash": "ca50ecdf9089e4e2b6a99590e846470c",
+    "semantic_hash": ""
+  },
+  "src/retrieval/__init__.py": {
+    "mtime": 1791169221.1107652,
+    "seen": 1791169417.4103472,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": ""
+  },
+  "src/retrieval/indexer.py": {
+    "mtime": 1791169221.1107652,
+    "seen": 1791169417.4103472,
+    "ast_hash": "5d5656def96fbc916988445354d36f6d",
+    "semantic_hash": ""
+  },
+  "src/retrieval/inference_retriever.py": {
+    "mtime": 1791169221.1117654,
+    "seen": 1791169417.4103472,
+    "ast_hash": "ad8da990f4aa47c405c255306b6007cd",
+    "semantic_hash": ""
+  },
+  "src/retrieval/retriever.py": {
+    "mtime": 1791169221.1127608,
+    "seen": 1791169417.4103472,
+    "ast_hash": "32b5394692bfb2dc09f7e8b2bc93eaba",
+    "semantic_hash": ""
+  },
+  "src/step1_silver_labels.py": {
+    "mtime": 1791169221.1127608,
+    "seen": 1791169417.4103472,
+    "ast_hash": "ddac336d8f436497b03d9abf1f1471cb",
+    "semantic_hash": ""
+  },
+  "src/step2_sft.py": {
+    "mtime": 1791169221.1137602,
+    "seen": 1791169417.4103472,
+    "ast_hash": "00facf88e296e46d7c15754a9dfc7c13",
+    "semantic_hash": ""
+  },
+  "src/utils.py": {
+    "mtime": 1791169221.1147642,
+    "seen": 1791169417.4103472,
+    "ast_hash": "58411e7794c5cfb8d78ca300ab5d002c",
+    "semantic_hash": ""
+  },
+  ".claude/CLAUDE.md": {
+    "mtime": 1791169401.026542,
+    "seen": 1791169417.4103472,
+    "ast_hash": "9b31786b637be3c13978bec4c2330752",
+    "semantic_hash": ""
+  },
+  "CLAUDE.md": {
+    "mtime": 1791169672.846609,
+    "seen": 1791169706.3164506,
+    "ast_hash": "c183b565222979574ae0d8ea379478d3",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1791169221.1008716,
+    "seen": 1791169417.4103472,
+    "ast_hash": "01bf9cad6ba91fabc0c5dd12b6d17bf1",
+    "semantic_hash": ""
+  },
+  "UPGRADE_PLAN.md": {
+    "mtime": 1791169632.1836312,
+    "seen": 1791169706.3164506,
+    "ast_hash": "3f844fbb747b2f9d861cf9336a6ca956",
+    "semantic_hash": ""
+  },
+  "config/config_asp_sft.yaml": {
+    "mtime": 1791169221.1022513,
+    "seen": 1791169417.4103472,
+    "ast_hash": "697923802a79a2dfb1e2778b4f1c5d70",
+    "semantic_hash": ""
+  },
+  "config/config_preprocess.yaml": {
+    "mtime": 1791169221.102765,
+    "seen": 1791169417.4103472,
+    "ast_hash": "175a754d6f81fbb4e9481695ac4fec16",
+    "semantic_hash": ""
+  },
+  "config/generation_config.yaml": {
+    "mtime": 1791169221.1037858,
+    "seen": 1791169417.4103472,
+    "ast_hash": "aa13291fe343bd2af3f839062db96d8b",
+    "semantic_hash": ""
+  },
+  "config/inference_retrieval_config.yaml": {
+    "mtime": 1791169221.1037858,
+    "seen": 1791169417.4103472,
+    "ast_hash": "f0d0a87a81b330df6a4ce8272da5655f",
+    "semantic_hash": ""
+  },
+  "config/retrieval_config.yaml": {
+    "mtime": 1791169221.1049821,
+    "seen": 1791169417.4103472,
+    "ast_hash": "d5baddc0bad235fa35e22ce27f2405d1",
+    "semantic_hash": ""
+  },
+  "docs/LINKS.md": {
+    "mtime": 1791169322.9918845,
+    "seen": 1791169417.4103472,
+    "ast_hash": "3829a1e9c1029924851db1acdd438298",
+    "semantic_hash": ""
+  },
+  "requirements.txt": {
+    "mtime": 1791169221.1049821,
+    "seen": 1791169417.4103472,
+    "ast_hash": "66bbf23530d84247efb9683b392b8bea",
+    "semantic_hash": ""
+  },
+  "docs/report/AspectForge_Report.pdf": {
+    "mtime": 1791169322.8884475,
+    "seen": 1791169417.4103472,
+    "ast_hash": "e515f9c66d77ad143ec8a7ee8e76cb32",
+    "semantic_hash": ""
+  },
+  "docs/architecture_v3.png": {
+    "mtime": 1791169322.7189703,
+    "seen": 1791169417.4103472,
+    "ast_hash": "9a6b52f434bc240f24489c96988f5c3f",
+    "semantic_hash": ""
+  },
+  "docs/architecture_v3.svg": {
+    "mtime": 1791169322.7344203,
+    "seen": 1791169417.4103472,
+    "ast_hash": "447840e057ed9a93d86674a470a3abe7",
+    "semantic_hash": ""
+  },
+  "PROGRESS.md": {
+    "mtime": 1791169672.9318414,
+    "seen": 1791169706.3164506,
+    "ast_hash": "d4e79bc51f347de59236fb002cd28ded",
+    "semantic_hash": ""
+  }
+}
