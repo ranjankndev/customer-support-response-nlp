@@ -706,7 +706,33 @@ def build_aspect_checklist(spans: Dict) -> str:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 9. FILE LOADER
+# 9. PROMPT BUDGET  (plan §5.3)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def fit_prompt(build_fn, retrieved, count_tokens, max_tokens):
+    """
+    Build the longest prompt that fits the budget, dropping the lowest-ranked
+    retrieved document at a time. Returns (prompt, n_docs_used).
+
+    The generator used to pass `truncation=True, max_length=2048` to the
+    tokenizer, which cut prompts mid-context and sometimes removed the final
+    "Support reply:" line, so the model had nothing to answer. Dropping whole
+    documents keeps the instruction and the ticket intact.
+
+    RAFT build uses this too, so a training prompt is identical to the prompt the
+    same row gets at inference.
+    """
+    docs = list(retrieved or [])
+    while True:
+        prompt = build_fn(docs)
+        # 16 tokens of headroom for the chat template's own wrapper
+        if count_tokens(prompt) + 16 <= max_tokens or not docs:
+            return prompt, len(docs)
+        docs = docs[:-1]
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 10. FILE LOADER
 # ─────────────────────────────────────────────────────────────────────────────
 
 def load_csv_or_excel(path: str, **kwargs) -> pd.DataFrame:
@@ -720,7 +746,7 @@ def load_csv_or_excel(path: str, **kwargs) -> pd.DataFrame:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 10. CHECKPOINTER
+# 11. CHECKPOINTER
 # ─────────────────────────────────────────────────────────────────────────────
 
 class Checkpointer:
@@ -761,7 +787,7 @@ class Checkpointer:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 11. COMPARISON TABLE
+# 12. COMPARISON TABLE
 # ─────────────────────────────────────────────────────────────────────────────
 
 def compare_models(results: Dict[str, pd.DataFrame],

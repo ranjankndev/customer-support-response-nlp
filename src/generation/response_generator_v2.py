@@ -426,43 +426,34 @@ def maybe_merge_aspects_file(df: pd.DataFrame, aspects_path: str) -> pd.DataFram
 # ─────────────────────────────────────────────────────────────────────────────
 
 def load_model(config: GenerationConfig):
-    from transformers import (AutoTokenizer, AutoModelForCausalLM,
-                               AutoModelForSeq2SeqLM, BitsAndBytesConfig)
+    """
+    Thin wrapper around model_backend.load_generator (plan §5.2).
 
-    token    = get_hf_token()
-    seq2seq  = any(config.model_id.lower().startswith(p)
-                   for p in ("t5", "flan", "bart", "mt5"))
-    ModelCls = AutoModelForSeq2SeqLM if seq2seq else AutoModelForCausalLM
+    Returns (tok, model, seq2seq) for the existing call sites; the chat function
+    is cached on the model so generate_batch can reuse it.
+    """
+    from src.generation.model_backend import load_generator
 
-    log.info(f"[Generator] Loading {config.model_id}  4bit={config.use_4bit}")
-
-    if config.use_4bit:
-        bnb = BitsAndBytesConfig(
-            load_in_4bit              = True,
-            bnb_4bit_compute_dtype    = torch.bfloat16,  # bfloat16 for gemma-2
-            bnb_4bit_use_double_quant = True,
-            bnb_4bit_quant_type       = "nf4",
-        )
-        model = ModelCls.from_pretrained(
-            config.model_id, quantization_config=bnb,
-            device_map="auto", token=token,
-        )
-    else:
-        dtype = {"bfloat16": torch.bfloat16,
-                 "float16" : torch.float16,
-                 "float32" : torch.float32}.get(config.torch_dtype, torch.float16)
-        model = ModelCls.from_pretrained(
-            config.model_id, torch_dtype=dtype,
-            device_map="auto", token=token,
+    seq2seq = any(config.model_id.lower().startswith(p)
+                  for p in ("t5", "flan", "bart", "mt5"))
+    if seq2seq:
+        raise ValueError(
+            f"{config.model_id} is a seq2seq model; use --mode t5_base "
+            f"(load_extra_model) for those. The minimal run is decoder-only."
         )
 
-    tok = AutoTokenizer.from_pretrained(config.model_id, token=token)
-    if tok.pad_token is None:
-        tok.pad_token = tok.eos_token
-
-    model.eval()
-    log.info(f"[Generator] Ready | seq2seq={seq2seq}")
-    return tok, model, seq2seq
+    tok, model, chat_fn = load_generator(
+        model_id     = config.model_id,
+        backend      = config.backend,
+        use_4bit     = config.use_4bit,
+        adapter_path = config.adapter_path,
+        max_seq_len  = max(config.max_input_tokens + config.max_new_tokens, 1024),
+        attn_impl    = config.attn_implementation,
+        torch_dtype  = config.torch_dtype,
+        token        = get_hf_token() or None,
+    )
+    model._aspectforge_chat_fn = chat_fn
+    return tok, model, False
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -540,7 +531,11 @@ def build_aspect_only_prompt(row: pd.Series, spans: Dict,
     if style == "checklist":
         from src.utils import build_aspect_checklist
 
+        from src.retrieval.retriever import reply_language_line
+
         checklist = build_aspect_checklist(spans)
+        want_language_line = bool(getattr(config, "reply_language_instruction",
+                                          True)) if config is not None else True
         return (
             "Write a concise, professional customer support reply. "
             "Keep the reply under 150 words. "
@@ -549,7 +544,8 @@ def build_aspect_only_prompt(row: pd.Series, spans: Dict,
             + (f"{checklist}\n" if checklist else "")
             + f"\nSubject  : {subject}\n"
             f"Message  : {body}\n\n"
-            "Support reply:"
+            + (f"{reply_language_line(lang)}\n" if want_language_line else "")
+            + "Support reply:"
         )
 
     # ── legacy slot dump (aspect_prompt_style: slots) ─────────────────────────
@@ -569,8 +565,9 @@ def build_aspect_only_prompt(row: pd.Series, spans: Dict,
         f"{enforce}\n\n"
         f"Aspects  : {asp_str}\n"
         f"{extra}"
-        f"Sentiment: {sentiment} (compound={sent_compound:.3f})\n"
-        f"Urgency  : {urgency_line}\n"
+        + ("" if sentiment == "n/a" else
+           f"Sentiment: {sentiment} (compound={sent_compound:.3f})\n")
+        + f"Urgency  : {urgency_line}\n"
         f"Subject  : {subject}\n"
         f"Message  : {body}\n\n"
         "Support reply:"
@@ -602,52 +599,27 @@ def _apply_chat_template(tok, prompts: List[str], seq2seq: bool) -> List[str]:
 
 
 def generate_batch(prompts: List[str], tok, model, config: GenerationConfig,
-                   seq2seq: bool) -> List[str]:
+                   seq2seq: bool = False, row_ids: Optional[List] = None
+                   ) -> List[str]:
     """
-    Batched generation — tokenize all prompts together, single model.generate() call.
-    Left-pads so all sequences are aligned on the right (required for causal LMs).
+    Thin wrapper around model_backend.generate (plan §5.2).
+
+    No truncation (the prompt budget is applied when the prompt is built), one
+    <bos>, and the repetition settings come from the config instead of the
+    hard-coded 1.3 / 4 that used to clip legitimate repeated phrasing.
     """
-    prompts = _apply_chat_template(tok, prompts, seq2seq)
+    from src.generation.model_backend import generate as backend_generate
 
-    dev = config.device
-    try:
-        dev = str(next(model.parameters()).device)
-    except Exception:
-        pass
-
-    # Left-padding for causal LM batch decoding
-    orig_padding_side = tok.padding_side
-    tok.padding_side = "left"
-
-    inputs = tok(
-        prompts,
-        return_tensors="pt",
-        padding=True,
-        truncation=True,
-        max_length=2048,   # 2048 safe for gemma-2 — 4096 risks CUDA OOM at batch>1
-    ).to(dev)
-
-    tok.padding_side = orig_padding_side
-
-    gen_kw = dict(
-        max_new_tokens      = config.max_new_tokens,
-        do_sample           = config.do_sample,
-        pad_token_id        = tok.eos_token_id,
-        repetition_penalty  = 1.3,   # PT models loop without this — penalises
-                                     # repeated token sequences during generation
-        no_repeat_ngram_size= 4,     # hard-blocks any 4-gram from repeating
+    return backend_generate(
+        prompts, tok, model,
+        chat_fn              = getattr(model, "_aspectforge_chat_fn", None),
+        max_new_tokens       = config.max_new_tokens,
+        do_sample            = config.do_sample,
+        repetition_penalty   = config.repetition_penalty,
+        no_repeat_ngram_size = config.no_repeat_ngram_size,
+        max_input_tokens     = config.max_input_tokens,
+        row_ids              = row_ids,
     )
-    with torch.no_grad():
-        out = model.generate(**inputs, **gen_kw)
-
-    results = []
-    for i, seq in enumerate(out):
-        if seq2seq:
-            results.append(tok.decode(seq, skip_special_tokens=True).strip())
-        else:
-            new_tokens = seq[inputs["input_ids"].shape[1]:]
-            results.append(tok.decode(new_tokens, skip_special_tokens=True).strip())
-    return results
 
 
 def generate_one(prompt: str, tok, model, config: GenerationConfig,
@@ -684,12 +656,18 @@ def extract_sentiment_severity(body: str, language: str) -> tuple[str, str, floa
     """
     text = (body or "").strip()
 
+    # VADER only has an English lexicon, so on a German ticket it scored the few
+    # English-looking tokens and called the rest neutral. Saying "n/a" is honest;
+    # a made-up neutral label in the prompt is not (plan §5.5).
+    english = str(language or "en").lower().strip()[:2] == "en"
+
     compound = 0.0
-    if _VADER is not None and text:
-        # VADER is English-optimized; still provides a useful signal on many tickets.
+    if english and _VADER is not None and text:
         compound = float(_VADER.polarity_scores(text).get("compound", 0.0))
 
-    if compound >= 0.25:
+    if not english:
+        sentiment = "n/a"
+    elif compound >= 0.25:
         sentiment = "positive"
     elif compound <= -0.25:
         sentiment = "negative"
@@ -697,21 +675,28 @@ def extract_sentiment_severity(body: str, language: str) -> tuple[str, str, floa
         sentiment = "neutral"
 
     t = text.lower()
-    # Strong outage/blocked-work signals
+    # Severity is keyword-based, so a German ticket had no keywords to match and
+    # always came out "low". The DE terms are the ones aspect_extractor uses
+    # (_CRITICAL/_HIGH/_MEDIUM), kept in step with it (plan §5.5).
     critical_kw = [
         "down", "outage", "offline", "unavailable", "cannot access", "can't access",
         "cannot login", "can't login", "unable to login", "locked out", "security breach",
         "data loss", "lost data", "incident", "urgent", "asap", "immediately",
+        "dringend", "sofort", "systemausfall", "datenverlust",
+        "sicherheitsverletzung", "unerlaubter zugriff",
     ]
     high_kw = [
         "error", "failed", "failure", "not working", "doesn't work", "does not work",
         "crash", "crashing", "timeout", "time out", "bug", "broken",
-        "payment", "charged", "refund", "invoice", "billing",
+        "payment", "charged", "refund", "invoice", "billing", "persists",
+        "fehler", "absturz", "funktioniert nicht", "abgestürzt", "ausgefallen",
+        "rechnung", "zahlung", "erstattung",
     ]
     medium_kw = [
         "slow", "latency", "performance", "delay",
         "integration", "api", "sync", "export", "import",
         "feature request", "request", "how do i", "how to",
+        "langsam", "verzögerung", "synchronisation", "optimierung",
     ]
 
     if any(k in t for k in critical_kw):
@@ -735,7 +720,10 @@ def inject_sentiment_severity(prompt: str, sentiment: str, severity: str, compou
     Insert sentiment/severity lines near the top of the prompt.
     Keeps the rest of the prompt unchanged to avoid breaking existing formatting.
     """
-    insert = f"Sentiment: {sentiment} (compound={compound:.3f})\nSeverity : {severity}\n"
+    # No sentiment line for a non-English ticket: VADER cannot score it (§5.5).
+    insert = (f"Severity : {severity}\n" if sentiment == "n/a" else
+              f"Sentiment: {sentiment} (compound={compound:.3f})\n"
+              f"Severity : {severity}\n")
     if not prompt:
         return insert
     # Place after the first line if possible.
@@ -750,9 +738,14 @@ def _make_retriever(config: GenerationConfig):
     from dataclasses import replace
     from src.retrieval.retriever import TicketRetriever
     from src.retrieval.inference_retriever import load_retriever_config
+    # The prompt-side settings live on the generation config (one file per
+    # system), so they are pushed onto the retriever config here (plan §5.3/5.4).
     ret_cfg = replace(
         load_retriever_config(config.retrieval_config),
         top_k=config.top_k,
+        ctx_doc_max_chars=config.ctx_doc_max_chars,
+        reply_language_instruction=config.reply_language_instruction,
+        aspect_prompt_style=config.aspect_prompt_style,
     )
     return TicketRetriever(ret_cfg)
 
@@ -930,7 +923,11 @@ def run_rag_aspect(df: pd.DataFrame, tok, model, seq2seq: bool,
       (c) prompt slots — all 8 aspect fields in build_prompt()
     All 8 aspect columns (5 original + entities, action_taken, urgency) stored in output.
     """
+    from src.generation.model_backend import count_tokens_fn
+    from src.utils import fit_prompt
+
     retriever = _make_retriever(config)
+    count_tokens = count_tokens_fn(tok)
     ckpt      = Checkpointer("rag_aspect", every=config.checkpoint_every)
     done      = ckpt.load()
     done_idx  = {r["idx"] for r in done}
@@ -955,15 +952,23 @@ def run_rag_aspect(df: pd.DataFrame, tok, model, seq2seq: bool,
                 subject=subject, body=body, language=lang,
                 aspect_spans=(spans if spans else None),
             )
-            prompt = retriever.build_prompt(
-                subject, body, retrieved, (spans if spans else None))
+            # Prompt budget (plan §5.3): drop the lowest-ranked hits until the
+            # prompt fits, instead of letting the tokenizer cut it mid-context.
+            prompt, n_ctx_used = fit_prompt(
+                lambda docs: retriever.build_prompt(
+                    subject, body, docs, (spans if spans else None), lang),
+                retrieved, count_tokens, config.max_input_tokens)
             # NOTE: Sentiment/Severity NOT injected here for System 4.
             prompts.append(prompt)
-            meta_batch.append((i, row, spans, subject, lang, len(retrieved), prompt))
+            meta_batch.append((i, row, spans, subject, lang, len(retrieved),
+                               n_ctx_used, retrieved, prompt))
 
-        responses = generate_batch(prompts, tok, model, config, seq2seq)
+        responses = generate_batch(prompts, tok, model, config, seq2seq,
+                                   row_ids=[int(r.get("idx", i))
+                                            for i, r in batch])
 
-        for (i, row, spans, subject, lang, n_ret, prompt), response in zip(meta_batch, responses):
+        for (i, row, spans, subject, lang, n_ret, n_ctx_used, retrieved,
+             prompt), response in zip(meta_batch, responses):
             rows.append({
                 "idx"                : int(row.get("idx", i)),
                 "language"           : lang,
@@ -974,6 +979,9 @@ def run_rag_aspect(df: pd.DataFrame, tok, model, seq2seq: bool,
                 "rag_aspect_response": response,
                 "rag_aspect_length"  : len(response.split()),
                 "n_retrieved"        : n_ret,
+                "n_ctx_used"         : n_ctx_used,
+                "top_ce_score"       : (retrieved[0].get("ce_score", "")
+                                        if retrieved else ""),
                 **_aspect_row(spans),
             })
         n_done = min(b_start + bs, len(pending))

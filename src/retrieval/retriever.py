@@ -44,6 +44,18 @@ def get_cross_encoder(model_name: str = "cross-encoder/mmarco-mMiniLMv2-L12-H384
 ANSWER_LEN = 0   # 0 = no truncation
 BODY_LEN   = 0   # 0 = no truncation
 
+# ── Reply language (plan §5.4) ────────────────────────────────────────────────
+# A German ticket with English retrieved context used to get an English reply:
+# the prompt never said which language to answer in. The instruction goes last,
+# directly before "Support reply:", where the model is least likely to lose it.
+LANG_NAMES = {"en": "English", "de": "German"}
+
+
+def reply_language_line(language: str) -> str:
+    name = LANG_NAMES.get((language or "en").lower().strip()[:2],
+                          "the customer's language")
+    return f"Write the reply in {name}, the same language as the customer's message."
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # [OUR A] ASPECT-WEIGHTED QUERY VECTOR
@@ -326,12 +338,16 @@ class TicketRetriever:
 
     def build_prompt(self, subject: str, body: str,
                      retrieved: List[Dict],
-                     aspect_spans: Dict[str, str] = None) -> str:
+                     aspect_spans: Dict[str, str] = None,
+                     language: str = "en") -> str:
         """
-        [OUR C] Structured aspect-slot prompt for the generator.
-        Slot order: Enforce → Aspects → Entities/ActionTaken/Urgency → Context → Ticket
+        [OUR C] Structured aspect prompt for the generator.
+        Slot order: instruction → aspect checklist → context → ticket → language
 
-        NEW fields integrated: entities, action_taken, urgency
+        The reply-language line comes last, directly before "Support reply:"
+        (plan §5.4); `reply_language_instruction: false` in the config turns it
+        off. Each retrieved response is capped at `ctx_doc_max_chars` so one long
+        past answer cannot eat the whole prompt budget (§5.3).
         """
         spans   = aspect_spans or {}
 
@@ -347,10 +363,22 @@ class TicketRetriever:
         action_taken= spans.get('action_taken','') or ''
         urgency     = spans.get('urgency',     '') or ''
 
+        ctx_doc_max = int(getattr(self.config, "ctx_doc_max_chars", 0) or 0)
+
+        def _ctx_response(record: Dict) -> str:
+            response = str(record.get('response', '') or '')
+            return response[:ctx_doc_max] if ctx_doc_max > 0 else response
+
         ctx_str = '\n'.join(
-            f"[{i+1}] Subject: {r['subject']}\n     Response: {r['response']}"
+            f"[{i+1}] Subject: {r['subject']}\n     Response: {_ctx_response(r)}"
             for i, r in enumerate(retrieved)
         )
+
+        want_language_line = bool(getattr(self.config,
+                                          "reply_language_instruction", True))
+        language_line = (f"{reply_language_line(language)}\n"
+                         if want_language_line else "")
+
         prob    = spans.get('prob_sub', '') or spans.get('prob_statement', '')
         cause   = spans.get('cause', '')
         enforce = (
@@ -377,7 +405,8 @@ class TicketRetriever:
                 + f"\nContext : {ctx_str}\n"
                 f"Subject : {subject}\n"
                 f"Message : {body_for_prompt}\n"
-                f"Support reply:"
+                + language_line
+                + f"Support reply:"
             )
 
         # ── legacy slot dump (aspect_prompt_style: slots) ─────────────────────
@@ -398,5 +427,6 @@ class TicketRetriever:
             f"Context : {ctx_str}\n"
             f"Subject : {subject}\n"
             f"Message : {body_for_prompt}\n"
-            f"Support reply:"
+            + language_line
+            + f"Support reply:"
         )

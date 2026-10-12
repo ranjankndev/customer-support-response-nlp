@@ -55,6 +55,10 @@ class RetrievalConfig:
     cross_encoder_model: str = "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1"
     # checklist = aspect instructions (plan A.3) | slots = legacy "Aspects : k: v" dump
     aspect_prompt_style: str = "checklist"
+    # prompt budget: max chars per retrieved response (0 = full); plan §5.3
+    ctx_doc_max_chars: int = 0
+    # append "Write the reply in German, ..." before "Support reply:"; plan §5.4
+    reply_language_instruction: bool = True
 
 
 def load_retriever_config(path: str) -> RetrievalConfig:
