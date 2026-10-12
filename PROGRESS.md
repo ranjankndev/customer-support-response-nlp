@@ -18,7 +18,7 @@ Legend: `[x]` done (date, sha) · `[~]` in progress · `[ ]` todo
 - [~] 3. model_backend + generator fixes (Gemma-3, double BOS, budget, language line) — code done 2026-10-13 (884c7d1), `tests/test_prompt.py` green. The GPU acceptance checks (one `<bos>`, DE prompt -> German reply, 5 long hits within budget) need the Kaggle smoke cell: **blocked on Kaggle auth**
 - [x] 2026-10-13 (a3b5137) 4. Runners / modes / labels / Checkpointer dir — `--mode rag_aspect --label s2_gemma3` writes `{output_dir}/s2_gemma3.csv` with `top_ce_score` and `n_ctx_used`; `tests/test_runners.py` covers it with a fake retriever
 - [x] 2026-10-13 (2d3f55a) 5. Hybrid retrieval + multilingual reranker — DE rows now get a `ce_score` (bge-reranker-v2-m3), the aspect bonus is applied after reranking for both languages, `exclude_ids` works; `tests/test_retriever_fusion.py` builds a 3-doc FAISS+BM25 index. The `inference_retriever --n 20` run on real data needs the index (blocked with Kaggle auth / no local data)
-- [ ] 6. `minimal_run sample` / `attach_aspects`
+- [x] 2026-10-13 (08cc0c2) 6. `minimal_run sample` / `attach_aspects` — 250/250 split and sample reuse (same hash) covered by `tests/test_minimal_run.py`; the real samples need the processed splits, which are not on this machine
 - [ ] 7. `eval_retrieval`
 - [ ] 8. `step3_raft build` + `train`
 - [ ] 9. CRAG router + `crag_tune`
