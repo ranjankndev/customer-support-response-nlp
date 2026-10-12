@@ -13,7 +13,7 @@ Legend: `[x]` done (date, sha) · `[~]` in progress · `[ ]` todo
 ## §10 steps
 - [~] 0. Automation scaffold: `scripts/kaggle_job.py`, `kaggle/hello`, `tests/` + fixtures — code done 2026-10-13 (46d5405), `pytest -q` green; the `hello` GPU acceptance run is **blocked on Kaggle auth** (see open issues)
 - [x] 2026-10-13 (b062c62) 1. Config plumbing (`load_yaml_with_overrides`, `config/kaggle.yaml`, new dataclass fields) — also made `src/utils.py` import lazily (1.8 s instead of 68 s); local test deps installed: `rouge-score`, `sacrebleu`, `faiss-cpu`, `peft`
-- [ ] 2. Metrics (Unicode ROUGE, sacreBLEU, true BERTScore, lang_match, per-row)
+- [x] 2026-10-13 (186c194) 2. Metrics (Unicode ROUGE, sacreBLEU, true BERTScore, lang_match, per-row) — `bertscore_f1` now means real BERTScore; the old CLS cosine is `cls_cosine_mbert`; BLEU precisions renamed `bleu_p1`/`bleu_p4`
 - [ ] 2b. Aspect v2 (heads, span clean-up, entity fix, checklist prompt)
 - [ ] 3. model_backend + generator fixes (Gemma-3, double BOS, budget, language line)
 - [ ] 4. Runners / modes / labels / Checkpointer dir
