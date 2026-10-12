@@ -9,6 +9,8 @@ torch>=2.0
 
 # ── Retrieval ─────────────────────────────────────────────────────────────────
 faiss-cpu>=1.7.4
+# BM25 half of hybrid retrieval (plan 6.2); rank-bm25 is the older one
+bm25s>=0.2
 rank-bm25
 
 # ── Metrics ───────────────────────────────────────────────────────────────────

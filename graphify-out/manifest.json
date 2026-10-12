@@ -66,21 +66,21 @@
     "semantic_hash": ""
   },
   "src/retrieval/indexer.py": {
-    "mtime": 1791833394.552698,
-    "seen": 1791834008.3798075,
-    "ast_hash": "bcf3790eaf991f47d4cc4b25f598f484",
+    "mtime": 1791835124.9150558,
+    "seen": 1791835438.2122025,
+    "ast_hash": "01180192927b069c56acd17850771535",
     "semantic_hash": ""
   },
   "src/retrieval/inference_retriever.py": {
-    "mtime": 1791834173.8066454,
-    "seen": 1791834455.525759,
-    "ast_hash": "fbda74ac4ae2500510f988de0daddf14",
+    "mtime": 1791835216.6033607,
+    "seen": 1791835438.2122025,
+    "ast_hash": "a0d2cc258a4f5fac57a01b8431b6bd1c",
     "semantic_hash": ""
   },
   "src/retrieval/retriever.py": {
-    "mtime": 1791834152.8368614,
-    "seen": 1791834455.525759,
-    "ast_hash": "c58d89c0107946924b93a3e2413b811d",
+    "mtime": 1791835050.2466838,
+    "seen": 1791835438.2122025,
+    "ast_hash": "6df523d6166013d74a3ec95ac781d511",
     "semantic_hash": ""
   },
   "src/step1_silver_labels.py": {
@@ -144,15 +144,15 @@
     "semantic_hash": ""
   },
   "config/inference_retrieval_config.yaml": {
-    "mtime": 1791833313.910438,
-    "seen": 1791834008.3798075,
-    "ast_hash": "bc5decf74442c3c166e7297a4ce38a2a",
+    "mtime": 1791835158.6102083,
+    "seen": 1791835438.2122025,
+    "ast_hash": "200059269584f54049bbeb1bbd0a77ad",
     "semantic_hash": ""
   },
   "config/retrieval_config.yaml": {
-    "mtime": 1791833394.5543084,
-    "seen": 1791834008.3798075,
-    "ast_hash": "8550450faea7dcbe45e4dfd8dd85e2ea",
+    "mtime": 1791835137.956064,
+    "seen": 1791835438.2122025,
+    "ast_hash": "8c9f38f57ffbd20458ae24cb353fb1b5",
     "semantic_hash": ""
   },
   "docs/LINKS.md": {
@@ -162,9 +162,9 @@
     "semantic_hash": ""
   },
   "requirements.txt": {
-    "mtime": 1791832147.7664418,
-    "seen": 1791832995.2754974,
-    "ast_hash": "8f86a95d80a34a72d4f4c2cf9ec80648",
+    "mtime": 1791835424.161955,
+    "seen": 1791835438.2122025,
+    "ast_hash": "c11bc1aad73c0a4ac77dce25a1db9ec0",
     "semantic_hash": ""
   },
   "docs/architecture_v3.png": {
@@ -180,9 +180,9 @@
     "semantic_hash": ""
   },
   "PROGRESS.md": {
-    "mtime": 1791834471.7093337,
-    "seen": 1791834869.1582212,
-    "ast_hash": "808094d9a6f6d77340773da2266f23f2",
+    "mtime": 1791834882.4564638,
+    "seen": 1791835438.2122025,
+    "ast_hash": "7f0c46c10b3a9323c2ca0946f8d74f79",
     "semantic_hash": ""
   },
   "kaggle/hello/kernel-metadata.json": {
@@ -255,6 +255,12 @@
     "mtime": 1791834764.351375,
     "seen": 1791834869.1582212,
     "ast_hash": "80208910e1fd4e3ac228359f8760a595",
+    "semantic_hash": ""
+  },
+  "tests/test_retriever_fusion.py": {
+    "mtime": 1791835334.2110932,
+    "seen": 1791835438.2122025,
+    "ast_hash": "38b42bf5b2ad0b074c90cb02917de70b",
     "semantic_hash": ""
   }
 }

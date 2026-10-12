@@ -21,9 +21,20 @@ metadata_path : "data/index/metadata.json"
 # dense embedding matrix (row order = metadata order); aspect heads train on it
 dense_path    : "data/index/dense.npy"
 
+# BM25 index (retrieval_mode: hybrid); same row order as the FAISS index
+bm25_path     : "data/index/bm25"
+# gold columns of a past resolved ticket, stored for the aspect bonus
+col_gold      : ["queue", "type", "priority"]
+# body kept in metadata (capped) so the reranker can score ticket against ticket
+metadata_body_max_chars: 1000
+# rows that must never be indexed; the indexer asserts there is no overlap
+exclude_idx_csvs: []
+
 # ── Dense embedder ────────────────────────────────────────────────────────────
-# Recommended: E5 multilingual for dense FAISS retrieval.
-model_name    : "intfloat/multilingual-e5-large"
+# BGE-M3: multilingual, no query/passage prefixes (E5 needs "query: "/"passage: ")
+model_name    : "BAAI/bge-m3"
+query_prefix  : ""
+passage_prefix: ""
 device        : "cuda"
 batch_size    : 64
 max_length    : 512
@@ -32,7 +43,9 @@ body_max_chars: 1800
 
 # ── Retriever ─────────────────────────────────────────────────────────────────
 top_k              : 5
-# FAISS here is dense-only. Hybrid weights are ignored unless you add a BM25/sparse pipeline.
-retrieval_mode     : "dense"     # dense
+# dense = FAISS only | hybrid = FAISS + BM25 fused by reciprocal rank fusion
+retrieval_mode     : "hybrid"
+rrf_k              : 60
+n_candidates       : 50
 # if true, filter retrieved results to same language as query
 filter_by_language : false       # false = retrieve across EN+DE (recommended for BGE-M3)
