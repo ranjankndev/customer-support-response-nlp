@@ -11,7 +11,7 @@ Legend: `[x]` done (date, sha) · `[~]` in progress · `[ ]` todo
 - [x] 2026-10-05 Work branch `v3-minimal-run` created and pushed. **Next agent starts at §10 step 0.**
 
 ## §10 steps
-- [ ] 0. Automation scaffold: `scripts/kaggle_job.py`, `kaggle/hello`, `tests/` + fixtures
+- [~] 0. Automation scaffold: `scripts/kaggle_job.py`, `kaggle/hello`, `tests/` + fixtures — code done 2026-10-13 (46d5405), `pytest -q` green; the `hello` GPU acceptance run is **blocked on Kaggle auth** (see open issues)
 - [ ] 1. Config plumbing (`load_yaml_with_overrides`, `config/kaggle.yaml`, new dataclass fields)
 - [ ] 2. Metrics (Unicode ROUGE, sacreBLEU, true BERTScore, lang_match, per-row)
 - [ ] 2b. Aspect v2 (heads, span clean-up, entity fix, checklist prompt)
@@ -34,3 +34,4 @@ Legend: `[x]` done (date, sha) · `[~]` in progress · `[ ]` todo
 - Which raw CSV of the Kaggle dataset reproduces the report's 28,237 EN+DE rows? (resolve in step 11)
 - 2026-10-13 HF login fixed: local `hf auth whoami` = `ranjankn`. Upload the RAFT adapter to `ranjankn/aspectforge-raft-gemma3`. `ranjan56cse/cs-support-labels` (aspect SFT) stays read-only/public.
 - Human one-time: Kaggle phone verification (GPU + Internet).
+- **2026-10-13 BLOCKER — Kaggle API auth rejected.** `~/.kaggle/kaggle.json` (user `ranjankumarnayak`, `auth_method: LEGACY_API_KEY`) is read by the CLI, but every authenticated call (`kernels list --mine`, `kernels push`) returns the login prompt, so the legacy key is expired/revoked. Human fix: run `kaggle auth login` (OAuth) or generate a new token at <https://www.kaggle.com/settings/api> and replace `~/.kaggle/kaggle.json`. Until then step 0's GPU acceptance test and §10 steps 3/8/9/11 cannot run; CPU-only steps continue.
