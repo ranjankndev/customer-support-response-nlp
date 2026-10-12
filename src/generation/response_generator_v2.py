@@ -760,7 +760,8 @@ def run_baseline(df: pd.DataFrame, tok, model, seq2seq: bool,
     System 1 — Zero-shot baseline.
     No RAG, no aspects. Measures pure model capability.
     """
-    ckpt     = Checkpointer("baseline", every=config.checkpoint_every)
+    ckpt     = Checkpointer("baseline", every=config.checkpoint_every,
+                              dir=config.output_dir)
     done     = ckpt.load()
     done_idx = {r["idx"] for r in done}
     rows     = list(done)
@@ -806,7 +807,8 @@ def run_rag_only(df: pd.DataFrame, tok, model, seq2seq: bool,
     Isolates the contribution of retrieval alone vs baseline.
     """
     retriever = _make_retriever(config)
-    ckpt      = Checkpointer("rag_only", every=config.checkpoint_every)
+    ckpt      = Checkpointer("rag_only", every=config.checkpoint_every,
+                              dir=config.output_dir)
     done      = ckpt.load()
     done_idx  = {r["idx"] for r in done}
     rows      = list(done)
@@ -867,7 +869,8 @@ def run_aspect_only(df: pd.DataFrame, tok, model, seq2seq: bool,
       prob_sub, prob_statement, cause, intent, ticket_type_nli
     No FAISS retrieval. Isolates the contribution of aspect extraction alone.
     """
-    ckpt     = Checkpointer("aspect_only", every=config.checkpoint_every)
+    ckpt     = Checkpointer("aspect_only", every=config.checkpoint_every,
+                              dir=config.output_dir)
     done     = ckpt.load()
     done_idx = {r["idx"] for r in done}
     rows     = list(done)
@@ -914,37 +917,51 @@ def run_aspect_only(df: pd.DataFrame, tok, model, seq2seq: bool,
 
 
 def run_rag_aspect(df: pd.DataFrame, tok, model, seq2seq: bool,
-                   config: GenerationConfig) -> pd.DataFrame:
+                   config: GenerationConfig, label: str = "rag_aspect",
+                   use_aspects: bool = True, crag: bool = False) -> pd.DataFrame:
     """
-    System 4 — RAG + Aspects (full system).
-    Aspects drive THREE things:
-      (a) aspect_query_vector — weighted query embedding (subject+body+spans) for FAISS
-      (b) cross-encoder reranking for EN / pure dense for DE
-      (c) prompt slots — all 8 aspect fields in build_prompt()
-    All 8 aspect columns (5 original + entities, action_taken, urgency) stored in output.
+    The minimal run's workhorse (plan §5.6). One function serves S1-S5:
+
+      label       names the checkpoint and the {label}_prompt/_response/_length
+                  columns, so the report can find each system by its label
+      use_aspects False passes aspect_spans=None to both retrieve and
+                  build_prompt — that is S5, RAFT without aspects
+      crag        True routes each row through the CRAG router (§7.5)
+
+    Aspects drive three things: the weighted query vector, the rerank bonus, and
+    the checklist in the prompt. Every row records top_ce_score and n_ctx_used.
     """
     from src.generation.model_backend import count_tokens_fn
     from src.utils import fit_prompt
 
+    if crag:
+        raise NotImplementedError(
+            "The CRAG router arrives with plan §7.5 (step 9); "
+            "run with crag=False until then."
+        )
+
     retriever = _make_retriever(config)
     count_tokens = count_tokens_fn(tok)
-    ckpt      = Checkpointer("rag_aspect", every=config.checkpoint_every)
+    ckpt      = Checkpointer(label, every=config.checkpoint_every,
+                             dir=config.output_dir)
     done      = ckpt.load()
-    done_idx  = {r["idx"] for r in done}
+    done_idx  = {int(r["idx"]) for r in done if str(r.get("idx", "")).strip()}
     rows      = list(done)
     t0        = time.time()
     bs        = config.generation_batch_size
+    tag       = f"[{label}]"
 
     pending = [(i, row) for i, row in df.iterrows()
                if int(row.get("idx", i)) not in done_idx]
-    log.info(f"[RAG+Aspects] {len(pending)} rows to generate  batch_size={bs}")
+    log.info(f"{tag} {len(pending)} rows to generate  batch_size={bs}  "
+             f"aspects={use_aspects}")
 
     for b_start in range(0, len(pending), bs):
         batch = pending[b_start : b_start + bs]
 
         meta_batch, prompts = [], []
         for i, row in batch:
-            spans   = _get_spans(row, df)
+            spans   = _get_spans(row, df) if use_aspects else {}
             subject = str(row.get("subject", "") or "")
             body    = str(row.get("body",    "") or "")
             lang    = str(row.get("language", "en") or "en")
@@ -970,24 +987,24 @@ def run_rag_aspect(df: pd.DataFrame, tok, model, seq2seq: bool,
         for (i, row, spans, subject, lang, n_ret, n_ctx_used, retrieved,
              prompt), response in zip(meta_batch, responses):
             rows.append({
-                "idx"                : int(row.get("idx", i)),
-                "language"           : lang,
-                "subject"            : subject,
-                "answer"             : str(row.get("answer", "") or ""),
-                "generated_answer"   : response,
-                "rag_aspect_prompt"  : prompt,
-                "rag_aspect_response": response,
-                "rag_aspect_length"  : len(response.split()),
-                "n_retrieved"        : n_ret,
-                "n_ctx_used"         : n_ctx_used,
-                "top_ce_score"       : (retrieved[0].get("ce_score", "")
-                                        if retrieved else ""),
+                "idx"               : int(row.get("idx", i)),
+                "language"          : lang,
+                "subject"           : subject,
+                "answer"            : str(row.get("answer", "") or ""),
+                "generated_answer"  : response,
+                f"{label}_prompt"   : prompt,
+                f"{label}_response" : response,
+                f"{label}_length"   : len(response.split()),
+                "n_retrieved"       : n_ret,
+                "n_ctx_used"        : n_ctx_used,
+                "top_ce_score"      : (retrieved[0].get("ce_score", "")
+                                       if retrieved else ""),
                 **_aspect_row(spans),
             })
         n_done = min(b_start + bs, len(pending))
         ckpt.save_if_due(rows, n_done)
         if n_done % 100 == 0 or n_done == len(pending):
-            log.info(f"[RAG+Aspects] {n_done}/{len(pending)}  "
+            log.info(f"{tag} {n_done}/{len(pending)}  "
                      f"{(time.time()-t0)/60:.1f}m")
 
     ckpt.clear()
@@ -1102,7 +1119,8 @@ def run_extra_baseline(model_key: str, df: pd.DataFrame,
     tok, model, seq2seq, max_new_tokens = load_extra_model(model_key)
     bs        = config.generation_batch_size
 
-    ckpt     = Checkpointer(model_key, every=config.checkpoint_every)
+    ckpt     = Checkpointer(model_key, every=config.checkpoint_every,
+                            dir=config.output_dir)
     done     = ckpt.load()
     done_idx = {r["idx"] for r in done}
     rows     = list(done)
@@ -1226,7 +1244,8 @@ def run_rag_guided(df: pd.DataFrame, tok, model, seq2seq: bool,
     No aspects. Tests whether guided prompting improves over plain RAG.
     """
     retriever = _make_retriever(config)
-    ckpt      = Checkpointer("rag_guided", every=config.checkpoint_every)
+    ckpt      = Checkpointer("rag_guided", every=config.checkpoint_every,
+                              dir=config.output_dir)
     done      = ckpt.load()
     done_idx  = {r["idx"] for r in done}
     rows      = list(done)
@@ -1280,7 +1299,8 @@ def run_rag_asp_guided(df: pd.DataFrame, tok, model, seq2seq: bool,
     All 8 aspect fields injected. Tests guided prompting with full aspect info.
     """
     retriever = _make_retriever(config)
-    ckpt      = Checkpointer("rag_asp_guided", every=config.checkpoint_every)
+    ckpt      = Checkpointer("rag_asp_guided", every=config.checkpoint_every,
+                              dir=config.output_dir)
     done      = ckpt.load()
     done_idx  = {r["idx"] for r in done}
     rows      = list(done)
@@ -1436,20 +1456,54 @@ _ALL_BASELINES   = {"baseline", "t5_base", "gemma_pt"}
 _ALL_GUIDED      = _GUIDED_MODES
 _ALL_MODES       = _ORIGINAL_MODES | _EXTRA_MODES | _GUIDED_MODES
 
+# ── Minimal-run modes (plan §5.6) ─────────────────────────────────────────────
+# S1 and S2 are both `rag_aspect` with a different --model_id; S3 adds the CRAG
+# router; S4/S5 are the RAFT adapter with and without aspects. Each writes
+# {output_dir}/{label}.csv, and the report finds the systems by those labels.
+_MINIMAL_RUN_MODES = {
+    "rag_aspect"     : {"use_aspects": True,  "crag": False, "needs_adapter": False},
+    "rag_aspect_crag": {"use_aspects": True,  "crag": True,  "needs_adapter": False},
+    "raft_aspect"    : {"use_aspects": True,  "crag": False, "needs_adapter": True},
+    "raft_rag"       : {"use_aspects": False, "crag": False, "needs_adapter": True},
+}
+
 
 def run(data_path: str, mode: str, config: GenerationConfig,
         n: Optional[int] = None,
         start_idx: Optional[int] = None,
-        end_idx: Optional[int] = None):
+        end_idx: Optional[int] = None,
+        label: Optional[str] = None,
+        no_aspects: bool = False):
     """
     Unified orchestrator — all modes:
-      Original  : baseline | rag | aspect | rag_aspect | all
-      Baselines : t5_base | gemma_pt | all_baselines
-      Guided    : rag_guided | rag_asp_guided | all_guided
-      Everything: all_modes
+      Minimal run: rag_aspect | rag_aspect_crag | raft_aspect | raft_rag
+      Original   : baseline | rag | aspect | rag_aspect | all
+      Baselines  : t5_base | gemma_pt | all_baselines
+      Guided     : rag_guided | rag_asp_guided | all_guided
+      Everything : all_modes
     Index range: start_idx..end_idx inclusive (supports 2-8 record smoke tests)
     """
     log.info(f"[Generation] mode={mode}  model={config.model_id}  input={data_path}")
+
+    # ── minimal-run mode resolution (plan §5.6) ───────────────────────────────
+    minimal = _MINIMAL_RUN_MODES.get(mode)
+    if minimal:
+        run_label = (label or mode).strip()
+        use_aspects = minimal["use_aspects"] and not no_aspects
+        if minimal["needs_adapter"] and not (config.adapter_path or "").strip():
+            raise ValueError(
+                f"--mode {mode} needs a RAFT adapter: pass --adapter_path "
+                f"<dir or HF repo id> (or set adapter_path in the config)."
+            )
+        if not minimal["needs_adapter"] and (config.adapter_path or "").strip():
+            # S1-S3 must score the base model, so an adapter left in the config
+            # is ignored rather than silently changing the system.
+            log.warning(f"[Generation] mode={mode} ignores adapter_path="
+                        f"{config.adapter_path}")
+            config.adapter_path = ""
+    elif label:
+        log.warning(f"[Generation] --label {label} only names the output of a "
+                    f"minimal-run mode; mode={mode} keeps its own file names")
 
     if not data_path:
         raise ValueError(
@@ -1479,8 +1533,15 @@ def run(data_path: str, mode: str, config: GenerationConfig,
     # ── ASPECT EXTRACTION ─────────────────────────────────────────────────
     # Required for system 3 (aspect) and system 4 (rag_aspect).
     # Saved to disk immediately after extraction to survive crashes.
-    needs_aspects = mode in ("aspect", "rag_aspect", "all",
-                             "rag_asp_guided", "all_guided", "all_modes")
+    needs_aspects = (use_aspects if minimal else
+                     mode in ("aspect", "rag_aspect", "all",
+                              "rag_asp_guided", "all_guided", "all_modes"))
+    if needs_aspects and _aspect_columns_ready(df) and not config.force_reextract_aspects:
+        # The minimal run feeds a --sample_csv that already carries the aspect
+        # columns (plan §6.1), so nothing is extracted and no
+        # *_with_aspects*.csv is written (plan §5.6).
+        log.info("[Aspects] Aspect columns already present — using them as is")
+        needs_aspects = False
     if needs_aspects:
         # Include idx range in cache filename to prevent stale cache
         # from a different run range being loaded silently.
@@ -1552,8 +1613,27 @@ def run(data_path: str, mode: str, config: GenerationConfig,
             metric_rows.append({"system": "3_aspect_only", **m})
             completed["3_aspect_only"] = df_asp
 
+        # ── MINIMAL RUN: one labelled system (plan §5.6) ───────────────────
+        if minimal:
+            log.info(f"[Generation] ── {run_label}: mode={mode} "
+                     f"aspects={use_aspects} crag={minimal['crag']} ──")
+            df_run = run_rag_aspect(df, tok, model, seq2seq, config,
+                                    label=run_label, use_aspects=use_aspects,
+                                    crag=minimal["crag"])
+            out = Path(config.output_dir) / f"{run_label}.csv"
+            df_run.to_csv(out, index=False)
+            log.info(f"[Generation] Saved → {out}")
+            if config.skip_metrics:
+                log.info("[Generation] skip_metrics: metrics are left to "
+                         "`python -m src.minimal_run report`")
+            else:
+                m = compute_metrics(df_run, run_label, config)
+                print_metrics(f"{config.model_id} — {run_label}", m)
+                metric_rows.append({"system": run_label, **m})
+            completed[run_label] = df_run
+
         # ── SYSTEM 4: RAG + ASPECTS (FULL SYSTEM) ─────────────────────────
-        if mode in ("rag_aspect", "all"):
+        if not minimal and mode in ("rag_aspect", "all"):
             log.info("[Generation] ── System 4: RAG + Aspects (full system) ──")
             df_ra = run_rag_aspect(df, tok, model, seq2seq, config)
             out   = Path(config.output_dir) / f"{base}_rag_aspect.csv"
@@ -1659,6 +1739,8 @@ if __name__ == "__main__":
         "--mode",
         default="all",
         choices=[
+            # Minimal run (plan §5.6): S1-S5
+            "rag_aspect_crag", "raft_aspect", "raft_rag",
             # Original 4-way
             "baseline", "rag", "aspect", "aspects_only", "rag_aspect", "all",
             # Extra baselines
@@ -1669,6 +1751,10 @@ if __name__ == "__main__":
             "all_modes",
         ],
         help=(
+            "rag_aspect      — S1/S2/S6: RAG + aspects (use --model_id, --label)\n"
+            "rag_aspect_crag — S3: same with the CRAG router\n"
+            "raft_aspect     — S4: RAFT adapter + aspects (needs --adapter_path)\n"
+            "raft_rag        — S5: RAFT adapter, no aspects (needs --adapter_path)\n"
             "baseline      — Gemma zero-shot, no RAG, no aspects\n"
             "rag           — Gemma RAG only (dense retrieval)\n"
             "aspect        — Gemma aspects only (no RAG)\n"
@@ -1695,6 +1781,11 @@ if __name__ == "__main__":
                    help="CRAG router threshold (see minimal_run crag_tune)")
     p.add_argument("--sample_csv", default=None,
                    help="Fixed minimal-run sample CSV; overrides --input")
+    p.add_argument("--label", default=None,
+                   help="Names the minimal-run output: {output_dir}/{label}.csv "
+                        "(e.g. s1_gemma2). The report finds systems by label.")
+    p.add_argument("--no_aspects", action="store_true",
+                   help="Retrieve and prompt without aspects (S5/S6 ablation)")
     p.add_argument("--n", type=int, default=None,
                    help="rows to process (default: all)")
     p.add_argument("--start_idx", type=int, default=None,
@@ -1743,4 +1834,6 @@ if __name__ == "__main__":
         n=args.n,
         start_idx=args.start_idx,
         end_idx=args.end_idx,
+        label=args.label,
+        no_aspects=args.no_aspects,
     )

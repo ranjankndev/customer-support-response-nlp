@@ -755,14 +755,21 @@ class Checkpointer:
     Survives Kaggle/Vast session interruptions.
 
     Usage:
-        ckpt = Checkpointer("run_rag")
+        ckpt = Checkpointer("run_rag", dir="output/generation")
         done = ckpt.load()          # list of already-completed dicts
         ckpt.save_if_due(rows, n)   # save every N rows
         ckpt.clear()                # remove on clean finish
+
+    `dir` keeps the checkpoint next to the run's output (plan §5.6). On Kaggle
+    only /kaggle/working survives the session, and the checkpoint used to land
+    in whatever the current directory happened to be, so a resumed run found
+    nothing.
     """
 
-    def __init__(self, label: str, every: int = 50):
-        self.path  = Path(f".ckpt_{label}.csv")
+    def __init__(self, label: str, every: int = 50, dir: str | None = None):
+        directory = Path(dir) if dir else Path(".")
+        directory.mkdir(parents=True, exist_ok=True)
+        self.path  = directory / f".ckpt_{label}.csv"
         self.every = every
 
     def load(self) -> List[dict]:
