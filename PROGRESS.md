@@ -32,5 +32,5 @@ Legend: `[x]` done (date, sha) · `[~]` in progress · `[ ]` todo
 
 ## Open issues / decisions
 - Which raw CSV of the Kaggle dataset reproduces the report's 28,237 EN+DE rows? (resolve in step 11)
-- HF API checks from this machine returned "Invalid username or password" for some public repos; check the local HF login before any local HF upload.
+- 2026-10-13 HF login fixed: local `hf auth whoami` = `ranjankn`. Upload the RAFT adapter to `ranjankn/aspectforge-raft-gemma3`. `ranjan56cse/cs-support-labels` (aspect SFT) stays read-only/public.
 - Human one-time: Kaggle phone verification (GPU + Internet).

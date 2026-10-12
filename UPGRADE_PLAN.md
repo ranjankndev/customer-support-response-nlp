@@ -328,7 +328,7 @@ batch             : 2
 grad_accum        : 8
 val_frac          : 0.05
 out_dir           : "output/raft/gemma3-4b-aspect-raft"
-hf_repo           : ""        # e.g. ranjan56cse/aspectforge-raft-gemma3 (strongly recommended on Kaggle)
+hf_repo           : "ranjankn/aspectforge-raft-gemma3"   # local HF login is user `ranjankn` (ranjan56cse is read-only for us)
 ```
 
 ### 7.2 `build`
