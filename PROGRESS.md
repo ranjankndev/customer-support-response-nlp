@@ -15,7 +15,7 @@ Legend: `[x]` done (date, sha) · `[~]` in progress · `[ ]` todo
 - [x] 2026-10-13 (b062c62) 1. Config plumbing (`load_yaml_with_overrides`, `config/kaggle.yaml`, new dataclass fields) — also made `src/utils.py` import lazily (1.8 s instead of 68 s); local test deps installed: `rouge-score`, `sacrebleu`, `faiss-cpu`, `peft`
 - [x] 2026-10-13 (186c194) 2. Metrics (Unicode ROUGE, sacreBLEU, true BERTScore, lang_match, per-row) — `bertscore_f1` now means real BERTScore; the old CLS cosine is `cls_cosine_mbert`; BLEU precisions renamed `bleu_p1`/`bleu_p4`
 - [x] 2026-10-13 (cbe206a) 2b. Aspect v2 (heads, span clean-up, entity fix, checklist prompt) — heads are unit-tested on synthetic clusters; the real macro-F1 vs majority run needs the train split (blocked with Kaggle auth). `aspect_extractor --labels heads` is now the default and loads no GPU model
-- [ ] 3. model_backend + generator fixes (Gemma-3, double BOS, budget, language line)
+- [~] 3. model_backend + generator fixes (Gemma-3, double BOS, budget, language line) — code done 2026-10-13 (884c7d1), `tests/test_prompt.py` green. The GPU acceptance checks (one `<bos>`, DE prompt -> German reply, 5 long hits within budget) need the Kaggle smoke cell: **blocked on Kaggle auth**
 - [ ] 4. Runners / modes / labels / Checkpointer dir
 - [ ] 5. Hybrid retrieval + multilingual reranker
 - [ ] 6. `minimal_run sample` / `attach_aspects`
