@@ -1,9 +1,9 @@
 {
   "0": "AspectForge v3 — Minimal Run on Kaggle (end-to-end plan)",
-  "1": "retriever.py",
-  "2": "MetricsCalculator",
+  "1": "inference_retriever.py",
+  "2": "test_metrics.py",
   "3": "rouge_score",
-  "4": "AspectForge — Claude Code instructions",
+  "4": "response_generator_v2.py",
   "5": "aspect_extractor.py",
   "6": "baseline_t5.py",
   "7": "preprocessing.py",
@@ -12,7 +12,7 @@
   "10": "kaggle_job.py",
   "11": "test_config.py",
   "12": "Profiler",
-  "13": "response_generator_v2.py",
+  "13": "run_extra_baseline",
   "14": ".claude/CLAUDE.md",
   "15": "LINKS.md",
   "16": "aspect/__init__.py",
@@ -23,5 +23,11 @@
   "21": "indexer.py",
   "22": "sacrebleu_metrics",
   "23": "step2_sft.py",
-  "24": "sklearn_metrics"
+  "24": "sklearn_metrics",
+  "25": "run_rag_aspect",
+  "26": "run_rag_asp_guided",
+  "27": "GenerationConfig",
+  "28": "Checkpointer",
+  "29": "DataFrame",
+  "30": "run"
 }

@@ -4,13 +4,26 @@
   "graph": {},
   "nodes": [
     {
+      "id": "src_retrieval_inference_retriever_retrievalconfig",
+      "label": "RetrievalConfig",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "inference_retriever.py",
+      "file_type": "code",
+      "norm_label": "retrievalconfig",
+      "source_file": "src/retrieval/inference_retriever.py",
+      "source_location": "L32"
+    },
+    {
       "id": "src_retrieval_retriever_stembedder",
       "label": "STEmbedder",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
       "community": 1,
-      "community_name": "retriever.py",
+      "community_name": "inference_retriever.py",
       "file_type": "code",
       "norm_label": "stembedder",
       "source_file": "src/retrieval/retriever.py",
@@ -23,7 +36,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 1,
-      "community_name": "retriever.py",
+      "community_name": "inference_retriever.py",
       "file_type": "code",
       "norm_label": "ticketretriever",
       "source_file": "src/retrieval/retriever.py",
@@ -56,43 +69,56 @@
       "source_location": "L126"
     },
     {
-      "id": "src_generation_response_generator_v2_generationconfig",
-      "label": "GenerationConfig",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "code",
-      "norm_label": "generationconfig",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L139"
-    },
-    {
-      "id": "src_utils_checkpointer",
-      "label": "Checkpointer",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "code",
-      "norm_label": "checkpointer",
-      "source_file": "src/utils.py",
-      "source_location": "L576"
-    },
-    {
       "id": "src_utils_metricscalculator",
       "label": "MetricsCalculator",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "MetricsCalculator",
+      "community_name": "test_metrics.py",
       "file_type": "code",
       "norm_label": "metricscalculator",
       "source_file": "src/utils.py",
+      "source_location": "L301"
+    },
+    {
+      "id": "src_utils_unicodetokenizer",
+      "label": "_UnicodeTokenizer",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "test_metrics.py",
+      "file_type": "code",
+      "norm_label": "_unicodetokenizer",
+      "source_file": "src/utils.py",
       "source_location": "L288"
+    },
+    {
+      "id": "tests_test_metrics_faketensor",
+      "label": "_FakeTensor",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "test_metrics.py",
+      "file_type": "code",
+      "norm_label": "_faketensor",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L169"
+    },
+    {
+      "id": "tests_test_metrics_metcfg",
+      "label": "MetCfg",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "test_metrics.py",
+      "file_type": "code",
+      "norm_label": "metcfg",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L18"
     },
     {
       "id": "src_preprocessing_stratifiedsplitter",
@@ -147,19 +173,6 @@
       "source_location": "L102"
     },
     {
-      "id": "src_retrieval_inference_retriever_retrievalconfig",
-      "label": "RetrievalConfig",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 21,
-      "community_name": "indexer.py",
-      "file_type": "code",
-      "norm_label": "retrievalconfig",
-      "source_file": "src/retrieval/inference_retriever.py",
-      "source_location": "L32"
-    },
-    {
       "id": "src_step2_sft_progresscallback",
       "label": "ProgressCallback",
       "_callable": true,
@@ -184,6 +197,32 @@
       "norm_label": "silverdataset",
       "source_file": "src/step2_sft.py",
       "source_location": "L155"
+    },
+    {
+      "id": "src_generation_response_generator_v2_generationconfig",
+      "label": "GenerationConfig",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 27,
+      "community_name": "GenerationConfig",
+      "file_type": "code",
+      "norm_label": "generationconfig",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L139"
+    },
+    {
+      "id": "src_utils_checkpointer",
+      "label": "Checkpointer",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 28,
+      "community_name": "Checkpointer",
+      "file_type": "code",
+      "norm_label": "checkpointer",
+      "source_file": "src/utils.py",
+      "source_location": "L662"
     },
     {
       "id": "src_baseline_baseline_t5_t5config",
@@ -261,7 +300,7 @@
       "file_type": "code",
       "norm_label": "evaluationpipeline",
       "source_file": "src/utils.py",
-      "source_location": "L422"
+      "source_location": "L508"
     },
     {
       "id": "src_utils_profiler",
@@ -290,12 +329,84 @@
       "source_location": "L42"
     },
     {
+      "id": "src_utils_metricscalculator_lang_match",
+      "label": ".lang_match()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "AspectForge v3 \u2014 Minimal Run on Kaggle (end-to-end plan)",
+      "file_type": "code",
+      "norm_label": ".lang_match()",
+      "source_file": "src/utils.py",
+      "source_location": "L368"
+    },
+    {
+      "id": "src_retrieval_inference_retriever_get_retriever",
+      "label": "get_retriever()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "inference_retriever.py",
+      "file_type": "code",
+      "norm_label": "get_retriever()",
+      "source_file": "src/retrieval/inference_retriever.py",
+      "source_location": "L70"
+    },
+    {
+      "id": "src_retrieval_inference_retriever_load_retriever_config",
+      "label": "load_retriever_config()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "inference_retriever.py",
+      "file_type": "code",
+      "norm_label": "load_retriever_config()",
+      "source_file": "src/retrieval/inference_retriever.py",
+      "source_location": "L58"
+    },
+    {
+      "id": "src_retrieval_inference_retriever_main",
+      "label": "main()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "inference_retriever.py",
+      "file_type": "code",
+      "norm_label": "main()",
+      "source_file": "src/retrieval/inference_retriever.py",
+      "source_location": "L164"
+    },
+    {
+      "id": "src_retrieval_inference_retriever_retrieve_similar",
+      "label": "retrieve_similar()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "inference_retriever.py",
+      "file_type": "code",
+      "norm_label": "retrieve_similar()",
+      "source_file": "src/retrieval/inference_retriever.py",
+      "source_location": "L82"
+    },
+    {
+      "id": "src_retrieval_inference_retriever_run_file",
+      "label": "run_file()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "inference_retriever.py",
+      "file_type": "code",
+      "norm_label": "run_file()",
+      "source_file": "src/retrieval/inference_retriever.py",
+      "source_location": "L103"
+    },
+    {
       "id": "src_retrieval_retriever_aspect_query_vector",
       "label": "aspect_query_vector()",
       "_callable": true,
       "_origin": "ast",
       "community": 1,
-      "community_name": "retriever.py",
+      "community_name": "inference_retriever.py",
       "file_type": "code",
       "norm_label": "aspect_query_vector()",
       "source_file": "src/retrieval/retriever.py",
@@ -307,7 +418,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 1,
-      "community_name": "retriever.py",
+      "community_name": "inference_retriever.py",
       "file_type": "code",
       "norm_label": "aspect_score()",
       "source_file": "src/retrieval/retriever.py",
@@ -319,7 +430,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 1,
-      "community_name": "retriever.py",
+      "community_name": "inference_retriever.py",
       "file_type": "code",
       "norm_label": "cross_encoder_rerank()",
       "source_file": "src/retrieval/retriever.py",
@@ -331,7 +442,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 1,
-      "community_name": "retriever.py",
+      "community_name": "inference_retriever.py",
       "file_type": "code",
       "norm_label": "get_cross_encoder()",
       "source_file": "src/retrieval/retriever.py",
@@ -343,7 +454,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 1,
-      "community_name": "retriever.py",
+      "community_name": "inference_retriever.py",
       "file_type": "code",
       "norm_label": ".encode()",
       "source_file": "src/retrieval/retriever.py",
@@ -355,7 +466,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 1,
-      "community_name": "retriever.py",
+      "community_name": "inference_retriever.py",
       "file_type": "code",
       "norm_label": ".__init__()",
       "source_file": "src/retrieval/retriever.py",
@@ -367,7 +478,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 1,
-      "community_name": "retriever.py",
+      "community_name": "inference_retriever.py",
       "file_type": "code",
       "norm_label": ".build_prompt()",
       "source_file": "src/retrieval/retriever.py",
@@ -379,7 +490,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 1,
-      "community_name": "retriever.py",
+      "community_name": "inference_retriever.py",
       "file_type": "code",
       "norm_label": ".__init__()",
       "source_file": "src/retrieval/retriever.py",
@@ -391,7 +502,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 1,
-      "community_name": "retriever.py",
+      "community_name": "inference_retriever.py",
       "file_type": "code",
       "norm_label": ".retrieve()",
       "source_file": "src/retrieval/retriever.py",
@@ -566,18 +677,6 @@
       "source_location": "L8"
     },
     {
-      "id": "tests_test_kaggle_job_test_job_name_cannot_escape_kaggle_directory",
-      "label": "test_job_name_cannot_escape_kaggle_directory()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "kaggle_job.py",
-      "file_type": "code",
-      "norm_label": "test_job_name_cannot_escape_kaggle_directory()",
-      "source_file": "tests/test_kaggle_job.py",
-      "source_location": "L18"
-    },
-    {
       "id": "tests_test_kaggle_job_test_push_staging_bakes_exact_commit_and_branch",
       "label": "test_push_staging_bakes_exact_commit_and_branch()",
       "_callable": true,
@@ -623,7 +722,7 @@
       "file_type": "code",
       "norm_label": "deep_merge()",
       "source_file": "src/utils.py",
-      "source_location": "L500"
+      "source_location": "L586"
     },
     {
       "id": "src_utils_load_yaml_with_overrides",
@@ -635,7 +734,7 @@
       "file_type": "code",
       "norm_label": "load_yaml_with_overrides()",
       "source_file": "src/utils.py",
-      "source_location": "L515"
+      "source_location": "L601"
     },
     {
       "id": "tests_test_config_test_aspect_extractor_apply_overrides_is_a_no_op_without_a_section",
@@ -830,6 +929,42 @@
       "source_location": "L66"
     },
     {
+      "id": "tests_test_kaggle_job_test_job_name_cannot_escape_kaggle_directory",
+      "label": "test_job_name_cannot_escape_kaggle_directory()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 11,
+      "community_name": "test_config.py",
+      "file_type": "code",
+      "norm_label": "test_job_name_cannot_escape_kaggle_directory()",
+      "source_file": "tests/test_kaggle_job.py",
+      "source_location": "L18"
+    },
+    {
+      "id": "tests_test_metrics_test_bleu_reports_real_sacrebleu_and_keeps_the_precisions",
+      "label": "test_bleu_reports_real_sacrebleu_and_keeps_the_precisions()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 11,
+      "community_name": "test_config.py",
+      "file_type": "code",
+      "norm_label": "test_bleu_reports_real_sacrebleu_and_keeps_the_precisions()",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L77"
+    },
+    {
+      "id": "tests_test_metrics_test_rouge_per_row_lists_align_with_the_inputs",
+      "label": "test_rouge_per_row_lists_align_with_the_inputs()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 11,
+      "community_name": "test_config.py",
+      "file_type": "code",
+      "norm_label": "test_rouge_per_row_lists_align_with_the_inputs()",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L59"
+    },
+    {
       "id": "src_generation_response_generator_v2_profiler_enter",
       "label": ".__enter__()",
       "_callable": true,
@@ -866,60 +1001,12 @@
       "source_location": "L127"
     },
     {
-      "id": "src_generation_response_generator_v2_apply_chat_template",
-      "label": "_apply_chat_template()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "code",
-      "norm_label": "_apply_chat_template()",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L563"
-    },
-    {
-      "id": "src_generation_response_generator_v2_aspect_columns_ready",
-      "label": "_aspect_columns_ready()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "code",
-      "norm_label": "_aspect_columns_ready()",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L209"
-    },
-    {
-      "id": "src_generation_response_generator_v2_aspect_row",
-      "label": "_aspect_row()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "code",
-      "norm_label": "_aspect_row()",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L653"
-    },
-    {
-      "id": "src_generation_response_generator_v2_build_aspect_only_prompt",
-      "label": "build_aspect_only_prompt()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "code",
-      "norm_label": "build_aspect_only_prompt()",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L506"
-    },
-    {
       "id": "src_generation_response_generator_v2_build_baseline_prompt",
       "label": "build_baseline_prompt()",
       "_callable": true,
       "_origin": "ast",
       "community": 13,
-      "community_name": "response_generator_v2.py",
+      "community_name": "run_extra_baseline",
       "file_type": "code",
       "norm_label": "build_baseline_prompt()",
       "source_file": "src/generation/response_generator_v2.py",
@@ -931,83 +1018,11 @@
       "_callable": true,
       "_origin": "ast",
       "community": 13,
-      "community_name": "response_generator_v2.py",
+      "community_name": "run_extra_baseline",
       "file_type": "code",
       "norm_label": "build_baseline_prompt_pt()",
       "source_file": "src/generation/response_generator_v2.py",
       "source_location": "L490"
-    },
-    {
-      "id": "src_generation_response_generator_v2_build_guided_rag_prompt",
-      "label": "build_guided_rag_prompt()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "code",
-      "norm_label": "build_guided_rag_prompt()",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L1126"
-    },
-    {
-      "id": "src_generation_response_generator_v2_compute_metrics",
-      "label": "compute_metrics()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "code",
-      "norm_label": "compute_metrics()",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L1310"
-    },
-    {
-      "id": "src_generation_response_generator_v2_compute_metrics_post_init",
-      "label": "__post_init__()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "code",
-      "norm_label": "__post_init__()",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L1326"
-    },
-    {
-      "id": "src_generation_response_generator_v2_enrich_dataframe_with_aspects",
-      "label": "enrich_dataframe_with_aspects()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "code",
-      "norm_label": "enrich_dataframe_with_aspects()",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L243"
-    },
-    {
-      "id": "src_generation_response_generator_v2_extract_sentiment_severity",
-      "label": "extract_sentiment_severity()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "code",
-      "norm_label": "extract_sentiment_severity()",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L658"
-    },
-    {
-      "id": "src_generation_response_generator_v2_generate_batch",
-      "label": "generate_batch()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "code",
-      "norm_label": "generate_batch()",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L583"
     },
     {
       "id": "src_generation_response_generator_v2_generate_batch_extra",
@@ -1015,23 +1030,11 @@
       "_callable": true,
       "_origin": "ast",
       "community": 13,
-      "community_name": "response_generator_v2.py",
+      "community_name": "run_extra_baseline",
       "file_type": "code",
       "norm_label": "generate_batch_extra()",
       "source_file": "src/generation/response_generator_v2.py",
       "source_location": "L1014"
-    },
-    {
-      "id": "src_generation_response_generator_v2_generate_one",
-      "label": "generate_one()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "code",
-      "norm_label": "generate_one()",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L632"
     },
     {
       "id": "src_generation_response_generator_v2_get_spans",
@@ -1039,35 +1042,11 @@
       "_callable": true,
       "_origin": "ast",
       "community": 13,
-      "community_name": "response_generator_v2.py",
+      "community_name": "run_extra_baseline",
       "file_type": "code",
       "norm_label": "_get_spans()",
       "source_file": "src/generation/response_generator_v2.py",
       "source_location": "L642"
-    },
-    {
-      "id": "src_generation_response_generator_v2_inject_sentiment_severity",
-      "label": "inject_sentiment_severity()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "code",
-      "norm_label": "inject_sentiment_severity()",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L712"
-    },
-    {
-      "id": "src_generation_response_generator_v2_is_pretrained",
-      "label": "_is_pretrained()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "code",
-      "norm_label": "_is_pretrained()",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L96"
     },
     {
       "id": "src_generation_response_generator_v2_load_extra_model",
@@ -1075,131 +1054,11 @@
       "_callable": true,
       "_origin": "ast",
       "community": 13,
-      "community_name": "response_generator_v2.py",
+      "community_name": "run_extra_baseline",
       "file_type": "code",
       "norm_label": "load_extra_model()",
       "source_file": "src/generation/response_generator_v2.py",
       "source_location": "L971"
-    },
-    {
-      "id": "src_generation_response_generator_v2_load_model",
-      "label": "load_model()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "code",
-      "norm_label": "load_model()",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L426"
-    },
-    {
-      "id": "src_generation_response_generator_v2_make_retriever",
-      "label": "_make_retriever()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "code",
-      "norm_label": "_make_retriever()",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L727"
-    },
-    {
-      "id": "src_generation_response_generator_v2_maybe_merge_aspects_file",
-      "label": "maybe_merge_aspects_file()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "code",
-      "norm_label": "maybe_merge_aspects_file()",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L338"
-    },
-    {
-      "id": "src_generation_response_generator_v2_print_metrics",
-      "label": "print_metrics()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "code",
-      "norm_label": "print_metrics()",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L1364"
-    },
-    {
-      "id": "src_generation_response_generator_v2_resolve_aspect_extractor_kwargs",
-      "label": "_resolve_aspect_extractor_kwargs()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "code",
-      "norm_label": "_resolve_aspect_extractor_kwargs()",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L213"
-    },
-    {
-      "id": "src_generation_response_generator_v2_resolve_aspect_extractor_kwargs_pick",
-      "label": "pick()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "code",
-      "norm_label": "pick()",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L221"
-    },
-    {
-      "id": "src_generation_response_generator_v2_resolve_data_path",
-      "label": "resolve_data_path()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "code",
-      "norm_label": "resolve_data_path()",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L323"
-    },
-    {
-      "id": "src_generation_response_generator_v2_run",
-      "label": "run()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "code",
-      "norm_label": "run()",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L1394"
-    },
-    {
-      "id": "src_generation_response_generator_v2_run_aspect_only",
-      "label": "run_aspect_only()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "code",
-      "norm_label": "run_aspect_only()",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L848"
-    },
-    {
-      "id": "src_generation_response_generator_v2_run_baseline",
-      "label": "run_baseline()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "code",
-      "norm_label": "run_baseline()",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L743"
     },
     {
       "id": "src_generation_response_generator_v2_run_extra_baseline",
@@ -1207,143 +1066,11 @@
       "_callable": true,
       "_origin": "ast",
       "community": 13,
-      "community_name": "response_generator_v2.py",
+      "community_name": "run_extra_baseline",
       "file_type": "code",
       "norm_label": "run_extra_baseline()",
       "source_file": "src/generation/response_generator_v2.py",
       "source_location": "L1062"
-    },
-    {
-      "id": "src_generation_response_generator_v2_run_rag_asp_guided",
-      "label": "run_rag_asp_guided()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "code",
-      "norm_label": "run_rag_asp_guided()",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L1246"
-    },
-    {
-      "id": "src_generation_response_generator_v2_run_rag_aspect",
-      "label": "run_rag_aspect()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "code",
-      "norm_label": "run_rag_aspect()",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L901"
-    },
-    {
-      "id": "src_generation_response_generator_v2_run_rag_guided",
-      "label": "run_rag_guided()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "code",
-      "norm_label": "run_rag_guided()",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L1192"
-    },
-    {
-      "id": "src_generation_response_generator_v2_run_rag_only",
-      "label": "run_rag_only()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "code",
-      "norm_label": "run_rag_only()",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L787"
-    },
-    {
-      "id": "src_utils_checkpointer_clear",
-      "label": ".clear()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "code",
-      "norm_label": ".clear()",
-      "source_file": "src/utils.py",
-      "source_location": "L607"
-    },
-    {
-      "id": "src_utils_checkpointer_init",
-      "label": ".__init__()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "code",
-      "norm_label": ".__init__()",
-      "source_file": "src/utils.py",
-      "source_location": "L588"
-    },
-    {
-      "id": "src_utils_checkpointer_load",
-      "label": ".load()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "code",
-      "norm_label": ".load()",
-      "source_file": "src/utils.py",
-      "source_location": "L592"
-    },
-    {
-      "id": "src_utils_checkpointer_save",
-      "label": ".save()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "code",
-      "norm_label": ".save()",
-      "source_file": "src/utils.py",
-      "source_location": "L599"
-    },
-    {
-      "id": "src_utils_checkpointer_save_if_due",
-      "label": ".save_if_due()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "code",
-      "norm_label": ".save_if_due()",
-      "source_file": "src/utils.py",
-      "source_location": "L602"
-    },
-    {
-      "id": "src_utils_get_hf_token",
-      "label": "get_hf_token()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "code",
-      "norm_label": "get_hf_token()",
-      "source_file": "src/utils.py",
-      "source_location": "L479"
-    },
-    {
-      "id": "tests_test_config_test_sample_csv_overrides_the_input_argument",
-      "label": "test_sample_csv_overrides_the_input_argument()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "code",
-      "norm_label": "test_sample_csv_overrides_the_input_argument()",
-      "source_file": "tests/test_config.py",
-      "source_location": "L156"
     },
     {
       "id": "src_utils_metricscalculator_bertscore",
@@ -1351,11 +1078,11 @@
       "_callable": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "MetricsCalculator",
+      "community_name": "test_metrics.py",
       "file_type": "code",
       "norm_label": ".bertscore()",
       "source_file": "src/utils.py",
-      "source_location": "L312"
+      "source_location": "L392"
     },
     {
       "id": "src_utils_metricscalculator_bertscore_encode",
@@ -1363,11 +1090,23 @@
       "_callable": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "MetricsCalculator",
+      "community_name": "test_metrics.py",
       "file_type": "code",
       "norm_label": "encode()",
       "source_file": "src/utils.py",
-      "source_location": "L324"
+      "source_location": "L404"
+    },
+    {
+      "id": "src_utils_metricscalculator_bertscore_true",
+      "label": ".bertscore_true()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "test_metrics.py",
+      "file_type": "code",
+      "norm_label": ".bertscore_true()",
+      "source_file": "src/utils.py",
+      "source_location": "L346"
     },
     {
       "id": "src_utils_metricscalculator_bleu",
@@ -1375,11 +1114,11 @@
       "_callable": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "MetricsCalculator",
+      "community_name": "test_metrics.py",
       "file_type": "code",
       "norm_label": ".bleu()",
       "source_file": "src/utils.py",
-      "source_location": "L304"
+      "source_location": "L336"
     },
     {
       "id": "src_utils_metricscalculator_classification",
@@ -1387,11 +1126,11 @@
       "_callable": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "MetricsCalculator",
+      "community_name": "test_metrics.py",
       "file_type": "code",
       "norm_label": ".classification()",
       "source_file": "src/utils.py",
-      "source_location": "L346"
+      "source_location": "L430"
     },
     {
       "id": "src_utils_metricscalculator_compute_all",
@@ -1399,11 +1138,11 @@
       "_callable": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "MetricsCalculator",
+      "community_name": "test_metrics.py",
       "file_type": "code",
       "norm_label": ".compute_all()",
       "source_file": "src/utils.py",
-      "source_location": "L359"
+      "source_location": "L443"
     },
     {
       "id": "src_utils_metricscalculator_init",
@@ -1411,11 +1150,11 @@
       "_callable": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "MetricsCalculator",
+      "community_name": "test_metrics.py",
       "file_type": "code",
       "norm_label": ".__init__()",
       "source_file": "src/utils.py",
-      "source_location": "L289"
+      "source_location": "L309"
     },
     {
       "id": "src_utils_metricscalculator_print_table",
@@ -1423,11 +1162,11 @@
       "_callable": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "MetricsCalculator",
+      "community_name": "test_metrics.py",
       "file_type": "code",
       "norm_label": ".print_table()",
       "source_file": "src/utils.py",
-      "source_location": "L394"
+      "source_location": "L478"
     },
     {
       "id": "src_utils_metricscalculator_rouge",
@@ -1435,11 +1174,251 @@
       "_callable": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "MetricsCalculator",
+      "community_name": "test_metrics.py",
       "file_type": "code",
       "norm_label": ".rouge()",
       "source_file": "src/utils.py",
-      "source_location": "L292"
+      "source_location": "L313"
+    },
+    {
+      "id": "src_utils_unicodetokenizer_tokenize",
+      "label": ".tokenize()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "test_metrics.py",
+      "file_type": "code",
+      "norm_label": ".tokenize()",
+      "source_file": "src/utils.py",
+      "source_location": "L297"
+    },
+    {
+      "id": "tests_test_metrics_calc",
+      "label": "calc()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "test_metrics.py",
+      "file_type": "code",
+      "norm_label": "calc()",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L28"
+    },
+    {
+      "id": "tests_test_metrics_faketensor_init",
+      "label": ".__init__()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "test_metrics.py",
+      "file_type": "code",
+      "norm_label": ".__init__()",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L170"
+    },
+    {
+      "id": "tests_test_metrics_faketensor_tolist",
+      "label": ".tolist()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "test_metrics.py",
+      "file_type": "code",
+      "norm_label": ".tolist()",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L173"
+    },
+    {
+      "id": "tests_test_metrics_test_bertscore_true_honours_explicit_arguments",
+      "label": "test_bertscore_true_honours_explicit_arguments()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "test_metrics.py",
+      "file_type": "code",
+      "norm_label": "test_bertscore_true_honours_explicit_arguments()",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L154"
+    },
+    {
+      "id": "tests_test_metrics_test_bertscore_true_honours_explicit_arguments_fake_score",
+      "label": "fake_score()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "test_metrics.py",
+      "file_type": "code",
+      "norm_label": "fake_score()",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L157"
+    },
+    {
+      "id": "tests_test_metrics_test_bertscore_true_uses_bert_score_and_returns_per_row_f1",
+      "label": "test_bertscore_true_uses_bert_score_and_returns_per_row_f1()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "test_metrics.py",
+      "file_type": "code",
+      "norm_label": "test_bertscore_true_uses_bert_score_and_returns_per_row_f1()",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L135"
+    },
+    {
+      "id": "tests_test_metrics_test_bertscore_true_uses_bert_score_and_returns_per_row_f1_fake_score",
+      "label": "fake_score()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "test_metrics.py",
+      "file_type": "code",
+      "norm_label": "fake_score()",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L140"
+    },
+    {
+      "id": "tests_test_metrics_test_bleu_drops_for_an_unrelated_hypothesis",
+      "label": "test_bleu_drops_for_an_unrelated_hypothesis()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "test_metrics.py",
+      "file_type": "code",
+      "norm_label": "test_bleu_drops_for_an_unrelated_hypothesis()",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L88"
+    },
+    {
+      "id": "tests_test_metrics_test_cls_cosine_is_no_longer_called_bertscore",
+      "label": "test_cls_cosine_is_no_longer_called_bertscore()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "test_metrics.py",
+      "file_type": "code",
+      "norm_label": "test_cls_cosine_is_no_longer_called_bertscore()",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L179"
+    },
+    {
+      "id": "tests_test_metrics_test_lang_match_accepts_locale_style_language_codes",
+      "label": "test_lang_match_accepts_locale_style_language_codes()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "test_metrics.py",
+      "file_type": "code",
+      "norm_label": "test_lang_match_accepts_locale_style_language_codes()",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L121"
+    },
+    {
+      "id": "tests_test_metrics_test_lang_match_catches_a_reply_in_the_wrong_language",
+      "label": "test_lang_match_catches_a_reply_in_the_wrong_language()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "test_metrics.py",
+      "file_type": "code",
+      "norm_label": "test_lang_match_catches_a_reply_in_the_wrong_language()",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L105"
+    },
+    {
+      "id": "tests_test_metrics_test_lang_match_counts_undetectable_text_as_a_miss",
+      "label": "test_lang_match_counts_undetectable_text_as_a_miss()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "test_metrics.py",
+      "file_type": "code",
+      "norm_label": "test_lang_match_counts_undetectable_text_as_a_miss()",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L114"
+    },
+    {
+      "id": "tests_test_metrics_test_lang_match_is_deterministic",
+      "label": "test_lang_match_is_deterministic()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "test_metrics.py",
+      "file_type": "code",
+      "norm_label": "test_lang_match_is_deterministic()",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L127"
+    },
+    {
+      "id": "tests_test_metrics_test_lang_match_is_one_when_every_reply_uses_the_ticket_language",
+      "label": "test_lang_match_is_one_when_every_reply_uses_the_ticket_language()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "test_metrics.py",
+      "file_type": "code",
+      "norm_label": "test_lang_match_is_one_when_every_reply_uses_the_ticket_language()",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L97"
+    },
+    {
+      "id": "tests_test_metrics_test_metrics_run_on_the_committed_sample_rows",
+      "label": "test_metrics_run_on_the_committed_sample_rows()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "test_metrics.py",
+      "file_type": "code",
+      "norm_label": "test_metrics_run_on_the_committed_sample_rows()",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L194"
+    },
+    {
+      "id": "tests_test_metrics_test_rouge_is_not_perfect_for_a_partial_match",
+      "label": "test_rouge_is_not_perfect_for_a_partial_match()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "test_metrics.py",
+      "file_type": "code",
+      "norm_label": "test_rouge_is_not_perfect_for_a_partial_match()",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L69"
+    },
+    {
+      "id": "tests_test_metrics_test_rouge_scores_identical_german_as_one",
+      "label": "test_rouge_scores_identical_german_as_one()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "test_metrics.py",
+      "file_type": "code",
+      "norm_label": "test_rouge_scores_identical_german_as_one()",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L41"
+    },
+    {
+      "id": "tests_test_metrics_test_rouge_without_the_unicode_tokenizer_loses_german",
+      "label": "test_rouge_without_the_unicode_tokenizer_loses_german()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "test_metrics.py",
+      "file_type": "code",
+      "norm_label": "test_rouge_without_the_unicode_tokenizer_loses_german()",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L49"
+    },
+    {
+      "id": "tests_test_metrics_test_unicode_tokenizer_keeps_umlauts_and_lowercases",
+      "label": "test_unicode_tokenizer_keeps_umlauts_and_lowercases()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "test_metrics.py",
+      "file_type": "code",
+      "norm_label": "test_unicode_tokenizer_keeps_umlauts_and_lowercases()",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L34"
     },
     {
       "id": "src_preprocessing_load_config",
@@ -1631,66 +1610,6 @@
       "file_type": "code",
       "norm_label": ".__init__()",
       "source_file": "src/retrieval/indexer.py",
-      "source_location": "L103"
-    },
-    {
-      "id": "src_retrieval_inference_retriever_get_retriever",
-      "label": "get_retriever()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 21,
-      "community_name": "indexer.py",
-      "file_type": "code",
-      "norm_label": "get_retriever()",
-      "source_file": "src/retrieval/inference_retriever.py",
-      "source_location": "L70"
-    },
-    {
-      "id": "src_retrieval_inference_retriever_load_retriever_config",
-      "label": "load_retriever_config()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 21,
-      "community_name": "indexer.py",
-      "file_type": "code",
-      "norm_label": "load_retriever_config()",
-      "source_file": "src/retrieval/inference_retriever.py",
-      "source_location": "L58"
-    },
-    {
-      "id": "src_retrieval_inference_retriever_main",
-      "label": "main()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 21,
-      "community_name": "indexer.py",
-      "file_type": "code",
-      "norm_label": "main()",
-      "source_file": "src/retrieval/inference_retriever.py",
-      "source_location": "L164"
-    },
-    {
-      "id": "src_retrieval_inference_retriever_retrieve_similar",
-      "label": "retrieve_similar()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 21,
-      "community_name": "indexer.py",
-      "file_type": "code",
-      "norm_label": "retrieve_similar()",
-      "source_file": "src/retrieval/inference_retriever.py",
-      "source_location": "L82"
-    },
-    {
-      "id": "src_retrieval_inference_retriever_run_file",
-      "label": "run_file()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 21,
-      "community_name": "indexer.py",
-      "file_type": "code",
-      "norm_label": "run_file()",
-      "source_file": "src/retrieval/inference_retriever.py",
       "source_location": "L103"
     },
     {
@@ -1910,6 +1829,450 @@
       "source_location": "L197"
     },
     {
+      "id": "src_generation_response_generator_v2_aspect_row",
+      "label": "_aspect_row()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 25,
+      "community_name": "run_rag_aspect",
+      "file_type": "code",
+      "norm_label": "_aspect_row()",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L653"
+    },
+    {
+      "id": "src_generation_response_generator_v2_build_aspect_only_prompt",
+      "label": "build_aspect_only_prompt()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 25,
+      "community_name": "run_rag_aspect",
+      "file_type": "code",
+      "norm_label": "build_aspect_only_prompt()",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L506"
+    },
+    {
+      "id": "src_generation_response_generator_v2_extract_sentiment_severity",
+      "label": "extract_sentiment_severity()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 25,
+      "community_name": "run_rag_aspect",
+      "file_type": "code",
+      "norm_label": "extract_sentiment_severity()",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L658"
+    },
+    {
+      "id": "src_generation_response_generator_v2_run_aspect_only",
+      "label": "run_aspect_only()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 25,
+      "community_name": "run_rag_aspect",
+      "file_type": "code",
+      "norm_label": "run_aspect_only()",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L848"
+    },
+    {
+      "id": "src_generation_response_generator_v2_run_rag_aspect",
+      "label": "run_rag_aspect()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 25,
+      "community_name": "run_rag_aspect",
+      "file_type": "code",
+      "norm_label": "run_rag_aspect()",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L901"
+    },
+    {
+      "id": "src_generation_response_generator_v2_build_guided_rag_prompt",
+      "label": "build_guided_rag_prompt()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 26,
+      "community_name": "run_rag_asp_guided",
+      "file_type": "code",
+      "norm_label": "build_guided_rag_prompt()",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L1126"
+    },
+    {
+      "id": "src_generation_response_generator_v2_make_retriever",
+      "label": "_make_retriever()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 26,
+      "community_name": "run_rag_asp_guided",
+      "file_type": "code",
+      "norm_label": "_make_retriever()",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L727"
+    },
+    {
+      "id": "src_generation_response_generator_v2_run_rag_asp_guided",
+      "label": "run_rag_asp_guided()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 26,
+      "community_name": "run_rag_asp_guided",
+      "file_type": "code",
+      "norm_label": "run_rag_asp_guided()",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L1246"
+    },
+    {
+      "id": "src_generation_response_generator_v2_generate_batch",
+      "label": "generate_batch()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 27,
+      "community_name": "GenerationConfig",
+      "file_type": "code",
+      "norm_label": "generate_batch()",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L583"
+    },
+    {
+      "id": "src_generation_response_generator_v2_generate_one",
+      "label": "generate_one()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 27,
+      "community_name": "GenerationConfig",
+      "file_type": "code",
+      "norm_label": "generate_one()",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L632"
+    },
+    {
+      "id": "src_generation_response_generator_v2_resolve_data_path",
+      "label": "resolve_data_path()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 27,
+      "community_name": "GenerationConfig",
+      "file_type": "code",
+      "norm_label": "resolve_data_path()",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L323"
+    },
+    {
+      "id": "src_generation_response_generator_v2_run_baseline",
+      "label": "run_baseline()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 27,
+      "community_name": "GenerationConfig",
+      "file_type": "code",
+      "norm_label": "run_baseline()",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L743"
+    },
+    {
+      "id": "src_generation_response_generator_v2_run_rag_guided",
+      "label": "run_rag_guided()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 27,
+      "community_name": "GenerationConfig",
+      "file_type": "code",
+      "norm_label": "run_rag_guided()",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L1192"
+    },
+    {
+      "id": "tests_test_config_test_sample_csv_overrides_the_input_argument",
+      "label": "test_sample_csv_overrides_the_input_argument()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 27,
+      "community_name": "GenerationConfig",
+      "file_type": "code",
+      "norm_label": "test_sample_csv_overrides_the_input_argument()",
+      "source_file": "tests/test_config.py",
+      "source_location": "L156"
+    },
+    {
+      "id": "src_generation_response_generator_v2_inject_sentiment_severity",
+      "label": "inject_sentiment_severity()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 28,
+      "community_name": "Checkpointer",
+      "file_type": "code",
+      "norm_label": "inject_sentiment_severity()",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L712"
+    },
+    {
+      "id": "src_generation_response_generator_v2_run_rag_only",
+      "label": "run_rag_only()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 28,
+      "community_name": "Checkpointer",
+      "file_type": "code",
+      "norm_label": "run_rag_only()",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L787"
+    },
+    {
+      "id": "src_utils_checkpointer_clear",
+      "label": ".clear()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 28,
+      "community_name": "Checkpointer",
+      "file_type": "code",
+      "norm_label": ".clear()",
+      "source_file": "src/utils.py",
+      "source_location": "L693"
+    },
+    {
+      "id": "src_utils_checkpointer_init",
+      "label": ".__init__()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 28,
+      "community_name": "Checkpointer",
+      "file_type": "code",
+      "norm_label": ".__init__()",
+      "source_file": "src/utils.py",
+      "source_location": "L674"
+    },
+    {
+      "id": "src_utils_checkpointer_load",
+      "label": ".load()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 28,
+      "community_name": "Checkpointer",
+      "file_type": "code",
+      "norm_label": ".load()",
+      "source_file": "src/utils.py",
+      "source_location": "L678"
+    },
+    {
+      "id": "src_utils_checkpointer_save",
+      "label": ".save()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 28,
+      "community_name": "Checkpointer",
+      "file_type": "code",
+      "norm_label": ".save()",
+      "source_file": "src/utils.py",
+      "source_location": "L685"
+    },
+    {
+      "id": "src_utils_checkpointer_save_if_due",
+      "label": ".save_if_due()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 28,
+      "community_name": "Checkpointer",
+      "file_type": "code",
+      "norm_label": ".save_if_due()",
+      "source_file": "src/utils.py",
+      "source_location": "L688"
+    },
+    {
+      "id": "src_aspect_aspect_extractor_load_config",
+      "label": "load_config()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 29,
+      "community_name": "DataFrame",
+      "file_type": "code",
+      "norm_label": "load_config()",
+      "source_file": "src/aspect/aspect_extractor.py",
+      "source_location": "L225"
+    },
+    {
+      "id": "src_generation_response_generator_v2_aspect_columns_ready",
+      "label": "_aspect_columns_ready()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 29,
+      "community_name": "DataFrame",
+      "file_type": "code",
+      "norm_label": "_aspect_columns_ready()",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L209"
+    },
+    {
+      "id": "src_generation_response_generator_v2_compute_metrics",
+      "label": "compute_metrics()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 29,
+      "community_name": "DataFrame",
+      "file_type": "code",
+      "norm_label": "compute_metrics()",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L1310"
+    },
+    {
+      "id": "src_generation_response_generator_v2_compute_metrics_post_init",
+      "label": "__post_init__()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 29,
+      "community_name": "DataFrame",
+      "file_type": "code",
+      "norm_label": "__post_init__()",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L1330"
+    },
+    {
+      "id": "src_generation_response_generator_v2_enrich_dataframe_with_aspects",
+      "label": "enrich_dataframe_with_aspects()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 29,
+      "community_name": "DataFrame",
+      "file_type": "code",
+      "norm_label": "enrich_dataframe_with_aspects()",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L243"
+    },
+    {
+      "id": "src_generation_response_generator_v2_resolve_aspect_extractor_kwargs",
+      "label": "_resolve_aspect_extractor_kwargs()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 29,
+      "community_name": "DataFrame",
+      "file_type": "code",
+      "norm_label": "_resolve_aspect_extractor_kwargs()",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L213"
+    },
+    {
+      "id": "src_generation_response_generator_v2_resolve_aspect_extractor_kwargs_pick",
+      "label": "pick()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 29,
+      "community_name": "DataFrame",
+      "file_type": "code",
+      "norm_label": "pick()",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L221"
+    },
+    {
+      "id": "src_generation_response_generator_v2_maybe_merge_aspects_file",
+      "label": "maybe_merge_aspects_file()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 30,
+      "community_name": "run",
+      "file_type": "code",
+      "norm_label": "maybe_merge_aspects_file()",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L338"
+    },
+    {
+      "id": "src_generation_response_generator_v2_print_metrics",
+      "label": "print_metrics()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 30,
+      "community_name": "run",
+      "file_type": "code",
+      "norm_label": "print_metrics()",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L1378"
+    },
+    {
+      "id": "src_generation_response_generator_v2_run",
+      "label": "run()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 30,
+      "community_name": "run",
+      "file_type": "code",
+      "norm_label": "run()",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L1410"
+    },
+    {
+      "id": "src_utils_compare_models",
+      "label": "compare_models()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 30,
+      "community_name": "run",
+      "file_type": "code",
+      "norm_label": "compare_models()",
+      "source_file": "src/utils.py",
+      "source_location": "L703"
+    },
+    {
+      "id": "src_utils_load_csv_or_excel",
+      "label": "load_csv_or_excel()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 30,
+      "community_name": "run",
+      "file_type": "code",
+      "norm_label": "load_csv_or_excel()",
+      "source_file": "src/utils.py",
+      "source_location": "L648"
+    },
+    {
+      "id": "src_generation_response_generator_v2_apply_chat_template",
+      "label": "_apply_chat_template()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "response_generator_v2.py",
+      "file_type": "code",
+      "norm_label": "_apply_chat_template()",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L563"
+    },
+    {
+      "id": "src_generation_response_generator_v2_is_pretrained",
+      "label": "_is_pretrained()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "response_generator_v2.py",
+      "file_type": "code",
+      "norm_label": "_is_pretrained()",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L96"
+    },
+    {
+      "id": "src_generation_response_generator_v2_load_model",
+      "label": "load_model()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "response_generator_v2.py",
+      "file_type": "code",
+      "norm_label": "load_model()",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L426"
+    },
+    {
+      "id": "src_utils_get_hf_token",
+      "label": "get_hf_token()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "response_generator_v2.py",
+      "file_type": "code",
+      "norm_label": "get_hf_token()",
+      "source_file": "src/utils.py",
+      "source_location": "L565"
+    },
+    {
       "id": "src_aspect_aspect_extractor_build_chat_text",
       "label": "_build_chat_text()",
       "_callable": true,
@@ -2052,18 +2415,6 @@
       "norm_label": "is_pure_greeting()",
       "source_file": "src/aspect/aspect_extractor.py",
       "source_location": "L300"
-    },
-    {
-      "id": "src_aspect_aspect_extractor_load_config",
-      "label": "load_config()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "aspect_extractor.py",
-      "file_type": "code",
-      "norm_label": "load_config()",
-      "source_file": "src/aspect/aspect_extractor.py",
-      "source_location": "L225"
     },
     {
       "id": "src_aspect_aspect_extractor_parse_labels",
@@ -2255,7 +2606,7 @@
       "file_type": "code",
       "norm_label": "run()",
       "source_file": "src/baseline/baseline_t5.py",
-      "source_location": "L340"
+      "source_location": "L342"
     },
     {
       "id": "src_baseline_baseline_t5_run_t5_base",
@@ -2268,18 +2619,6 @@
       "norm_label": "run_t5_base()",
       "source_file": "src/baseline/baseline_t5.py",
       "source_location": "L217"
-    },
-    {
-      "id": "src_utils_load_csv_or_excel",
-      "label": "load_csv_or_excel()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 6,
-      "community_name": "baseline_t5.py",
-      "file_type": "code",
-      "norm_label": "load_csv_or_excel()",
-      "source_file": "src/utils.py",
-      "source_location": "L562"
     },
     {
       "id": "preprocessing_datapreprocessor_clean_text",
@@ -2558,18 +2897,6 @@
       "source_location": "L241"
     },
     {
-      "id": "src_utils_compare_models",
-      "label": "compare_models()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "utils.py",
-      "file_type": "code",
-      "norm_label": "compare_models()",
-      "source_file": "src/utils.py",
-      "source_location": "L617"
-    },
-    {
       "id": "src_utils_contextbuilder_build",
       "label": ".build()",
       "_callable": true,
@@ -2627,7 +2954,7 @@
       "file_type": "code",
       "norm_label": ".__init__()",
       "source_file": "src/utils.py",
-      "source_location": "L423"
+      "source_location": "L509"
     },
     {
       "id": "src_utils_evaluationpipeline_run",
@@ -2639,7 +2966,7 @@
       "file_type": "code",
       "norm_label": ".run()",
       "source_file": "src/utils.py",
-      "source_location": "L435"
+      "source_location": "L521"
     },
     {
       "id": "src_utils_load_eval_config",
@@ -2774,40 +3101,28 @@
       "source_location": "L102"
     },
     {
-      "id": "upgrade_plan_6_1_src_minimal_run_py_sample",
-      "label": "6.1 `src/minimal_run.py sample`",
+      "id": "upgrade_plan_8_2_python_m_src_minimal_run_report_systems_s1_gemma2_s2_gemma3_s3_gemma3_crag_s4_raft_aspect_s5_raft_noaspect",
+      "label": "8.2 `python -m src.minimal_run report --systems s1_gemma2 s2_gemma3 s3_gemma3_crag s4_raft_aspect s5_raft_noaspect`",
       "_origin": "ast",
       "community": 0,
       "community_name": "AspectForge v3 \u2014 Minimal Run on Kaggle (end-to-end plan)",
       "file_type": "document",
       "node_kind": "heading",
-      "norm_label": "6.1 `src/minimal_run.py sample`",
+      "norm_label": "8.2 `python -m src.minimal_run report --systems s1_gemma2 s2_gemma3 s3_gemma3_crag s4_raft_aspect s5_raft_noaspect`",
       "source_file": "UPGRADE_PLAN.md",
-      "source_location": "L241"
+      "source_location": "L419"
     },
     {
-      "id": "upgrade_plan_6_4_src_retrieval_eval_retrieval_py",
-      "label": "6.4 `src/retrieval/eval_retrieval.py`",
+      "id": "upgrade_plan_8_metrics_and_report_src_utils_py_src_minimal_run_py_report",
+      "label": "8. Metrics and report (`src/utils.py`, `src/minimal_run.py report`)",
       "_origin": "ast",
       "community": 0,
       "community_name": "AspectForge v3 \u2014 Minimal Run on Kaggle (end-to-end plan)",
       "file_type": "document",
       "node_kind": "heading",
-      "norm_label": "6.4 `src/retrieval/eval_retrieval.py`",
+      "norm_label": "8. metrics and report (`src/utils.py`, `src/minimal_run.py report`)",
       "source_file": "UPGRADE_PLAN.md",
-      "source_location": "L300"
-    },
-    {
-      "id": "upgrade_plan_6_data_aspects_and_retrieval",
-      "label": "6. Data, aspects and retrieval",
-      "_origin": "ast",
-      "community": 0,
-      "community_name": "AspectForge v3 \u2014 Minimal Run on Kaggle (end-to-end plan)",
-      "file_type": "document",
-      "node_kind": "heading",
-      "norm_label": "6. data, aspects and retrieval",
-      "source_file": "UPGRADE_PLAN.md",
-      "source_location": "L239"
+      "source_location": "L404"
     },
     {
       "id": "upgrade_plan_9_kaggle_notebooks",
@@ -2918,11 +3233,44 @@
       "source_location": "L463"
     },
     {
+      "id": "src_utils_rationale_369",
+      "label": "Share of replies written in the language of the ticket. langdetect is seeded,\u2026",
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "AspectForge v3 \u2014 Minimal Run on Kaggle (end-to-end plan)",
+      "file_type": "rationale",
+      "norm_label": "share of replies written in the language of the ticket. langdetect is seeded,...",
+      "source_file": "src/utils.py",
+      "source_location": "L369"
+    },
+    {
+      "id": "src_retrieval_inference_retriever",
+      "label": "inference_retriever.py",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "inference_retriever.py",
+      "file_type": "code",
+      "norm_label": "inference_retriever.py",
+      "source_file": "src/retrieval/inference_retriever.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_retrieval_inference_retriever_py_any",
+      "label": "Any",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "inference_retriever.py",
+      "file_type": "code",
+      "norm_label": "any",
+      "source_file": "",
+      "source_location": ""
+    },
+    {
       "id": "src_retrieval_retriever",
       "label": "retriever.py",
       "_origin": "ast",
       "community": 1,
-      "community_name": "retriever.py",
+      "community_name": "inference_retriever.py",
       "file_type": "code",
       "norm_label": "retriever.py",
       "source_file": "src/retrieval/retriever.py",
@@ -2933,18 +3281,30 @@
       "label": "ndarray",
       "_origin": "ast",
       "community": 1,
-      "community_name": "retriever.py",
+      "community_name": "inference_retriever.py",
       "file_type": "code",
       "norm_label": "ndarray",
       "source_file": "",
       "source_location": ""
     },
     {
+      "id": "readme_inference_retriever_py",
+      "label": "`inference_retriever.py`",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "inference_retriever.py",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "`inference_retriever.py`",
+      "source_file": "README.md",
+      "source_location": "L190"
+    },
+    {
       "id": "readme_retriever_py",
       "label": "`retriever.py`",
       "_origin": "ast",
       "community": 1,
-      "community_name": "retriever.py",
+      "community_name": "inference_retriever.py",
       "file_type": "document",
       "node_kind": "heading",
       "norm_label": "`retriever.py`",
@@ -2952,11 +3312,35 @@
       "source_location": "L177"
     },
     {
+      "id": "upgrade_plan_6_1_src_minimal_run_py_sample",
+      "label": "6.1 `src/minimal_run.py sample`",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "inference_retriever.py",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "6.1 `src/minimal_run.py sample`",
+      "source_file": "UPGRADE_PLAN.md",
+      "source_location": "L241"
+    },
+    {
+      "id": "upgrade_plan_6_2_index_indexer_py",
+      "label": "6.2 Index (`indexer.py`)",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "inference_retriever.py",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "6.2 index (`indexer.py`)",
+      "source_file": "UPGRADE_PLAN.md",
+      "source_location": "L259"
+    },
+    {
       "id": "upgrade_plan_6_3_retriever_retriever_py",
       "label": "6.3 Retriever (`retriever.py`)",
       "_origin": "ast",
       "community": 1,
-      "community_name": "retriever.py",
+      "community_name": "inference_retriever.py",
       "file_type": "document",
       "node_kind": "heading",
       "norm_label": "6.3 retriever (`retriever.py`)",
@@ -2964,11 +3348,35 @@
       "source_location": "L286"
     },
     {
+      "id": "upgrade_plan_6_4_src_retrieval_eval_retrieval_py",
+      "label": "6.4 `src/retrieval/eval_retrieval.py`",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "inference_retriever.py",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "6.4 `src/retrieval/eval_retrieval.py`",
+      "source_file": "UPGRADE_PLAN.md",
+      "source_location": "L300"
+    },
+    {
+      "id": "upgrade_plan_6_data_aspects_and_retrieval",
+      "label": "6. Data, aspects and retrieval",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "inference_retriever.py",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "6. data, aspects and retrieval",
+      "source_file": "UPGRADE_PLAN.md",
+      "source_location": "L239"
+    },
+    {
       "id": "upgrade_plan_a_3_aspects_in_retrieval_and_prompt",
       "label": "A.3 Aspects in retrieval and prompt",
       "_origin": "ast",
       "community": 1,
-      "community_name": "retriever.py",
+      "community_name": "inference_retriever.py",
       "file_type": "document",
       "node_kind": "heading",
       "norm_label": "a.3 aspects in retrieval and prompt",
@@ -2976,11 +3384,55 @@
       "source_location": "L519"
     },
     {
+      "id": "src_retrieval_inference_retriever_rationale_109",
+      "label": "Batch retrieval for a CSV/XLSX file. Reads subject/body/(language) and writes\u2026",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "inference_retriever.py",
+      "file_type": "rationale",
+      "norm_label": "batch retrieval for a csv/xlsx file. reads subject/body/(language) and writes...",
+      "source_file": "src/retrieval/inference_retriever.py",
+      "source_location": "L109"
+    },
+    {
+      "id": "src_retrieval_inference_retriever_rationale_2",
+      "label": "inference_retriever.py Tiny helper to load `inference_retrieval_config.yaml`\u2026",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "inference_retriever.py",
+      "file_type": "rationale",
+      "norm_label": "inference_retriever.py tiny helper to load `inference_retrieval_config.yaml`...",
+      "source_file": "src/retrieval/inference_retriever.py",
+      "source_location": "L2"
+    },
+    {
+      "id": "src_retrieval_inference_retriever_rationale_71",
+      "label": "Cached retriever instance (loads FAISS + metadata + embedding model once).",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "inference_retriever.py",
+      "file_type": "rationale",
+      "norm_label": "cached retriever instance (loads faiss + metadata + embedding model once).",
+      "source_file": "src/retrieval/inference_retriever.py",
+      "source_location": "L71"
+    },
+    {
+      "id": "src_retrieval_inference_retriever_rationale_89",
+      "label": "Retrieval-only helper (NO aspects required). Returns a list of dicts:\u2026",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "inference_retriever.py",
+      "file_type": "rationale",
+      "norm_label": "retrieval-only helper (no aspects required). returns a list of dicts:...",
+      "source_file": "src/retrieval/inference_retriever.py",
+      "source_location": "L89"
+    },
+    {
       "id": "src_retrieval_retriever_rationale_1",
       "label": "retriever.py \u2014 Aspect-Aware FAISS Retriever\u2026",
       "_origin": "ast",
       "community": 1,
-      "community_name": "retriever.py",
+      "community_name": "inference_retriever.py",
       "file_type": "rationale",
       "norm_label": "retriever.py \u2014 aspect-aware faiss retriever...",
       "source_file": "src/retrieval/retriever.py",
@@ -2991,7 +3443,7 @@
       "label": "Rerank FAISS candidates using a multilingual cross-encoder. mmarco-\u2026",
       "_origin": "ast",
       "community": 1,
-      "community_name": "retriever.py",
+      "community_name": "inference_retriever.py",
       "file_type": "rationale",
       "norm_label": "rerank faiss candidates using a multilingual cross-encoder. mmarco-...",
       "source_file": "src/retrieval/retriever.py",
@@ -3002,7 +3454,7 @@
       "label": "E5 convention: - documents: \"passage: ...\" - queries: \"query: ...\" We always\u2026",
       "_origin": "ast",
       "community": 1,
-      "community_name": "retriever.py",
+      "community_name": "inference_retriever.py",
       "file_type": "rationale",
       "norm_label": "e5 convention: - documents: \"passage: ...\" - queries: \"query: ...\" we always...",
       "source_file": "src/retrieval/retriever.py",
@@ -3013,7 +3465,7 @@
       "label": "Retrieve top-K similar past tickets. subject : email subject of new ticket body\u2026",
       "_origin": "ast",
       "community": 1,
-      "community_name": "retriever.py",
+      "community_name": "inference_retriever.py",
       "file_type": "rationale",
       "norm_label": "retrieve top-k similar past tickets. subject : email subject of new ticket body...",
       "source_file": "src/retrieval/retriever.py",
@@ -3024,7 +3476,7 @@
       "label": "Singleton cross-encoder loader. mmarco-mMiniLMv2-L12-H384-v1 is trained on MS\u2026",
       "_origin": "ast",
       "community": 1,
-      "community_name": "retriever.py",
+      "community_name": "inference_retriever.py",
       "file_type": "rationale",
       "norm_label": "singleton cross-encoder loader. mmarco-mminilmv2-l12-h384-v1 is trained on ms...",
       "source_file": "src/retrieval/retriever.py",
@@ -3035,7 +3487,7 @@
       "label": "[OUR C] Structured aspect-slot prompt for the generator. Slot order: Enforce \u2192\u2026",
       "_origin": "ast",
       "community": 1,
-      "community_name": "retriever.py",
+      "community_name": "inference_retriever.py",
       "file_type": "rationale",
       "norm_label": "[our c] structured aspect-slot prompt for the generator. slot order: enforce \u2192...",
       "source_file": "src/retrieval/retriever.py",
@@ -3046,7 +3498,7 @@
       "label": "Weighted combination of aspect span embeddings + full body as query vector.\u2026",
       "_origin": "ast",
       "community": 1,
-      "community_name": "retriever.py",
+      "community_name": "inference_retriever.py",
       "file_type": "rationale",
       "norm_label": "weighted combination of aspect span embeddings + full body as query vector....",
       "source_file": "src/retrieval/retriever.py",
@@ -3057,7 +3509,7 @@
       "label": "Structured aspect matching between query and stored aspects. Uses field-level\u2026",
       "_origin": "ast",
       "community": 1,
-      "community_name": "retriever.py",
+      "community_name": "inference_retriever.py",
       "file_type": "rationale",
       "norm_label": "structured aspect matching between query and stored aspects. uses field-level...",
       "source_file": "src/retrieval/retriever.py",
@@ -3279,7 +3731,7 @@
       "source_location": "L199"
     },
     {
-      "id": "src_utils_rationale_501",
+      "id": "src_utils_rationale_587",
       "label": "Recursively merge `override` on top of `base` and return a new dict. Nested\u2026",
       "_origin": "ast",
       "community": 11,
@@ -3287,10 +3739,10 @@
       "file_type": "rationale",
       "norm_label": "recursively merge `override` on top of `base` and return a new dict. nested...",
       "source_file": "src/utils.py",
-      "source_location": "L501"
+      "source_location": "L587"
     },
     {
-      "id": "src_utils_rationale_518",
+      "id": "src_utils_rationale_604",
       "label": "Load YAML; if overrides_path is given, deep-merge overrides[section] on top.\u2026",
       "_origin": "ast",
       "community": 11,
@@ -3298,7 +3750,7 @@
       "file_type": "rationale",
       "norm_label": "load yaml; if overrides_path is given, deep-merge overrides[section] on top....",
       "source_file": "src/utils.py",
-      "source_location": "L518"
+      "source_location": "L604"
     },
     {
       "id": "tests_test_config_rationale_1",
@@ -3312,56 +3764,22 @@
       "source_location": "L1"
     },
     {
-      "id": "src_generation_response_generator_v2",
-      "label": "response_generator_v2.py",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "code",
-      "norm_label": "response_generator_v2.py",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_generation_response_generator_v2_py_dataframe",
-      "label": "DataFrame",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "code",
-      "norm_label": "dataframe",
-      "source_file": "",
-      "source_location": ""
-    },
-    {
       "id": "src_generation_response_generator_v2_py_series",
       "label": "Series",
       "_origin": "ast",
       "community": 13,
-      "community_name": "response_generator_v2.py",
+      "community_name": "run_extra_baseline",
       "file_type": "code",
       "norm_label": "series",
       "source_file": "",
       "source_location": ""
     },
     {
-      "id": "upgrade_plan_5_1_new_config_keys_generationconfig_dataclass_generation_config_yaml",
-      "label": "5.1 New config keys (`GenerationConfig` dataclass + `generation_config.yaml`)",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "document",
-      "node_kind": "heading",
-      "norm_label": "5.1 new config keys (`generationconfig` dataclass + `generation_config.yaml`)",
-      "source_file": "UPGRADE_PLAN.md",
-      "source_location": "L138"
-    },
-    {
       "id": "upgrade_plan_5_2_src_generation_model_backend_py",
       "label": "5.2 `src/generation/model_backend.py`",
       "_origin": "ast",
       "community": 13,
-      "community_name": "response_generator_v2.py",
+      "community_name": "run_extra_baseline",
       "file_type": "document",
       "node_kind": "heading",
       "norm_label": "5.2 `src/generation/model_backend.py`",
@@ -3369,82 +3787,11 @@
       "source_location": "L156"
     },
     {
-      "id": "upgrade_plan_5_3_prompt_budget_f3",
-      "label": "5.3 Prompt budget (F3)",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "document",
-      "node_kind": "heading",
-      "norm_label": "5.3 prompt budget (f3)",
-      "source_file": "UPGRADE_PLAN.md",
-      "source_location": "L200"
-    },
-    {
-      "id": "upgrade_plan_5_4_language_line_f2",
-      "label": "5.4 Language line (F2)",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "document",
-      "node_kind": "heading",
-      "norm_label": "5.4 language line (f2)",
-      "source_file": "UPGRADE_PLAN.md",
-      "source_location": "L213"
-    },
-    {
-      "id": "upgrade_plan_5_5_sentiment_severity_for_de_f8",
-      "label": "5.5 Sentiment/severity for DE (F8)",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "document",
-      "node_kind": "heading",
-      "norm_label": "5.5 sentiment/severity for de (f8)",
-      "source_file": "UPGRADE_PLAN.md",
-      "source_location": "L223"
-    },
-    {
-      "id": "upgrade_plan_5_6_runners_and_modes_for_s1_s5",
-      "label": "5.6 Runners and modes for S1\u2013S5",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "document",
-      "node_kind": "heading",
-      "norm_label": "5.6 runners and modes for s1\u2013s5",
-      "source_file": "UPGRADE_PLAN.md",
-      "source_location": "L226"
-    },
-    {
-      "id": "upgrade_plan_5_generator_changes_response_generator_v2_py_new_model_backend_py",
-      "label": "5. Generator changes (`response_generator_v2.py` + new `model_backend.py`)",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "document",
-      "node_kind": "heading",
-      "norm_label": "5. generator changes (`response_generator_v2.py` + new `model_backend.py`)",
-      "source_file": "UPGRADE_PLAN.md",
-      "source_location": "L136"
-    },
-    {
-      "id": "src_generation_response_generator_v2_rationale_1",
-      "label": "response_generator_v2.py \u2014 Unified Response Generation\u2026",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "rationale",
-      "norm_label": "response_generator_v2.py \u2014 unified response generation...",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L1"
-    },
-    {
       "id": "src_generation_response_generator_v2_rationale_1016",
       "label": "Batched generation for extra models. Handles PT models (no chat template) and\u2026",
       "_origin": "ast",
       "community": 13,
-      "community_name": "response_generator_v2.py",
+      "community_name": "run_extra_baseline",
       "file_type": "rationale",
       "norm_label": "batched generation for extra models. handles pt models (no chat template) and...",
       "source_file": "src/generation/response_generator_v2.py",
@@ -3455,95 +3802,18 @@
       "label": "Runner for extra baseline models (T5-Base / Gemma-PT). Zero-shot only \u2014 no RAG,\u2026",
       "_origin": "ast",
       "community": 13,
-      "community_name": "response_generator_v2.py",
+      "community_name": "run_extra_baseline",
       "file_type": "rationale",
       "norm_label": "runner for extra baseline models (t5-base / gemma-pt). zero-shot only \u2014 no rag,...",
       "source_file": "src/generation/response_generator_v2.py",
       "source_location": "L1064"
     },
     {
-      "id": "src_generation_response_generator_v2_rationale_1129",
-      "label": "Guided RAG prompt \u2014 explicitly instructs the model to USE retrieved examples.\u2026",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "rationale",
-      "norm_label": "guided rag prompt \u2014 explicitly instructs the model to use retrieved examples....",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L1129"
-    },
-    {
-      "id": "src_generation_response_generator_v2_rationale_1194",
-      "label": "Guided RAG \u2014 pure dense retrieval + explicit use-context prompt. No aspects.\u2026",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "rationale",
-      "norm_label": "guided rag \u2014 pure dense retrieval + explicit use-context prompt. no aspects....",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L1194"
-    },
-    {
-      "id": "src_generation_response_generator_v2_rationale_1248",
-      "label": "Guided RAG + Aspects \u2014 aspect-aware retrieval + explicit use-context prompt.\u2026",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "rationale",
-      "norm_label": "guided rag + aspects \u2014 aspect-aware retrieval + explicit use-context prompt....",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L1248"
-    },
-    {
-      "id": "src_generation_response_generator_v2_rationale_1312",
-      "label": "Compute ROUGE, BLEU, BERTScore. prefix must match the response column: e.g.\u2026",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "rationale",
-      "norm_label": "compute rouge, bleu, bertscore. prefix must match the response column: e.g....",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L1312"
-    },
-    {
-      "id": "src_generation_response_generator_v2_rationale_1398",
-      "label": "Unified orchestrator \u2014 all modes: Original : baseline | rag | aspect |\u2026",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "rationale",
-      "norm_label": "unified orchestrator \u2014 all modes: original : baseline | rag | aspect |...",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L1398"
-    },
-    {
-      "id": "src_generation_response_generator_v2_rationale_245",
-      "label": "Run aspect_extractor SFT model to populate all 5 aspect columns: prob_sub,\u2026",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "rationale",
-      "norm_label": "run aspect_extractor sft model to populate all 5 aspect columns: prob_sub,...",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L245"
-    },
-    {
-      "id": "src_generation_response_generator_v2_rationale_339",
-      "label": "Merge aspect columns from a separate aspects CSV/XLSX onto the ticket\u2026",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "rationale",
-      "norm_label": "merge aspect columns from a separate aspects csv/xlsx onto the ticket...",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L339"
-    },
-    {
       "id": "src_generation_response_generator_v2_rationale_471",
       "label": "Zero-shot prompt for gemma-2-2b-it (instruction-tuned). Constrained to produce\u2026",
       "_origin": "ast",
       "community": 13,
-      "community_name": "response_generator_v2.py",
+      "community_name": "run_extra_baseline",
       "file_type": "rationale",
       "norm_label": "zero-shot prompt for gemma-2-2b-it (instruction-tuned). constrained to produce...",
       "source_file": "src/generation/response_generator_v2.py",
@@ -3554,209 +3824,33 @@
       "label": "Zero-shot prompt for PRE-TRAINED models (no instruction tuning). Framed as text\u2026",
       "_origin": "ast",
       "community": 13,
-      "community_name": "response_generator_v2.py",
+      "community_name": "run_extra_baseline",
       "file_type": "rationale",
       "norm_label": "zero-shot prompt for pre-trained models (no instruction tuning). framed as text...",
       "source_file": "src/generation/response_generator_v2.py",
       "source_location": "L491"
     },
     {
-      "id": "src_generation_response_generator_v2_rationale_508",
-      "label": "Aspect-only prompt \u2014 all 5 aspect columns injected into prompt slots. No\u2026",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "rationale",
-      "norm_label": "aspect-only prompt \u2014 all 5 aspect columns injected into prompt slots. no...",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L508"
-    },
-    {
-      "id": "src_generation_response_generator_v2_rationale_564",
-      "label": "Apply chat template to a list of prompts (causal LM only). gemma-2-2b-it has no\u2026",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "rationale",
-      "norm_label": "apply chat template to a list of prompts (causal lm only). gemma-2-2b-it has no...",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L564"
-    },
-    {
-      "id": "src_generation_response_generator_v2_rationale_585",
-      "label": "Batched generation \u2014 tokenize all prompts together, single model.generate()\u2026",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "rationale",
-      "norm_label": "batched generation \u2014 tokenize all prompts together, single model.generate()...",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L585"
-    },
-    {
-      "id": "src_generation_response_generator_v2_rationale_634",
-      "label": "Single-prompt wrapper around generate_batch (kept for compatibility).",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "rationale",
-      "norm_label": "single-prompt wrapper around generate_batch (kept for compatibility).",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L634"
-    },
-    {
       "id": "src_generation_response_generator_v2_rationale_643",
       "label": "Extract non-empty aspect spans from a dataframe row.",
       "_origin": "ast",
       "community": 13,
-      "community_name": "response_generator_v2.py",
+      "community_name": "run_extra_baseline",
       "file_type": "rationale",
       "norm_label": "extract non-empty aspect spans from a dataframe row.",
       "source_file": "src/generation/response_generator_v2.py",
       "source_location": "L643"
     },
     {
-      "id": "src_generation_response_generator_v2_rationale_654",
-      "label": "Return all 5 aspect values as a flat dict for storing in output rows.",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "rationale",
-      "norm_label": "return all 5 aspect values as a flat dict for storing in output rows.",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L654"
-    },
-    {
-      "id": "src_generation_response_generator_v2_rationale_659",
-      "label": "Returns (sentiment_label, severity_label, vader_compound). Sentiment uses VADER\u2026",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "rationale",
-      "norm_label": "returns (sentiment_label, severity_label, vader_compound). sentiment uses vader...",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L659"
-    },
-    {
-      "id": "src_generation_response_generator_v2_rationale_713",
-      "label": "Insert sentiment/severity lines near the top of the prompt. Keeps the rest of\u2026",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "rationale",
-      "norm_label": "insert sentiment/severity lines near the top of the prompt. keeps the rest of...",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L713"
-    },
-    {
-      "id": "src_generation_response_generator_v2_rationale_728",
-      "label": "Load FAISS retriever from config.",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "rationale",
-      "norm_label": "load faiss retriever from config.",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L728"
-    },
-    {
-      "id": "src_generation_response_generator_v2_rationale_745",
-      "label": "System 1 \u2014 Zero-shot baseline. No RAG, no aspects. Measures pure model\u2026",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "rationale",
-      "norm_label": "system 1 \u2014 zero-shot baseline. no rag, no aspects. measures pure model...",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L745"
-    },
-    {
-      "id": "src_generation_response_generator_v2_rationale_789",
-      "label": "System 2 \u2014 RAG only (no aspects). Dense E5+FAISS retrieval. No aspect spans\u2026",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "rationale",
-      "norm_label": "system 2 \u2014 rag only (no aspects). dense e5+faiss retrieval. no aspect spans...",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L789"
-    },
-    {
-      "id": "src_generation_response_generator_v2_rationale_850",
-      "label": "System 3 \u2014 Aspects only (no RAG). All 5 aspect columns from aspect_extractor\u2026",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "rationale",
-      "norm_label": "system 3 \u2014 aspects only (no rag). all 5 aspect columns from aspect_extractor...",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L850"
-    },
-    {
-      "id": "src_generation_response_generator_v2_rationale_903",
-      "label": "System 4 \u2014 RAG + Aspects (full system). Aspects drive THREE things: (a)\u2026",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "rationale",
-      "norm_label": "system 4 \u2014 rag + aspects (full system). aspects drive three things: (a)...",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L903"
-    },
-    {
-      "id": "src_generation_response_generator_v2_rationale_938",
-      "label": "# NOTE: Sentiment/Severity NOT injected here for System 4.",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "rationale",
-      "norm_label": "# note: sentiment/severity not injected here for system 4.",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L938"
-    },
-    {
-      "id": "src_generation_response_generator_v2_rationale_97",
-      "label": "True for pre-trained (non-instruct) models \u2014 affects prompt format.",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "rationale",
-      "norm_label": "true for pre-trained (non-instruct) models \u2014 affects prompt format.",
-      "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L97"
-    },
-    {
       "id": "src_generation_response_generator_v2_rationale_972",
       "label": "Load one of the extra baseline models from EXTRA_MODEL_REGISTRY. Returns\u2026",
       "_origin": "ast",
       "community": 13,
-      "community_name": "response_generator_v2.py",
+      "community_name": "run_extra_baseline",
       "file_type": "rationale",
       "norm_label": "load one of the extra baseline models from extra_model_registry. returns...",
       "source_file": "src/generation/response_generator_v2.py",
       "source_location": "L972"
-    },
-    {
-      "id": "src_utils_rationale_480",
-      "label": "Returns HuggingFace token from environment or .env file. Used by any component\u2026",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "rationale",
-      "norm_label": "returns huggingface token from environment or .env file. used by any component...",
-      "source_file": "src/utils.py",
-      "source_location": "L480"
-    },
-    {
-      "id": "src_utils_rationale_577",
-      "label": "Save/resume progress for long generation runs. Survives Kaggle/Vast session\u2026",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "file_type": "rationale",
-      "norm_label": "save/resume progress for long generation runs. survives kaggle/vast session...",
-      "source_file": "src/utils.py",
-      "source_location": "L577"
     },
     {
       "id": "claude_claude",
@@ -3839,11 +3933,33 @@
       "source_location": "L1"
     },
     {
+      "id": "fixture",
+      "label": "fixture",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "test_metrics.py",
+      "file_type": "code",
+      "norm_label": "fixture",
+      "source_file": "",
+      "source_location": ""
+    },
+    {
+      "id": "tests_test_metrics",
+      "label": "test_metrics.py",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "test_metrics.py",
+      "file_type": "code",
+      "norm_label": "test_metrics.py",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L1"
+    },
+    {
       "id": "upgrade_plan_8_1_metricscalculator_fixes",
       "label": "8.1 `MetricsCalculator` fixes",
       "_origin": "ast",
       "community": 2,
-      "community_name": "MetricsCalculator",
+      "community_name": "test_metrics.py",
       "file_type": "document",
       "node_kind": "heading",
       "norm_label": "8.1 `metricscalculator` fixes",
@@ -3851,28 +3967,103 @@
       "source_location": "L406"
     },
     {
-      "id": "upgrade_plan_8_2_python_m_src_minimal_run_report_systems_s1_gemma2_s2_gemma3_s3_gemma3_crag_s4_raft_aspect_s5_raft_noaspect",
-      "label": "8.2 `python -m src.minimal_run report --systems s1_gemma2 s2_gemma3 s3_gemma3_crag s4_raft_aspect s5_raft_noaspect`",
+      "id": "src_utils_rationale_289",
+      "label": "rouge_score's default tokenizer strips every non-ASCII character, which\u2026",
       "_origin": "ast",
       "community": 2,
-      "community_name": "MetricsCalculator",
-      "file_type": "document",
-      "node_kind": "heading",
-      "norm_label": "8.2 `python -m src.minimal_run report --systems s1_gemma2 s2_gemma3 s3_gemma3_crag s4_raft_aspect s5_raft_noaspect`",
-      "source_file": "UPGRADE_PLAN.md",
-      "source_location": "L419"
+      "community_name": "test_metrics.py",
+      "file_type": "rationale",
+      "norm_label": "rouge_score's default tokenizer strips every non-ascii character, which...",
+      "source_file": "src/utils.py",
+      "source_location": "L289"
     },
     {
-      "id": "upgrade_plan_8_metrics_and_report_src_utils_py_src_minimal_run_py_report",
-      "label": "8. Metrics and report (`src/utils.py`, `src/minimal_run.py report`)",
+      "id": "src_utils_rationale_302",
+      "label": "Response-quality metrics. Every metric also has a per-row form (`per_row=True`\u2026",
       "_origin": "ast",
       "community": 2,
-      "community_name": "MetricsCalculator",
-      "file_type": "document",
-      "node_kind": "heading",
-      "norm_label": "8. metrics and report (`src/utils.py`, `src/minimal_run.py report`)",
-      "source_file": "UPGRADE_PLAN.md",
-      "source_location": "L404"
+      "community_name": "test_metrics.py",
+      "file_type": "rationale",
+      "norm_label": "response-quality metrics. every metric also has a per-row form (`per_row=true`...",
+      "source_file": "src/utils.py",
+      "source_location": "L302"
+    },
+    {
+      "id": "src_utils_rationale_348",
+      "label": "Real BERTScore via `bert_score.score` (greedy token alignment with IDF-free\u2026",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "test_metrics.py",
+      "file_type": "rationale",
+      "norm_label": "real bertscore via `bert_score.score` (greedy token alignment with idf-free...",
+      "source_file": "src/utils.py",
+      "source_location": "L348"
+    },
+    {
+      "id": "tests_test_metrics_rationale_1",
+      "label": "Step 2 (plan \u00a78.1): Unicode ROUGE, real sacreBLEU, true BERTScore, lang_match,\u2026",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "test_metrics.py",
+      "file_type": "rationale",
+      "norm_label": "step 2 (plan \u00a78.1): unicode rouge, real sacrebleu, true bertscore, lang_match,...",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_metrics_rationale_136",
+      "label": "xlm-roberta-large is a 2 GB download, so the call itself is stubbed; what\u2026",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "test_metrics.py",
+      "file_type": "rationale",
+      "norm_label": "xlm-roberta-large is a 2 gb download, so the call itself is stubbed; what...",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L136"
+    },
+    {
+      "id": "tests_test_metrics_rationale_180",
+      "label": "`bertscore()` is a CLS cosine, not BERTScore: plan \u00a78.1 renames its output to\u2026",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "test_metrics.py",
+      "file_type": "rationale",
+      "norm_label": "`bertscore()` is a cls cosine, not bertscore: plan \u00a78.1 renames its output to...",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L180"
+    },
+    {
+      "id": "tests_test_metrics_rationale_42",
+      "label": "The plan's acceptance test: ROUGE must not be destroyed by umlauts.",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "test_metrics.py",
+      "file_type": "rationale",
+      "norm_label": "the plan's acceptance test: rouge must not be destroyed by umlauts.",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L42"
+    },
+    {
+      "id": "tests_test_metrics_rationale_50",
+      "label": "The old ASCII behaviour stays reachable via config \u2014 and is still wrong: it\u2026",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "test_metrics.py",
+      "file_type": "rationale",
+      "norm_label": "the old ascii behaviour stays reachable via config \u2014 and is still wrong: it...",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L50"
+    },
+    {
+      "id": "tests_test_metrics_rationale_98",
+      "label": "The plan's acceptance test.",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "test_metrics.py",
+      "file_type": "rationale",
+      "norm_label": "the plan's acceptance test.",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L98"
     },
     {
       "id": "src_retrieval_init",
@@ -3939,52 +4130,6 @@
       "norm_label": "ndarray",
       "source_file": "",
       "source_location": ""
-    },
-    {
-      "id": "src_retrieval_inference_retriever",
-      "label": "inference_retriever.py",
-      "_origin": "ast",
-      "community": 21,
-      "community_name": "indexer.py",
-      "file_type": "code",
-      "norm_label": "inference_retriever.py",
-      "source_file": "src/retrieval/inference_retriever.py",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_retrieval_inference_retriever_py_any",
-      "label": "Any",
-      "_origin": "ast",
-      "community": 21,
-      "community_name": "indexer.py",
-      "file_type": "code",
-      "norm_label": "any",
-      "source_file": "",
-      "source_location": ""
-    },
-    {
-      "id": "readme_inference_retriever_py",
-      "label": "`inference_retriever.py`",
-      "_origin": "ast",
-      "community": 21,
-      "community_name": "indexer.py",
-      "file_type": "document",
-      "node_kind": "heading",
-      "norm_label": "`inference_retriever.py`",
-      "source_file": "README.md",
-      "source_location": "L190"
-    },
-    {
-      "id": "upgrade_plan_6_2_index_indexer_py",
-      "label": "6.2 Index (`indexer.py`)",
-      "_origin": "ast",
-      "community": 21,
-      "community_name": "indexer.py",
-      "file_type": "document",
-      "node_kind": "heading",
-      "norm_label": "6.2 index (`indexer.py`)",
-      "source_file": "UPGRADE_PLAN.md",
-      "source_location": "L259"
     },
     {
       "id": "src_preprocessing_rationale_1",
@@ -4084,50 +4229,6 @@
       "norm_label": "load retrieval_config.yaml, optionally merging the `retrieval` section of an...",
       "source_file": "src/retrieval/indexer.py",
       "source_location": "L74"
-    },
-    {
-      "id": "src_retrieval_inference_retriever_rationale_109",
-      "label": "Batch retrieval for a CSV/XLSX file. Reads subject/body/(language) and writes\u2026",
-      "_origin": "ast",
-      "community": 21,
-      "community_name": "indexer.py",
-      "file_type": "rationale",
-      "norm_label": "batch retrieval for a csv/xlsx file. reads subject/body/(language) and writes...",
-      "source_file": "src/retrieval/inference_retriever.py",
-      "source_location": "L109"
-    },
-    {
-      "id": "src_retrieval_inference_retriever_rationale_2",
-      "label": "inference_retriever.py Tiny helper to load `inference_retrieval_config.yaml`\u2026",
-      "_origin": "ast",
-      "community": 21,
-      "community_name": "indexer.py",
-      "file_type": "rationale",
-      "norm_label": "inference_retriever.py tiny helper to load `inference_retrieval_config.yaml`...",
-      "source_file": "src/retrieval/inference_retriever.py",
-      "source_location": "L2"
-    },
-    {
-      "id": "src_retrieval_inference_retriever_rationale_71",
-      "label": "Cached retriever instance (loads FAISS + metadata + embedding model once).",
-      "_origin": "ast",
-      "community": 21,
-      "community_name": "indexer.py",
-      "file_type": "rationale",
-      "norm_label": "cached retriever instance (loads faiss + metadata + embedding model once).",
-      "source_file": "src/retrieval/inference_retriever.py",
-      "source_location": "L71"
-    },
-    {
-      "id": "src_retrieval_inference_retriever_rationale_89",
-      "label": "Retrieval-only helper (NO aspects required). Returns a list of dicts:\u2026",
-      "_origin": "ast",
-      "community": 21,
-      "community_name": "indexer.py",
-      "file_type": "rationale",
-      "norm_label": "retrieval-only helper (no aspects required). returns a list of dicts:...",
-      "source_file": "src/retrieval/inference_retriever.py",
-      "source_location": "L89"
     },
     {
       "id": "dataset",
@@ -4284,100 +4385,395 @@
       "source_location": "L65"
     },
     {
-      "id": "claude",
-      "label": "CLAUDE.md",
+      "id": "upgrade_plan_5_5_sentiment_severity_for_de_f8",
+      "label": "5.5 Sentiment/severity for DE (F8)",
+      "_origin": "ast",
+      "community": 25,
+      "community_name": "run_rag_aspect",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "5.5 sentiment/severity for de (f8)",
+      "source_file": "UPGRADE_PLAN.md",
+      "source_location": "L223"
+    },
+    {
+      "id": "src_generation_response_generator_v2_rationale_508",
+      "label": "Aspect-only prompt \u2014 all 5 aspect columns injected into prompt slots. No\u2026",
+      "_origin": "ast",
+      "community": 25,
+      "community_name": "run_rag_aspect",
+      "file_type": "rationale",
+      "norm_label": "aspect-only prompt \u2014 all 5 aspect columns injected into prompt slots. no...",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L508"
+    },
+    {
+      "id": "src_generation_response_generator_v2_rationale_654",
+      "label": "Return all 5 aspect values as a flat dict for storing in output rows.",
+      "_origin": "ast",
+      "community": 25,
+      "community_name": "run_rag_aspect",
+      "file_type": "rationale",
+      "norm_label": "return all 5 aspect values as a flat dict for storing in output rows.",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L654"
+    },
+    {
+      "id": "src_generation_response_generator_v2_rationale_659",
+      "label": "Returns (sentiment_label, severity_label, vader_compound). Sentiment uses VADER\u2026",
+      "_origin": "ast",
+      "community": 25,
+      "community_name": "run_rag_aspect",
+      "file_type": "rationale",
+      "norm_label": "returns (sentiment_label, severity_label, vader_compound). sentiment uses vader...",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L659"
+    },
+    {
+      "id": "src_generation_response_generator_v2_rationale_850",
+      "label": "System 3 \u2014 Aspects only (no RAG). All 5 aspect columns from aspect_extractor\u2026",
+      "_origin": "ast",
+      "community": 25,
+      "community_name": "run_rag_aspect",
+      "file_type": "rationale",
+      "norm_label": "system 3 \u2014 aspects only (no rag). all 5 aspect columns from aspect_extractor...",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L850"
+    },
+    {
+      "id": "src_generation_response_generator_v2_rationale_903",
+      "label": "System 4 \u2014 RAG + Aspects (full system). Aspects drive THREE things: (a)\u2026",
+      "_origin": "ast",
+      "community": 25,
+      "community_name": "run_rag_aspect",
+      "file_type": "rationale",
+      "norm_label": "system 4 \u2014 rag + aspects (full system). aspects drive three things: (a)...",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L903"
+    },
+    {
+      "id": "upgrade_plan_5_1_new_config_keys_generationconfig_dataclass_generation_config_yaml",
+      "label": "5.1 New config keys (`GenerationConfig` dataclass + `generation_config.yaml`)",
+      "_origin": "ast",
+      "community": 26,
+      "community_name": "run_rag_asp_guided",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "5.1 new config keys (`generationconfig` dataclass + `generation_config.yaml`)",
+      "source_file": "UPGRADE_PLAN.md",
+      "source_location": "L138"
+    },
+    {
+      "id": "upgrade_plan_5_3_prompt_budget_f3",
+      "label": "5.3 Prompt budget (F3)",
+      "_origin": "ast",
+      "community": 26,
+      "community_name": "run_rag_asp_guided",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "5.3 prompt budget (f3)",
+      "source_file": "UPGRADE_PLAN.md",
+      "source_location": "L200"
+    },
+    {
+      "id": "upgrade_plan_5_4_language_line_f2",
+      "label": "5.4 Language line (F2)",
+      "_origin": "ast",
+      "community": 26,
+      "community_name": "run_rag_asp_guided",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "5.4 language line (f2)",
+      "source_file": "UPGRADE_PLAN.md",
+      "source_location": "L213"
+    },
+    {
+      "id": "upgrade_plan_5_6_runners_and_modes_for_s1_s5",
+      "label": "5.6 Runners and modes for S1\u2013S5",
+      "_origin": "ast",
+      "community": 26,
+      "community_name": "run_rag_asp_guided",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "5.6 runners and modes for s1\u2013s5",
+      "source_file": "UPGRADE_PLAN.md",
+      "source_location": "L226"
+    },
+    {
+      "id": "upgrade_plan_5_generator_changes_response_generator_v2_py_new_model_backend_py",
+      "label": "5. Generator changes (`response_generator_v2.py` + new `model_backend.py`)",
+      "_origin": "ast",
+      "community": 26,
+      "community_name": "run_rag_asp_guided",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "5. generator changes (`response_generator_v2.py` + new `model_backend.py`)",
+      "source_file": "UPGRADE_PLAN.md",
+      "source_location": "L136"
+    },
+    {
+      "id": "src_generation_response_generator_v2_rationale_1129",
+      "label": "Guided RAG prompt \u2014 explicitly instructs the model to USE retrieved examples.\u2026",
+      "_origin": "ast",
+      "community": 26,
+      "community_name": "run_rag_asp_guided",
+      "file_type": "rationale",
+      "norm_label": "guided rag prompt \u2014 explicitly instructs the model to use retrieved examples....",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L1129"
+    },
+    {
+      "id": "src_generation_response_generator_v2_rationale_1248",
+      "label": "Guided RAG + Aspects \u2014 aspect-aware retrieval + explicit use-context prompt.\u2026",
+      "_origin": "ast",
+      "community": 26,
+      "community_name": "run_rag_asp_guided",
+      "file_type": "rationale",
+      "norm_label": "guided rag + aspects \u2014 aspect-aware retrieval + explicit use-context prompt....",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L1248"
+    },
+    {
+      "id": "src_generation_response_generator_v2_rationale_728",
+      "label": "Load FAISS retriever from config.",
+      "_origin": "ast",
+      "community": 26,
+      "community_name": "run_rag_asp_guided",
+      "file_type": "rationale",
+      "norm_label": "load faiss retriever from config.",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L728"
+    },
+    {
+      "id": "src_generation_response_generator_v2_rationale_1194",
+      "label": "Guided RAG \u2014 pure dense retrieval + explicit use-context prompt. No aspects.\u2026",
+      "_origin": "ast",
+      "community": 27,
+      "community_name": "GenerationConfig",
+      "file_type": "rationale",
+      "norm_label": "guided rag \u2014 pure dense retrieval + explicit use-context prompt. no aspects....",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L1194"
+    },
+    {
+      "id": "src_generation_response_generator_v2_rationale_585",
+      "label": "Batched generation \u2014 tokenize all prompts together, single model.generate()\u2026",
+      "_origin": "ast",
+      "community": 27,
+      "community_name": "GenerationConfig",
+      "file_type": "rationale",
+      "norm_label": "batched generation \u2014 tokenize all prompts together, single model.generate()...",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L585"
+    },
+    {
+      "id": "src_generation_response_generator_v2_rationale_634",
+      "label": "Single-prompt wrapper around generate_batch (kept for compatibility).",
+      "_origin": "ast",
+      "community": 27,
+      "community_name": "GenerationConfig",
+      "file_type": "rationale",
+      "norm_label": "single-prompt wrapper around generate_batch (kept for compatibility).",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L634"
+    },
+    {
+      "id": "src_generation_response_generator_v2_rationale_745",
+      "label": "System 1 \u2014 Zero-shot baseline. No RAG, no aspects. Measures pure model\u2026",
+      "_origin": "ast",
+      "community": 27,
+      "community_name": "GenerationConfig",
+      "file_type": "rationale",
+      "norm_label": "system 1 \u2014 zero-shot baseline. no rag, no aspects. measures pure model...",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L745"
+    },
+    {
+      "id": "src_generation_response_generator_v2_rationale_713",
+      "label": "Insert sentiment/severity lines near the top of the prompt. Keeps the rest of\u2026",
+      "_origin": "ast",
+      "community": 28,
+      "community_name": "Checkpointer",
+      "file_type": "rationale",
+      "norm_label": "insert sentiment/severity lines near the top of the prompt. keeps the rest of...",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L713"
+    },
+    {
+      "id": "src_generation_response_generator_v2_rationale_789",
+      "label": "System 2 \u2014 RAG only (no aspects). Dense E5+FAISS retrieval. No aspect spans\u2026",
+      "_origin": "ast",
+      "community": 28,
+      "community_name": "Checkpointer",
+      "file_type": "rationale",
+      "norm_label": "system 2 \u2014 rag only (no aspects). dense e5+faiss retrieval. no aspect spans...",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L789"
+    },
+    {
+      "id": "src_utils_rationale_663",
+      "label": "Save/resume progress for long generation runs. Survives Kaggle/Vast session\u2026",
+      "_origin": "ast",
+      "community": 28,
+      "community_name": "Checkpointer",
+      "file_type": "rationale",
+      "norm_label": "save/resume progress for long generation runs. survives kaggle/vast session...",
+      "source_file": "src/utils.py",
+      "source_location": "L663"
+    },
+    {
+      "id": "src_generation_response_generator_v2_py_dataframe",
+      "label": "DataFrame",
+      "_origin": "ast",
+      "community": 29,
+      "community_name": "DataFrame",
+      "file_type": "code",
+      "norm_label": "dataframe",
+      "source_file": "",
+      "source_location": ""
+    },
+    {
+      "id": "src_generation_response_generator_v2_rationale_1312",
+      "label": "Compute ROUGE, BLEU, BERTScore. prefix must match the response column: e.g.\u2026",
+      "_origin": "ast",
+      "community": 29,
+      "community_name": "DataFrame",
+      "file_type": "rationale",
+      "norm_label": "compute rouge, bleu, bertscore. prefix must match the response column: e.g....",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L1312"
+    },
+    {
+      "id": "src_generation_response_generator_v2_rationale_245",
+      "label": "Run aspect_extractor SFT model to populate all 5 aspect columns: prob_sub,\u2026",
+      "_origin": "ast",
+      "community": 29,
+      "community_name": "DataFrame",
+      "file_type": "rationale",
+      "norm_label": "run aspect_extractor sft model to populate all 5 aspect columns: prob_sub,...",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L245"
+    },
+    {
+      "id": "src_utils_py_dataframe",
+      "label": "DataFrame",
+      "_origin": "ast",
+      "community": 30,
+      "community_name": "run",
+      "file_type": "code",
+      "norm_label": "dataframe",
+      "source_file": "",
+      "source_location": ""
+    },
+    {
+      "id": "src_generation_response_generator_v2_rationale_1414",
+      "label": "Unified orchestrator \u2014 all modes: Original : baseline | rag | aspect |\u2026",
+      "_origin": "ast",
+      "community": 30,
+      "community_name": "run",
+      "file_type": "rationale",
+      "norm_label": "unified orchestrator \u2014 all modes: original : baseline | rag | aspect |...",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L1414"
+    },
+    {
+      "id": "src_generation_response_generator_v2_rationale_339",
+      "label": "Merge aspect columns from a separate aspects CSV/XLSX onto the ticket\u2026",
+      "_origin": "ast",
+      "community": 30,
+      "community_name": "run",
+      "file_type": "rationale",
+      "norm_label": "merge aspect columns from a separate aspects csv/xlsx onto the ticket...",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L339"
+    },
+    {
+      "id": "src_utils_rationale_649",
+      "label": "Load CSV or Excel file. Used by all phases that read ticket data.",
+      "_origin": "ast",
+      "community": 30,
+      "community_name": "run",
+      "file_type": "rationale",
+      "norm_label": "load csv or excel file. used by all phases that read ticket data.",
+      "source_file": "src/utils.py",
+      "source_location": "L649"
+    },
+    {
+      "id": "src_utils_rationale_706",
+      "label": "Build a side-by-side comparison CSV from multiple model result DataFrames.\u2026",
+      "_origin": "ast",
+      "community": 30,
+      "community_name": "run",
+      "file_type": "rationale",
+      "norm_label": "build a side-by-side comparison csv from multiple model result dataframes....",
+      "source_file": "src/utils.py",
+      "source_location": "L706"
+    },
+    {
+      "id": "src_generation_response_generator_v2",
+      "label": "response_generator_v2.py",
       "_origin": "ast",
       "community": 4,
-      "community_name": "AspectForge \u2014 Claude Code instructions",
-      "file_type": "document",
-      "node_kind": "page",
-      "norm_label": "claude.md",
-      "source_file": "CLAUDE.md",
+      "community_name": "response_generator_v2.py",
+      "file_type": "code",
+      "norm_label": "response_generator_v2.py",
+      "source_file": "src/generation/response_generator_v2.py",
       "source_location": "L1"
     },
     {
-      "id": "claude_ask_the_human_only_for",
-      "label": "Ask the human only for",
+      "id": "src_generation_response_generator_v2_rationale_1",
+      "label": "response_generator_v2.py \u2014 Unified Response Generation\u2026",
       "_origin": "ast",
       "community": 4,
-      "community_name": "AspectForge \u2014 Claude Code instructions",
-      "file_type": "document",
-      "node_kind": "heading",
-      "norm_label": "ask the human only for",
-      "source_file": "CLAUDE.md",
-      "source_location": "L26"
-    },
-    {
-      "id": "claude_aspectforge_claude_code_instructions",
-      "label": "AspectForge \u2014 Claude Code instructions",
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "AspectForge \u2014 Claude Code instructions",
-      "file_type": "document",
-      "node_kind": "heading",
-      "norm_label": "aspectforge \u2014 claude code instructions",
-      "source_file": "CLAUDE.md",
+      "community_name": "response_generator_v2.py",
+      "file_type": "rationale",
+      "norm_label": "response_generator_v2.py \u2014 unified response generation...",
+      "source_file": "src/generation/response_generator_v2.py",
       "source_location": "L1"
     },
     {
-      "id": "claude_gpu_work_kaggle_via_api_plan_k",
-      "label": "GPU work = Kaggle via API (plan \u00a7K)",
+      "id": "src_generation_response_generator_v2_rationale_564",
+      "label": "Apply chat template to a list of prompts (causal LM only). gemma-2-2b-it has no\u2026",
       "_origin": "ast",
       "community": 4,
-      "community_name": "AspectForge \u2014 Claude Code instructions",
-      "file_type": "document",
-      "node_kind": "heading",
-      "norm_label": "gpu work = kaggle via api (plan \u00a7k)",
-      "source_file": "CLAUDE.md",
-      "source_location": "L19"
+      "community_name": "response_generator_v2.py",
+      "file_type": "rationale",
+      "norm_label": "apply chat template to a list of prompts (causal lm only). gemma-2-2b-it has no...",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L564"
     },
     {
-      "id": "claude_graphify",
-      "label": "graphify",
+      "id": "src_generation_response_generator_v2_rationale_938",
+      "label": "# NOTE: Sentiment/Severity NOT injected here for System 4.",
       "_origin": "ast",
       "community": 4,
-      "community_name": "AspectForge \u2014 Claude Code instructions",
-      "file_type": "document",
-      "node_kind": "heading",
-      "norm_label": "graphify",
-      "source_file": "CLAUDE.md",
-      "source_location": "L35"
+      "community_name": "response_generator_v2.py",
+      "file_type": "rationale",
+      "norm_label": "# note: sentiment/severity not injected here for system 4.",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L938"
     },
     {
-      "id": "claude_start_of_every_session",
-      "label": "Start of every session",
+      "id": "src_generation_response_generator_v2_rationale_97",
+      "label": "True for pre-trained (non-instruct) models \u2014 affects prompt format.",
       "_origin": "ast",
       "community": 4,
-      "community_name": "AspectForge \u2014 Claude Code instructions",
-      "file_type": "document",
-      "node_kind": "heading",
-      "norm_label": "start of every session",
-      "source_file": "CLAUDE.md",
-      "source_location": "L7"
+      "community_name": "response_generator_v2.py",
+      "file_type": "rationale",
+      "norm_label": "true for pre-trained (non-instruct) models \u2014 affects prompt format.",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L97"
     },
     {
-      "id": "claude_useful_facts",
-      "label": "Useful facts",
+      "id": "src_utils_rationale_566",
+      "label": "Returns HuggingFace token from environment or .env file. Used by any component\u2026",
       "_origin": "ast",
       "community": 4,
-      "community_name": "AspectForge \u2014 Claude Code instructions",
-      "file_type": "document",
-      "node_kind": "heading",
-      "norm_label": "useful facts",
-      "source_file": "CLAUDE.md",
-      "source_location": "L29"
-    },
-    {
-      "id": "claude_working_rules",
-      "label": "Working rules",
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "AspectForge \u2014 Claude Code instructions",
-      "file_type": "document",
-      "node_kind": "heading",
-      "norm_label": "working rules",
-      "source_file": "CLAUDE.md",
-      "source_location": "L12"
+      "community_name": "response_generator_v2.py",
+      "file_type": "rationale",
+      "norm_label": "returns huggingface token from environment or .env file. used by any component...",
+      "source_file": "src/utils.py",
+      "source_location": "L566"
     },
     {
       "id": "dtype",
@@ -4749,17 +5145,6 @@
       "source_location": "L269"
     },
     {
-      "id": "src_utils_rationale_563",
-      "label": "Load CSV or Excel file. Used by all phases that read ticket data.",
-      "_origin": "ast",
-      "community": 6,
-      "community_name": "baseline_t5.py",
-      "file_type": "rationale",
-      "norm_label": "load csv or excel file. used by all phases that read ticket data.",
-      "source_file": "src/utils.py",
-      "source_location": "L563"
-    },
-    {
       "id": "preprocessing",
       "label": "preprocessing.py",
       "_origin": "ast",
@@ -4791,6 +5176,102 @@
       "norm_label": "series",
       "source_file": "",
       "source_location": ""
+    },
+    {
+      "id": "claude",
+      "label": "CLAUDE.md",
+      "_origin": "ast",
+      "community": 7,
+      "community_name": "preprocessing.py",
+      "file_type": "document",
+      "node_kind": "page",
+      "norm_label": "claude.md",
+      "source_file": "CLAUDE.md",
+      "source_location": "L1"
+    },
+    {
+      "id": "claude_ask_the_human_only_for",
+      "label": "Ask the human only for",
+      "_origin": "ast",
+      "community": 7,
+      "community_name": "preprocessing.py",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "ask the human only for",
+      "source_file": "CLAUDE.md",
+      "source_location": "L26"
+    },
+    {
+      "id": "claude_aspectforge_claude_code_instructions",
+      "label": "AspectForge \u2014 Claude Code instructions",
+      "_origin": "ast",
+      "community": 7,
+      "community_name": "preprocessing.py",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "aspectforge \u2014 claude code instructions",
+      "source_file": "CLAUDE.md",
+      "source_location": "L1"
+    },
+    {
+      "id": "claude_gpu_work_kaggle_via_api_plan_k",
+      "label": "GPU work = Kaggle via API (plan \u00a7K)",
+      "_origin": "ast",
+      "community": 7,
+      "community_name": "preprocessing.py",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "gpu work = kaggle via api (plan \u00a7k)",
+      "source_file": "CLAUDE.md",
+      "source_location": "L19"
+    },
+    {
+      "id": "claude_graphify",
+      "label": "graphify",
+      "_origin": "ast",
+      "community": 7,
+      "community_name": "preprocessing.py",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "graphify",
+      "source_file": "CLAUDE.md",
+      "source_location": "L35"
+    },
+    {
+      "id": "claude_start_of_every_session",
+      "label": "Start of every session",
+      "_origin": "ast",
+      "community": 7,
+      "community_name": "preprocessing.py",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "start of every session",
+      "source_file": "CLAUDE.md",
+      "source_location": "L7"
+    },
+    {
+      "id": "claude_useful_facts",
+      "label": "Useful facts",
+      "_origin": "ast",
+      "community": 7,
+      "community_name": "preprocessing.py",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "useful facts",
+      "source_file": "CLAUDE.md",
+      "source_location": "L29"
+    },
+    {
+      "id": "claude_working_rules",
+      "label": "Working rules",
+      "_origin": "ast",
+      "community": 7,
+      "community_name": "preprocessing.py",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "working rules",
+      "source_file": "CLAUDE.md",
+      "source_location": "L12"
     },
     {
       "id": "preprocessing_rationale_1",
@@ -5213,17 +5694,6 @@
       "source_location": ""
     },
     {
-      "id": "src_utils_py_dataframe",
-      "label": "DataFrame",
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "utils.py",
-      "file_type": "code",
-      "norm_label": "dataframe",
-      "source_file": "",
-      "source_location": ""
-    },
-    {
       "id": "src_utils_py_series",
       "label": "Series",
       "_origin": "ast",
@@ -5352,22 +5822,23 @@
       "source_location": "L207"
     },
     {
-      "id": "src_utils_rationale_620",
-      "label": "Build a side-by-side comparison CSV from multiple model result DataFrames.\u2026",
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "utils.py",
-      "file_type": "rationale",
-      "norm_label": "build a side-by-side comparison csv from multiple model result dataframes....",
-      "source_file": "src/utils.py",
-      "source_location": "L620"
+      "id": "dataclasses",
+      "label": "dataclasses",
+      "_origin": "semantic",
+      "community": 1,
+      "community_name": "inference_retriever.py",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "dataclasses",
+      "source_file": "",
+      "type": "external"
     },
     {
       "id": "faiss",
       "label": "faiss",
       "_origin": "semantic",
       "community": 1,
-      "community_name": "retriever.py",
+      "community_name": "inference_retriever.py",
       "external": true,
       "file_type": "concept",
       "norm_label": "faiss",
@@ -5379,7 +5850,7 @@
       "label": "numpy",
       "_origin": "semantic",
       "community": 1,
-      "community_name": "retriever.py",
+      "community_name": "inference_retriever.py",
       "external": true,
       "file_type": "concept",
       "norm_label": "numpy",
@@ -5387,14 +5858,14 @@
       "type": "external"
     },
     {
-      "id": "argparse",
-      "label": "argparse",
+      "id": "typing",
+      "label": "typing",
       "_origin": "semantic",
-      "community": 10,
-      "community_name": "kaggle_job.py",
+      "community": 1,
+      "community_name": "inference_retriever.py",
       "external": true,
       "file_type": "concept",
-      "norm_label": "argparse",
+      "norm_label": "typing",
       "source_file": "",
       "type": "external"
     },
@@ -5419,6 +5890,18 @@
       "external": true,
       "file_type": "concept",
       "norm_label": "json",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "pathlib",
+      "label": "pathlib",
+      "_origin": "semantic",
+      "community": 10,
+      "community_name": "kaggle_job.py",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "pathlib",
       "source_file": "",
       "type": "external"
     },
@@ -5507,26 +5990,14 @@
       "type": "external"
     },
     {
-      "id": "vadersentiment_vadersentiment",
-      "label": "vadersentiment_vadersentiment",
-      "_origin": "semantic",
-      "community": 13,
-      "community_name": "response_generator_v2.py",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "vadersentiment_vadersentiment",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "dataclasses",
-      "label": "dataclasses",
+      "id": "argparse",
+      "label": "argparse",
       "_origin": "semantic",
       "community": 21,
       "community_name": "indexer.py",
       "external": true,
       "file_type": "concept",
-      "norm_label": "dataclasses",
+      "norm_label": "argparse",
       "source_file": "",
       "type": "external"
     },
@@ -5539,30 +6010,6 @@
       "external": true,
       "file_type": "concept",
       "norm_label": "pandas",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "pathlib",
-      "label": "pathlib",
-      "_origin": "semantic",
-      "community": 21,
-      "community_name": "indexer.py",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "pathlib",
-      "source_file": "",
-      "type": "external"
-    },
-    {
-      "id": "typing",
-      "label": "typing",
-      "_origin": "semantic",
-      "community": 21,
-      "community_name": "indexer.py",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "typing",
       "source_file": "",
       "type": "external"
     },
@@ -5699,6 +6146,18 @@
       "type": "external"
     },
     {
+      "id": "vadersentiment_vadersentiment",
+      "label": "vadersentiment_vadersentiment",
+      "_origin": "semantic",
+      "community": 4,
+      "community_name": "response_generator_v2.py",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "vadersentiment_vadersentiment",
+      "source_file": "",
+      "type": "external"
+    },
+    {
       "id": "cleantext",
       "label": "cleantext",
       "_origin": "semantic",
@@ -5815,6 +6274,17 @@
       "external": true,
       "file_type": "concept",
       "norm_label": "system_profiler",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "types",
+      "label": "types",
+      "community": 2,
+      "community_name": "test_metrics.py",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "types",
       "source_file": "",
       "type": "external"
     }
@@ -6693,7 +7163,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/baseline/baseline_t5.py",
-      "source_location": "L346",
+      "source_location": "L348",
       "weight": 1.0
     },
     {
@@ -6705,7 +7175,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/baseline/baseline_t5.py",
-      "source_location": "L361",
+      "source_location": "L363",
       "weight": 1.0
     },
     {
@@ -6717,7 +7187,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/baseline/baseline_t5.py",
-      "source_location": "L363",
+      "source_location": "L365",
       "weight": 1.0
     },
     {
@@ -6729,7 +7199,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/baseline/baseline_t5.py",
-      "source_location": "L371",
+      "source_location": "L373",
       "weight": 1.0
     },
     {
@@ -6741,7 +7211,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/baseline/baseline_t5.py",
-      "source_location": "L372",
+      "source_location": "L374",
       "weight": 1.0
     },
     {
@@ -6801,7 +7271,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L1330",
+      "source_location": "L1334",
       "weight": 1.0
     },
     {
@@ -6993,7 +7463,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L1413",
+      "source_location": "L1429",
       "weight": 1.0
     },
     {
@@ -7005,7 +7475,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L1462",
+      "source_location": "L1478",
       "weight": 1.0
     },
     {
@@ -7017,7 +7487,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L1463",
+      "source_location": "L1479",
       "weight": 1.0
     },
     {
@@ -7029,7 +7499,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L1470",
+      "source_location": "L1486",
       "weight": 1.0
     },
     {
@@ -7041,7 +7511,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L1471",
+      "source_location": "L1487",
       "weight": 1.0
     },
     {
@@ -7053,7 +7523,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L1476",
+      "source_location": "L1492",
       "weight": 1.0
     },
     {
@@ -7065,7 +7535,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L1480",
+      "source_location": "L1496",
       "weight": 1.0
     },
     {
@@ -7077,7 +7547,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L1481",
+      "source_location": "L1497",
       "weight": 1.0
     },
     {
@@ -7089,7 +7559,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L1488",
+      "source_location": "L1504",
       "weight": 1.0
     },
     {
@@ -7101,7 +7571,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L1500",
+      "source_location": "L1516",
       "weight": 1.0
     },
     {
@@ -7113,7 +7583,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L1512",
+      "source_location": "L1528",
       "weight": 1.0
     },
     {
@@ -7125,7 +7595,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L1524",
+      "source_location": "L1540",
       "weight": 1.0
     },
     {
@@ -7137,7 +7607,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L1548",
+      "source_location": "L1564",
       "weight": 1.0
     },
     {
@@ -7149,7 +7619,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L1560",
+      "source_location": "L1576",
       "weight": 1.0
     },
     {
@@ -7161,7 +7631,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L1571",
+      "source_location": "L1587",
       "weight": 1.0
     },
     {
@@ -8181,7 +8651,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/utils.py",
-      "source_location": "L604",
+      "source_location": "L690",
       "weight": 1.0
     },
     {
@@ -8193,7 +8663,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/utils.py",
-      "source_location": "L509",
+      "source_location": "L595",
       "weight": 1.0
     },
     {
@@ -8205,7 +8675,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/utils.py",
-      "source_location": "L430",
+      "source_location": "L516",
       "weight": 1.0
     },
     {
@@ -8217,7 +8687,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/utils.py",
-      "source_location": "L431",
+      "source_location": "L517",
       "weight": 1.0
     },
     {
@@ -8229,7 +8699,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/utils.py",
-      "source_location": "L432",
+      "source_location": "L518",
       "weight": 1.0
     },
     {
@@ -8241,7 +8711,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/utils.py",
-      "source_location": "L438",
+      "source_location": "L524",
       "weight": 1.0
     },
     {
@@ -8253,7 +8723,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/utils.py",
-      "source_location": "L555",
+      "source_location": "L641",
       "weight": 1.0
     },
     {
@@ -8265,7 +8735,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/utils.py",
-      "source_location": "L367",
+      "source_location": "L451",
       "weight": 1.0
     },
     {
@@ -8277,7 +8747,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/utils.py",
-      "source_location": "L368",
+      "source_location": "L452",
       "weight": 1.0
     },
     {
@@ -8289,7 +8759,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/utils.py",
-      "source_location": "L369",
+      "source_location": "L453",
       "weight": 1.0
     },
     {
@@ -8301,7 +8771,19 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/utils.py",
-      "source_location": "L383",
+      "source_location": "L467",
+      "weight": 1.0
+    },
+    {
+      "source": "src_utils_metricscalculator_rouge",
+      "target": "src_utils_unicodetokenizer",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/utils.py",
+      "source_location": "L321",
       "weight": 1.0
     },
     {
@@ -8593,6 +9075,102 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_metrics_calc",
+      "target": "tests_test_metrics_metcfg",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L29",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics_test_bertscore_true_honours_explicit_arguments",
+      "target": "types",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L162",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics_test_bertscore_true_honours_explicit_arguments_fake_score",
+      "target": "tests_test_metrics_faketensor",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L159",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics_test_bertscore_true_uses_bert_score_and_returns_per_row_f1",
+      "target": "types",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L145",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics_test_bertscore_true_uses_bert_score_and_returns_per_row_f1_fake_score",
+      "target": "tests_test_metrics_faketensor",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L142",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics_test_bleu_reports_real_sacrebleu_and_keeps_the_precisions",
+      "target": "pytest",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L83",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics_test_rouge_per_row_lists_align_with_the_inputs",
+      "target": "pytest",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L66",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics_test_unicode_tokenizer_keeps_umlauts_and_lowercases",
+      "target": "src_utils_unicodetokenizer",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L35",
+      "weight": 1.0
+    },
+    {
       "source": "src_generation_response_generator_v2_resolve_aspect_extractor_kwargs",
       "target": "src_generation_response_generator_v2_resolve_aspect_extractor_kwargs_pick",
       "relation": "contains",
@@ -8613,7 +9191,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/utils.py",
-      "source_location": "L324",
+      "source_location": "L404",
       "weight": 1.0
     },
     {
@@ -8638,6 +9216,18 @@
       "context": "decorator",
       "source_file": "tests/test_config.py",
       "source_location": "L40",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics_calc",
+      "target": "fixture",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "decorator",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L27",
       "weight": 1.0
     },
     {
@@ -10117,6 +10707,66 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_metrics",
+      "target": "src_utils_metricscalculator",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics",
+      "target": "src_utils_unicodetokenizer",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics",
+      "target": "sys",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics",
+      "target": "types",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics",
+      "target": "pytest",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
       "source": "kaggle_hello_run",
       "target": "pathlib",
       "relation": "imports_from",
@@ -10633,6 +11283,42 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_metrics",
+      "target": "src_utils",
+      "relation": "imports_from",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics",
+      "target": "dataclasses",
+      "relation": "imports_from",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics",
+      "target": "pathlib",
+      "relation": "imports_from",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
       "source": "preprocessing_datapreprocessor_metadata_string",
       "target": "preprocessing_py_series",
       "relation": "references",
@@ -10749,7 +11435,7 @@
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "src/baseline/baseline_t5.py",
-      "source_location": "L340",
+      "source_location": "L342",
       "weight": 1.0
     },
     {
@@ -10953,7 +11639,7 @@
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L1394",
+      "source_location": "L1410",
       "weight": 1.0
     },
     {
@@ -11133,7 +11819,7 @@
       "confidence_score": 1.0,
       "context": "parameter_type",
       "source_file": "src/utils.py",
-      "source_location": "L423",
+      "source_location": "L509",
       "weight": 1.0
     },
     {
@@ -11385,7 +12071,7 @@
       "confidence_score": 1.0,
       "context": "return_type",
       "source_file": "src/utils.py",
-      "source_location": "L617",
+      "source_location": "L703",
       "weight": 1.0
     },
     {
@@ -11397,7 +12083,7 @@
       "confidence_score": 1.0,
       "context": "return_type",
       "source_file": "src/utils.py",
-      "source_location": "L562",
+      "source_location": "L648",
       "weight": 1.0
     },
     {
@@ -12379,7 +13065,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/baseline/baseline_t5.py",
-      "source_location": "L340",
+      "source_location": "L342",
       "weight": 1.0
     },
     {
@@ -12489,7 +13175,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L1364",
+      "source_location": "L1378",
       "weight": 1.0
     },
     {
@@ -12511,7 +13197,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L1394",
+      "source_location": "L1410",
       "weight": 1.0
     },
     {
@@ -12786,7 +13472,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L1326",
+      "source_location": "L1330",
       "weight": 1.0
     },
     {
@@ -13231,13 +13917,24 @@
     },
     {
       "source": "src_utils",
-      "target": "src_utils_metricscalculator",
+      "target": "src_utils_unicodetokenizer",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/utils.py",
       "source_location": "L288",
+      "weight": 1.0
+    },
+    {
+      "source": "src_utils",
+      "target": "src_utils_metricscalculator",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/utils.py",
+      "source_location": "L301",
       "weight": 1.0
     },
     {
@@ -13259,7 +13956,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/utils.py",
-      "source_location": "L422",
+      "source_location": "L508",
       "weight": 1.0
     },
     {
@@ -13270,7 +13967,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/utils.py",
-      "source_location": "L479",
+      "source_location": "L565",
       "weight": 1.0
     },
     {
@@ -13281,7 +13978,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/utils.py",
-      "source_location": "L500",
+      "source_location": "L586",
       "weight": 1.0
     },
     {
@@ -13292,7 +13989,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/utils.py",
-      "source_location": "L515",
+      "source_location": "L601",
       "weight": 1.0
     },
     {
@@ -13303,29 +14000,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/utils.py",
-      "source_location": "L562",
-      "weight": 1.0
-    },
-    {
-      "source": "src_utils",
-      "target": "src_utils_checkpointer",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/utils.py",
-      "source_location": "L576",
-      "weight": 1.0
-    },
-    {
-      "source": "src_utils",
-      "target": "src_utils_compare_models",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/utils.py",
-      "source_location": "L617",
+      "source_location": "L648",
       "weight": 1.0
     },
     {
@@ -13337,6 +14012,28 @@
       "confidence_score": 1.0,
       "source_file": "src/utils.py",
       "source_location": "L66",
+      "weight": 1.0
+    },
+    {
+      "source": "src_utils",
+      "target": "src_utils_checkpointer",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/utils.py",
+      "source_location": "L662",
+      "weight": 1.0
+    },
+    {
+      "source": "src_utils",
+      "target": "src_utils_compare_models",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/utils.py",
+      "source_location": "L703",
       "weight": 1.0
     },
     {
@@ -13579,6 +14276,226 @@
       "confidence_score": 1.0,
       "source_file": "tests/test_kaggle_job.py",
       "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics",
+      "target": "tests_test_metrics_test_lang_match_catches_a_reply_in_the_wrong_language",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L105",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics",
+      "target": "tests_test_metrics_test_lang_match_counts_undetectable_text_as_a_miss",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L114",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics",
+      "target": "tests_test_metrics_test_lang_match_accepts_locale_style_language_codes",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L121",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics",
+      "target": "tests_test_metrics_test_lang_match_is_deterministic",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L127",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics",
+      "target": "tests_test_metrics_test_bertscore_true_uses_bert_score_and_returns_per_row_f1",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L135",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics",
+      "target": "tests_test_metrics_test_bertscore_true_honours_explicit_arguments",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L154",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics",
+      "target": "tests_test_metrics_faketensor",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L169",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics",
+      "target": "tests_test_metrics_test_cls_cosine_is_no_longer_called_bertscore",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L179",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics",
+      "target": "tests_test_metrics_metcfg",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L18",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics",
+      "target": "tests_test_metrics_test_metrics_run_on_the_committed_sample_rows",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L194",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics",
+      "target": "tests_test_metrics_calc",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L28",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics",
+      "target": "tests_test_metrics_test_unicode_tokenizer_keeps_umlauts_and_lowercases",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L34",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics",
+      "target": "tests_test_metrics_test_rouge_scores_identical_german_as_one",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L41",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics",
+      "target": "tests_test_metrics_test_rouge_without_the_unicode_tokenizer_loses_german",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L49",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics",
+      "target": "tests_test_metrics_test_rouge_per_row_lists_align_with_the_inputs",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L59",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics",
+      "target": "tests_test_metrics_test_rouge_is_not_perfect_for_a_partial_match",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics",
+      "target": "tests_test_metrics_test_bleu_reports_real_sacrebleu_and_keeps_the_precisions",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L77",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics",
+      "target": "tests_test_metrics_test_bleu_drops_for_an_unrelated_hypothesis",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L88",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics",
+      "target": "tests_test_metrics_test_lang_match_is_one_when_every_reply_uses_the_ticket_language",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L97",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics_test_bertscore_true_honours_explicit_arguments",
+      "target": "tests_test_metrics_test_bertscore_true_honours_explicit_arguments_fake_score",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L157",
       "weight": 1.0
     },
     {
@@ -14546,7 +15463,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/utils.py",
-      "source_location": "L588",
+      "source_location": "L674",
       "weight": 1.0
     },
     {
@@ -14557,7 +15474,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/utils.py",
-      "source_location": "L592",
+      "source_location": "L678",
       "weight": 1.0
     },
     {
@@ -14568,7 +15485,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/utils.py",
-      "source_location": "L599",
+      "source_location": "L685",
       "weight": 1.0
     },
     {
@@ -14579,7 +15496,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/utils.py",
-      "source_location": "L602",
+      "source_location": "L688",
       "weight": 1.0
     },
     {
@@ -14590,7 +15507,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/utils.py",
-      "source_location": "L607",
+      "source_location": "L693",
       "weight": 1.0
     },
     {
@@ -14645,7 +15562,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/utils.py",
-      "source_location": "L423",
+      "source_location": "L509",
       "weight": 1.0
     },
     {
@@ -14656,7 +15573,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/utils.py",
-      "source_location": "L435",
+      "source_location": "L521",
       "weight": 1.0
     },
     {
@@ -14667,7 +15584,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/utils.py",
-      "source_location": "L289",
+      "source_location": "L309",
       "weight": 1.0
     },
     {
@@ -14678,7 +15595,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/utils.py",
-      "source_location": "L292",
+      "source_location": "L313",
       "weight": 1.0
     },
     {
@@ -14689,23 +15606,12 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/utils.py",
-      "source_location": "L304",
+      "source_location": "L336",
       "weight": 1.0
     },
     {
       "source": "src_utils_metricscalculator",
-      "target": "src_utils_metricscalculator_bertscore",
-      "relation": "method",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/utils.py",
-      "source_location": "L312",
-      "weight": 1.0
-    },
-    {
-      "source": "src_utils_metricscalculator",
-      "target": "src_utils_metricscalculator_classification",
+      "target": "src_utils_metricscalculator_bertscore_true",
       "relation": "method",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -14716,13 +15622,46 @@
     },
     {
       "source": "src_utils_metricscalculator",
+      "target": "src_utils_metricscalculator_lang_match",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/utils.py",
+      "source_location": "L368",
+      "weight": 1.0
+    },
+    {
+      "source": "src_utils_metricscalculator",
+      "target": "src_utils_metricscalculator_bertscore",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/utils.py",
+      "source_location": "L392",
+      "weight": 1.0
+    },
+    {
+      "source": "src_utils_metricscalculator",
+      "target": "src_utils_metricscalculator_classification",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/utils.py",
+      "source_location": "L430",
+      "weight": 1.0
+    },
+    {
+      "source": "src_utils_metricscalculator",
       "target": "src_utils_metricscalculator_compute_all",
       "relation": "method",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/utils.py",
-      "source_location": "L359",
+      "source_location": "L443",
       "weight": 1.0
     },
     {
@@ -14733,7 +15672,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/utils.py",
-      "source_location": "L394",
+      "source_location": "L478",
       "weight": 1.0
     },
     {
@@ -14767,6 +15706,39 @@
       "confidence_score": 1.0,
       "source_file": "src/utils.py",
       "source_location": "L47",
+      "weight": 1.0
+    },
+    {
+      "source": "src_utils_unicodetokenizer",
+      "target": "src_utils_unicodetokenizer_tokenize",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/utils.py",
+      "source_location": "L297",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics_faketensor",
+      "target": "tests_test_metrics_faketensor_init",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L170",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics_faketensor",
+      "target": "tests_test_metrics_faketensor_tolist",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L173",
       "weight": 1.0
     },
     {
@@ -15199,14 +16171,14 @@
       "weight": 1.0
     },
     {
-      "source": "src_generation_response_generator_v2_rationale_1398",
+      "source": "src_generation_response_generator_v2_rationale_1414",
       "target": "src_generation_response_generator_v2_run",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/generation/response_generator_v2.py",
-      "source_location": "L1398",
+      "source_location": "L1414",
       "weight": 1.0
     },
     {
@@ -15793,69 +16765,113 @@
       "weight": 1.0
     },
     {
-      "source": "src_utils_rationale_480",
+      "source": "src_utils_rationale_289",
+      "target": "src_utils_unicodetokenizer",
+      "relation": "rationale_for",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/utils.py",
+      "source_location": "L289",
+      "weight": 1.0
+    },
+    {
+      "source": "src_utils_rationale_302",
+      "target": "src_utils_metricscalculator",
+      "relation": "rationale_for",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/utils.py",
+      "source_location": "L302",
+      "weight": 1.0
+    },
+    {
+      "source": "src_utils_rationale_348",
+      "target": "src_utils_metricscalculator_bertscore_true",
+      "relation": "rationale_for",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/utils.py",
+      "source_location": "L348",
+      "weight": 1.0
+    },
+    {
+      "source": "src_utils_rationale_369",
+      "target": "src_utils_metricscalculator_lang_match",
+      "relation": "rationale_for",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/utils.py",
+      "source_location": "L369",
+      "weight": 1.0
+    },
+    {
+      "source": "src_utils_rationale_566",
       "target": "src_utils_get_hf_token",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/utils.py",
-      "source_location": "L480",
+      "source_location": "L566",
       "weight": 1.0
     },
     {
-      "source": "src_utils_rationale_501",
+      "source": "src_utils_rationale_587",
       "target": "src_utils_deep_merge",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/utils.py",
-      "source_location": "L501",
+      "source_location": "L587",
       "weight": 1.0
     },
     {
-      "source": "src_utils_rationale_518",
+      "source": "src_utils_rationale_604",
       "target": "src_utils_load_yaml_with_overrides",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/utils.py",
-      "source_location": "L518",
+      "source_location": "L604",
       "weight": 1.0
     },
     {
-      "source": "src_utils_rationale_563",
+      "source": "src_utils_rationale_649",
       "target": "src_utils_load_csv_or_excel",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/utils.py",
-      "source_location": "L563",
+      "source_location": "L649",
       "weight": 1.0
     },
     {
-      "source": "src_utils_rationale_577",
+      "source": "src_utils_rationale_663",
       "target": "src_utils_checkpointer",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/utils.py",
-      "source_location": "L577",
+      "source_location": "L663",
       "weight": 1.0
     },
     {
-      "source": "src_utils_rationale_620",
+      "source": "src_utils_rationale_706",
       "target": "src_utils_compare_models",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/utils.py",
-      "source_location": "L620",
+      "source_location": "L706",
       "weight": 1.0
     },
     {
@@ -15867,6 +16883,72 @@
       "confidence_score": 1.0,
       "source_file": "tests/test_config.py",
       "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics_rationale_1",
+      "target": "tests_test_metrics",
+      "relation": "rationale_for",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics_rationale_136",
+      "target": "tests_test_metrics_test_bertscore_true_uses_bert_score_and_returns_per_row_f1",
+      "relation": "rationale_for",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L136",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics_rationale_180",
+      "target": "tests_test_metrics_test_cls_cosine_is_no_longer_called_bertscore",
+      "relation": "rationale_for",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L180",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics_rationale_42",
+      "target": "tests_test_metrics_test_rouge_scores_identical_german_as_one",
+      "relation": "rationale_for",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics_rationale_50",
+      "target": "tests_test_metrics_test_rouge_without_the_unicode_tokenizer_loses_german",
+      "relation": "rationale_for",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L50",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics_rationale_98",
+      "target": "tests_test_metrics_test_lang_match_is_one_when_every_reply_uses_the_ticket_language",
+      "relation": "rationale_for",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L98",
       "weight": 1.0
     },
     {
@@ -15891,6 +16973,54 @@
       "context": "argument",
       "source_file": "preprocessing.py",
       "source_location": "L441",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics_test_bertscore_true_honours_explicit_arguments",
+      "target": "tests_test_metrics_test_bertscore_true_uses_bert_score_and_returns_per_row_f1_fake_score",
+      "relation": "indirect_call",
+      "_origin": "ast",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "context": "argument",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L162",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_metrics_test_bertscore_true_uses_bert_score_and_returns_per_row_f1",
+      "target": "tests_test_metrics_test_bertscore_true_uses_bert_score_and_returns_per_row_f1_fake_score",
+      "relation": "indirect_call",
+      "_origin": "ast",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "context": "argument",
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L145",
+      "weight": 1.0
+    },
+    {
+      "source": "src_baseline_baseline_t5_compute_metrics",
+      "target": "tests_test_metrics_metcfg",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "context": "call",
+      "source_file": "src/baseline/baseline_t5.py",
+      "source_location": "L295",
+      "weight": 1.0
+    },
+    {
+      "source": "src_generation_response_generator_v2_compute_metrics",
+      "target": "tests_test_metrics_metcfg",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "context": "call",
+      "source_file": "src/generation/response_generator_v2.py",
+      "source_location": "L1334",
       "weight": 1.0
     },
     {
@@ -16206,6 +17336,30 @@
       "weight": 1.0
     },
     {
+      "source": "upgrade_plan_11_risks_and_fallbacks",
+      "target": "src_utils_metricscalculator_lang_match",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "context": "lang_match",
+      "source_file": "UPGRADE_PLAN.md",
+      "source_location": "L615",
+      "weight": 1.0
+    },
+    {
+      "source": "upgrade_plan_1_what_the_minimal_run_produces",
+      "target": "src_utils_metricscalculator_lang_match",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "context": "lang_match",
+      "source_file": "UPGRADE_PLAN.md",
+      "source_location": "L52",
+      "weight": 1.0
+    },
+    {
       "source": "upgrade_plan_5_2_src_generation_model_backend_py",
       "target": "src_generation_response_generator_v2_load_extra_model",
       "relation": "references",
@@ -16359,8 +17513,30 @@
       "source_file": "tests/test_config.py",
       "source_location": "L116",
       "weight": 0.8
+    },
+    {
+      "source": "tests_test_metrics_calc",
+      "target": "src_utils_metricscalculator",
+      "relation": "uses",
+      "_origin": "ast",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L29",
+      "weight": 0.8
+    },
+    {
+      "source": "tests_test_metrics_test_cls_cosine_is_no_longer_called_bertscore",
+      "target": "src_utils_metricscalculator",
+      "relation": "uses",
+      "_origin": "ast",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "tests/test_metrics.py",
+      "source_location": "L186",
+      "weight": 0.8
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "98d4421ec7457e5fc84658ab2662a6b4a0b87fd5"
+  "built_at_commit": "0ad427c1478d89664875dc24629b445a839a83d2"
 }

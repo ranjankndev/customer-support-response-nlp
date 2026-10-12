@@ -285,31 +285,111 @@ class BaselineGenerator:
 # 4. METRICS CALCULATOR
 # ─────────────────────────────────────────────────────────────────────────────
 
+class _UnicodeTokenizer:
+    """
+    rouge_score's default tokenizer strips every non-ASCII character, which
+    destroys German text ("Größe ändern" -> "gr e ndern"). This one keeps any
+    Unicode word character, so EN and DE are scored on equal terms.
+    """
+
+    _re = re.compile(r"\w+", re.UNICODE)
+
+    def tokenize(self, text):
+        return self._re.findall((text or "").lower())
+
+
 class MetricsCalculator:
+    """
+    Response-quality metrics. Every metric also has a per-row form (`per_row=True`
+    adds `<metric>_rows` lists), because `minimal_run report` bootstraps paired
+    confidence intervals over row indices. BLEU is corpus-level by definition:
+    the report recomputes `bleu()` on each resample instead.
+    """
+
     def __init__(self, config):
         self.cfg = config
 
-    def rouge(self, hyps, refs):
+    # ── ROUGE ────────────────────────────────────────────────────────────────
+    def rouge(self, hyps, refs, per_row: bool = False):
         from rouge_score import rouge_scorer
 
-        scorer = rouge_scorer.RougeScorer(
-            self.cfg.rouge_types, use_stemmer=self.cfg.rouge_use_stemmer)
-        acc = {t: [] for t in self.cfg.rouge_types}
+        types = list(self.cfg.rouge_types)
+        # Unicode tokenizer by default; set rouge_unicode_tokenizer: false to get
+        # the old ASCII-only behaviour back.
+        if getattr(self.cfg, "rouge_unicode_tokenizer", True):
+            scorer = rouge_scorer.RougeScorer(types, use_stemmer=False,
+                                              tokenizer=_UnicodeTokenizer())
+        else:
+            scorer = rouge_scorer.RougeScorer(
+                types, use_stemmer=getattr(self.cfg, "rouge_use_stemmer", True))
+        acc = {t: [] for t in types}
         for h, r in zip(hyps, refs):
             s = scorer.score(r, h)
-            for t in self.cfg.rouge_types:
-                acc[t].append(s[t].fmeasure)
-        return {t: round(float(np.mean(v)), 4) for t, v in acc.items()}
+            for t in types:
+                acc[t].append(float(s[t].fmeasure))
+        out = {t: round(float(np.mean(v)), 4) if v else 0.0 for t, v in acc.items()}
+        if per_row:
+            out.update({f"{t}_rows": acc[t] for t in types})
+        return out
 
+    # ── BLEU (corpus-level) ──────────────────────────────────────────────────
     def bleu(self, hyps, refs):
         from sacrebleu.metrics import BLEU
 
         b = BLEU(tokenize=self.cfg.bleu_tokenizer)
         r = b.corpus_score(hyps, [refs])
-        return {"bleu1": round(r.precisions[0] / 100, 4),
-                "bleu4": round(r.precisions[3] / 100, 4)}
+        return {"bleu"   : round(float(r.score), 2),       # real sacreBLEU
+                "bleu_p1": round(r.precisions[0] / 100, 4),
+                "bleu_p4": round(r.precisions[3] / 100, 4)}
 
-    def bertscore(self, hyps, refs):
+    # ── BERTScore (true, token-alignment F1) ─────────────────────────────────
+    def bertscore_true(self, hyps, refs, model_type: str | None = None,
+                       batch_size: int | None = None, per_row: bool = False):
+        """
+        Real BERTScore via `bert_score.score` (greedy token alignment with IDF-free
+        F1), unlike `bertscore()` below which is only a CLS cosine. Defaults come
+        from the config (`bertscore_true_model`, `bertscore_true_batch`).
+        """
+        from bert_score import score as bert_score_fn
+
+        model_type = model_type or getattr(self.cfg, "bertscore_true_model",
+                                           "xlm-roberta-large")
+        batch_size = batch_size or getattr(self.cfg, "bertscore_true_batch", 16)
+        log.info(f"[Metrics] BERTScore ({model_type}) on {len(hyps)} rows ...")
+        _, _, f1 = bert_score_fn(hyps, refs, model_type=model_type,
+                                 batch_size=batch_size, verbose=False)
+        rows = [float(v) for v in f1.tolist()]
+        out = {"bertscore_f1": round(float(np.mean(rows)), 4) if rows else 0.0}
+        if per_row:
+            out["bertscore_f1_rows"] = rows
+        return out
+
+    # ── Reply language ───────────────────────────────────────────────────────
+    def lang_match(self, hyps, langs, per_row: bool = False):
+        """
+        Share of replies written in the language of the ticket. langdetect is
+        seeded, so the metric is reproducible; texts too short to detect count
+        as a miss.
+        """
+        from langdetect import DetectorFactory, LangDetectException, detect
+
+        DetectorFactory.seed = 0
+        rows = []
+        for hyp, lang in zip(hyps, langs):
+            want = str(lang or "").strip().lower()[:2]
+            text = (hyp or "").strip()
+            try:
+                got = detect(text)[:2] if text else ""
+            except LangDetectException:
+                got = ""
+            rows.append(1 if (want and got == want) else 0)
+        out = {"lang_match": round(float(np.mean(rows)), 4) if rows else 0.0}
+        if per_row:
+            out["lang_match_rows"] = rows
+        return out
+
+    # ── CLS cosine (cheap mBERT proxy, kept for continuity with the old report)
+    def bertscore(self, hyps, refs, per_row: bool = False):
         import torch
         import torch.nn.functional as F
         from transformers import AutoModel, AutoTokenizer
@@ -340,8 +420,12 @@ class MetricsCalculator:
             f1s.extend((h * r).sum(-1).cpu().tolist())
 
         del model
-        torch.cuda.empty_cache()
-        return {"bertscore_f1": round(float(sum(f1s)/len(f1s)), 4)}
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+        out = {"cls_cosine_mbert": round(float(np.mean(f1s)), 4) if f1s else 0.0}
+        if per_row:
+            out["cls_cosine_mbert_rows"] = [float(v) for v in f1s]
+        return out
 
     def classification(self, y_true, y_pred, label):
         from sklearn.metrics import accuracy_score, f1_score
@@ -394,7 +478,8 @@ class MetricsCalculator:
     def print_table(label, metrics):
         print(f"\n{'═'*65}\n  {label}\n{'═'*65}")
         print("  RESPONSE QUALITY")
-        for k in ["rouge1","rouge2","rougeL","bleu1","bleu4","bertscore_f1"]:
+        for k in ["rouge1","rouge2","rougeL","bleu","bleu_p1","bleu_p4",
+                  "cls_cosine_mbert","bertscore_f1","lang_match"]:
             if k in metrics:
                 print(f"    {k:<22}: {metrics[k]}")
         print("  QUEUE CLASSIFICATION")
@@ -408,7 +493,8 @@ class MetricsCalculator:
         langs = sorted(set(k.split("_")[-1] for k in metrics if k.startswith("rouge1_")))
         for lang in langs:
             print(f"  LANGUAGE: {lang.upper()}")
-            for base in ["rouge1","rouge2","rougeL","bleu1","bleu4","bertscore_f1"]:
+            for base in ["rouge1","rouge2","rougeL","bleu","bleu_p1","bleu_p4",
+                         "cls_cosine_mbert","bertscore_f1","lang_match"]:
                 key = f"{base}_{lang}"
                 if key in metrics:
                     print(f"    {key:<28}: {metrics[key]}")

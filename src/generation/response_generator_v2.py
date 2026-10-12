@@ -1318,11 +1318,15 @@ def compute_metrics(df: pd.DataFrame, prefix: str,
     @dc
     class MetCfg:
         rouge_use_stemmer: bool = True
+        # Unicode word tokenizer so DE is scored like EN (plan 8.1)
+        rouge_unicode_tokenizer: bool = True
         rouge_types      : list = None
         bleu_tokenizer   : str  = "13a"
         bertscore_model  : str  = config.bertscore_model
         bertscore_batch  : int  = config.bertscore_batch
         bertscore_device : str  = config.bertscore_device
+        bertscore_true_model: str = "xlm-roberta-large"
+        bertscore_true_batch: int = 16
         def __post_init__(self):
             if self.rouge_types is None:
                 self.rouge_types = ["rouge1", "rouge2", "rougeL"]
@@ -1343,34 +1347,46 @@ def compute_metrics(df: pd.DataFrame, prefix: str,
     hyps = df_sorted[resp_col].fillna("").tolist()
     refs = df_sorted["answer"].fillna("").tolist()
 
+    langs = (df_sorted["language"].fillna("").tolist()
+             if "language" in df_sorted.columns else [])
+
     results = {}
     results.update(calc.rouge(hyps, refs))
     results.update(calc.bleu(hyps, refs))
     results.update(calc.bertscore(hyps, refs))
+    # true BERTScore is left to `minimal_run report`: it loads xlm-roberta-large
+    # once for every system instead of once per run.
+    if langs:
+        results.update(calc.lang_match(hyps, langs))
 
     if "language" in df_sorted.columns:
         for lang in df_sorted["language"].unique():
             mask  = (df_sorted["language"] == lang).values
             h_sub = [h for h, m in zip(hyps, mask) if m]
             r_sub = [r for r, m in zip(refs,  mask) if m]
+            l_sub = [l for l, m in zip(langs, mask) if m]
             if len(h_sub) >= 2:
-                for k, v in {**calc.rouge(h_sub, r_sub),
-                             **calc.bleu(h_sub, r_sub),
-                             **calc.bertscore(h_sub, r_sub)}.items():
+                per_lang = {**calc.rouge(h_sub, r_sub),
+                            **calc.bleu(h_sub, r_sub),
+                            **calc.bertscore(h_sub, r_sub),
+                            **calc.lang_match(h_sub, l_sub)}
+                for k, v in per_lang.items():
                     results[f"{k}_{lang}"] = v
     return results
 
 
 def print_metrics(label: str, metrics: Dict):
     print(f"\n{'═'*65}\n  {label}\n{'═'*65}")
-    for k in ["rouge1", "rouge2", "rougeL", "bleu1", "bleu4", "bertscore_f1"]:
+    for k in ["rouge1", "rouge2", "rougeL", "bleu", "bleu_p1", "bleu_p4",
+              "cls_cosine_mbert", "bertscore_f1", "lang_match"]:
         if k in metrics:
             print(f"    {k:<22}: {metrics[k]}")
     langs = sorted(set(k.split("_")[-1] for k in metrics
                        if k.startswith("rouge1_")))
     for lang in langs:
         print(f"  LANGUAGE: {lang.upper()}")
-        for base in ["rouge1", "rouge2", "rougeL", "bleu1", "bleu4", "bertscore_f1"]:
+        for base in ["rouge1", "rouge2", "rougeL", "bleu", "bleu_p1", "bleu_p4",
+                     "cls_cosine_mbert", "bertscore_f1", "lang_match"]:
             key = f"{base}_{lang}"
             if key in metrics:
                 print(f"    {key:<28}: {metrics[key]}")
