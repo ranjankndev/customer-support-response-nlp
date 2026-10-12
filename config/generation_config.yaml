@@ -1,14 +1,30 @@
 # generation_config.yaml — Response Generator Configuration
 # ── Model ─────────────────────────────────────────────────────────────────────
 model_id        : "google/gemma-2-2b-it"
+# hf = plain transformers (bf16 GPUs) | unsloth = Kaggle T4 (config/kaggle.yaml)
+backend         : "hf"
 device          : "cuda"
 torch_dtype     : "bfloat16"
 use_4bit        : true
+# hf backend only; gemma-2 needs "eager"
+attn_implementation : "sdpa"
+# RAFT adapter: local directory or HF repo id ("" = base model)
+adapter_path    : ""
 max_new_tokens  : 256
 do_sample       : false
+repetition_penalty  : 1.0
+no_repeat_ngram_size: 0
 # ── Retrieval ─────────────────────────────────────────────────────────────────
 retrieval_config: "config/inference_retrieval_config.yaml"
 top_k           : 3
+# ── Prompt budget ─────────────────────────────────────────────────────────────
+# the assembled prompt is truncated to max_input_tokens, dropping context first
+max_input_tokens : 3072
+ctx_doc_max_chars: 1200
+# append an explicit reply-language line before "Support reply:"
+reply_language_instruction: true
+# CRAG router threshold; set by `python -m src.minimal_run crag_tune`
+crag_threshold  : 0.30
 # ── Data ──────────────────────────────────────────────────────────────────────
 # Primary: raw tickets (subject, body, language). Pipeline runs aspect_extractor
 # then RAG + generator. Optional column `answer` = gold text for metrics only.
@@ -27,10 +43,14 @@ body_max_chars  : 0
 # gemma-2-2b-it 4-bit NF4 on RTX 4090 — batch=24 safe (13.5GB/24GB VRAM) with RAG prompts (~800-1200 tokens)
 # reduce to 16 if OOM on very long DE tickets
 generation_batch_size: 24
+# fixed 500-row minimal-run sample; overrides --input when set
+sample_csv      : ""
 # ── Output ────────────────────────────────────────────────────────────────────
 output_dir      : "output/generation"
 checkpoint_every: 50
 # ── Metrics ───────────────────────────────────────────────────────────────────
+# true = leave all metrics to `python -m src.minimal_run report`
+skip_metrics    : false
 bertscore_model : "bert-base-multilingual-cased"
 bertscore_device: "cuda"
 bertscore_batch : 32

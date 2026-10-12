@@ -5,6 +5,7 @@ utils.py — Shared DataLoader, ContextBuilder, Generator, Metrics, Pipeline
 from __future__ import annotations
 
 import re, json, logging, sys
+import yaml
 import pandas as pd
 import numpy as np
 from pathlib import Path
@@ -46,13 +47,11 @@ except ImportError:
             def summary(self) -> str:
                 return "(system_profiler not installed)"
 
-from rouge_score import rouge_scorer
-from sacrebleu.metrics import BLEU
-# removed: bert_score replaced with direct transformers implementation
-from sklearn.metrics import accuracy_score, f1_score
-
-import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM, AutoModelForSeq2SeqLM, BitsAndBytesConfig
+# Heavy dependencies (torch, transformers, rouge_score/nltk, sacrebleu, sklearn) are
+# imported inside the functions that need them: importing this module then costs a few
+# seconds instead of a minute and a half, which keeps the CPU test harness usable
+# (plan K.3) and lets config-only helpers run on a box without the ML stack.
+# bert_score is not used: BERTScore is computed directly with transformers.
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s | %(levelname)-8s | %(message)s',
@@ -126,6 +125,10 @@ class BaselineGenerator:
         self._seq2seq    = False
 
     def load(self):
+        import torch
+        from transformers import (AutoModelForCausalLM, AutoModelForSeq2SeqLM,
+                                  AutoTokenizer, BitsAndBytesConfig)
+
         log.info(f"[Generator] Loading  : {self.model_cfg.model_id}")
         log.info(f"[Generator] 4-bit    : {self.model_cfg.use_4bit}")
         log.info(f"[Generator] Batch    : {self.model_cfg.batch_size}")
@@ -220,6 +223,8 @@ class BaselineGenerator:
                 top_p       = self.model_cfg.top_p,
             )
 
+        import torch
+
         with torch.no_grad():
             outputs = self.model.generate(**inputs, **gen_kwargs)
 
@@ -285,6 +290,8 @@ class MetricsCalculator:
         self.cfg = config
 
     def rouge(self, hyps, refs):
+        from rouge_score import rouge_scorer
+
         scorer = rouge_scorer.RougeScorer(
             self.cfg.rouge_types, use_stemmer=self.cfg.rouge_use_stemmer)
         acc = {t: [] for t in self.cfg.rouge_types}
@@ -295,14 +302,17 @@ class MetricsCalculator:
         return {t: round(float(np.mean(v)), 4) for t, v in acc.items()}
 
     def bleu(self, hyps, refs):
+        from sacrebleu.metrics import BLEU
+
         b = BLEU(tokenize=self.cfg.bleu_tokenizer)
         r = b.corpus_score(hyps, [refs])
         return {"bleu1": round(r.precisions[0] / 100, 4),
                 "bleu4": round(r.precisions[3] / 100, 4)}
 
     def bertscore(self, hyps, refs):
-        from transformers import AutoTokenizer, AutoModel
+        import torch
         import torch.nn.functional as F
+        from transformers import AutoModel, AutoTokenizer
 
         log.info(f"[Metrics] BERTScore using {self.cfg.bertscore_model} ...")
         tokenizer = AutoTokenizer.from_pretrained(self.cfg.bertscore_model)
@@ -334,6 +344,8 @@ class MetricsCalculator:
         return {"bertscore_f1": round(float(sum(f1s)/len(f1s)), 4)}
 
     def classification(self, y_true, y_pred, label):
+        from sklearn.metrics import accuracy_score, f1_score
+
         return {
             f"{label}_accuracy"    : round(accuracy_score(y_true, y_pred), 4),
             f"{label}_f1_macro"    : round(f1_score(y_true, y_pred,
@@ -482,7 +494,69 @@ def get_hf_token() -> str:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 7. FILE LOADER
+# 7. CONFIG LOADING WITH OVERRIDES
+# ─────────────────────────────────────────────────────────────────────────────
+
+def deep_merge(base: Dict, override: Dict) -> Dict:
+    """
+    Recursively merge `override` on top of `base` and return a new dict.
+    Nested dicts are merged key by key; every other value is replaced wholesale.
+    """
+    merged = dict(base)
+    for key, value in (override or {}).items():
+        current = merged.get(key)
+        if isinstance(current, dict) and isinstance(value, dict):
+            merged[key] = deep_merge(current, value)
+        else:
+            merged[key] = value
+    return merged
+
+
+def load_yaml_with_overrides(path: str,
+                             overrides_path: str | None = None,
+                             section: str | None = None) -> Dict:
+    """
+    Load YAML; if overrides_path is given, deep-merge overrides[section] on top.
+
+    The base configs keep relative paths so local runs keep working, and an
+    overrides file (config/kaggle.yaml) supplies the environment-specific values:
+
+        cfg = load_yaml_with_overrides("config/generation_config.yaml",
+                                       "config/kaggle.yaml", section="generation")
+
+    `section` selects one block of the overrides file; without it the whole
+    overrides mapping is merged. A missing or empty overrides path is a no-op,
+    so callers can always pass `args.overrides` straight through.
+    """
+    with open(path, "r", encoding="utf-8") as stream:
+        base = yaml.safe_load(stream) or {}
+    if not isinstance(base, dict):
+        raise ValueError(f"{path} must contain a YAML mapping, got {type(base).__name__}")
+
+    if not (overrides_path and str(overrides_path).strip()):
+        return base
+
+    overrides_file = Path(str(overrides_path).strip())
+    if not overrides_file.is_file():
+        raise FileNotFoundError(f"Overrides file not found: {overrides_file}")
+    with overrides_file.open("r", encoding="utf-8") as stream:
+        overrides = yaml.safe_load(stream) or {}
+    if not isinstance(overrides, dict):
+        raise ValueError(f"{overrides_file} must contain a YAML mapping")
+
+    if section is not None:
+        overrides = overrides.get(section) or {}
+        if not isinstance(overrides, dict):
+            raise ValueError(f"{overrides_file}: section '{section}' must be a mapping")
+    if overrides:
+        log.info(f"[Config] {path} + {overrides_file}"
+                 f"{f'[{section}]' if section else ''}: "
+                 f"{', '.join(sorted(overrides))}")
+    return deep_merge(base, overrides)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 8. FILE LOADER
 # ─────────────────────────────────────────────────────────────────────────────
 
 def load_csv_or_excel(path: str, **kwargs) -> pd.DataFrame:
@@ -496,7 +570,7 @@ def load_csv_or_excel(path: str, **kwargs) -> pd.DataFrame:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 8. CHECKPOINTER
+# 9. CHECKPOINTER
 # ─────────────────────────────────────────────────────────────────────────────
 
 class Checkpointer:
@@ -537,7 +611,7 @@ class Checkpointer:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 9. COMPARISON TABLE
+# 10. COMPARISON TABLE
 # ─────────────────────────────────────────────────────────────────────────────
 
 def compare_models(results: Dict[str, pd.DataFrame],

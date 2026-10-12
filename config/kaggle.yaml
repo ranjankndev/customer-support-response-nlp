@@ -1,0 +1,31 @@
+# kaggle.yaml — environment overrides for the minimal run on Kaggle T4x2
+# ─────────────────────────────────────────────────────────────────────────────
+# Deep-merged on top of the base configs by utils.load_yaml_with_overrides():
+#   load_yaml_with_overrides("config/generation_config.yaml",
+#                            "config/kaggle.yaml", section="generation")
+# The base configs keep relative paths so local CPU runs stay unchanged; only
+# this file knows about /kaggle/input and /kaggle/working.
+# Pass it to any entry point with  --overrides config/kaggle.yaml
+# ─────────────────────────────────────────────────────────────────────────────
+
+paths:
+  data_dir   : /kaggle/input/aspectforge-data
+  work_dir   : /kaggle/working/Code
+
+generation:
+  backend              : unsloth
+  generation_batch_size: 8
+  max_input_tokens     : 2560
+  max_new_tokens       : 200
+  output_dir           : /kaggle/working/Code/output/generation
+  skip_metrics         : true          # metrics computed once by minimal_run report
+
+retrieval:
+  device     : cuda
+  batch_size : 32
+
+raft:
+  n_train    : 3000
+  max_seq_len: 2048
+  batch      : 2
+  grad_accum : 8

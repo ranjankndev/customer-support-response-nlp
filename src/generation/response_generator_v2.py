@@ -139,14 +139,29 @@ from dataclasses import dataclass
 class GenerationConfig:
     # model
     model_id        : str  = "google/gemma-2-2b-it"
+    # hf = plain transformers (bf16 GPUs) | unsloth = Kaggle T4 (see model_backend.py)
+    backend         : str  = "hf"
     device          : str  = "cuda"
     torch_dtype     : str  = "bfloat16"
     use_4bit        : bool = True
+    # hf backend only; gemma-2 needs "eager"
+    attn_implementation: str = "sdpa"
+    # RAFT adapter: local directory or HF repo id ("" = base model)
+    adapter_path    : str  = ""
     max_new_tokens  : int  = 200
     do_sample       : bool = False
+    repetition_penalty  : float = 1.0
+    no_repeat_ngram_size: int   = 0
     # retrieval
     retrieval_config: str  = "config/inference_retrieval_config.yaml"
     top_k           : int  = 3
+    # prompt budget (plan 5.3): the assembled prompt is truncated to fit
+    max_input_tokens : int = 3072
+    ctx_doc_max_chars: int = 1200
+    # append an explicit reply-language line before "Support reply:" (plan 5.4)
+    reply_language_instruction: bool = True
+    # CRAG router (plan 7.5); set by `minimal_run crag_tune`
+    crag_threshold  : float = 0.30
     # data — primary: raw tickets (subject, body, language); optional gold `answer`
     input_tickets_csv: str = ""
     # optional: pre-extracted aspects CSV (used if input_tickets_csv empty / legacy)
@@ -167,18 +182,26 @@ class GenerationConfig:
     body_max_chars  : int  = 0
     # batched generation — RTX 4090 + 1B 4-bit handles 8 comfortably
     generation_batch_size: int = 8
+    # fixed 500-row minimal-run sample; overrides --input when set
+    sample_csv      : str  = ""
     # output
     output_dir      : str  = "output/generation"
     checkpoint_every: int  = 50
-    # metrics
+    # metrics — skip_metrics: true leaves them to `minimal_run report`
+    skip_metrics    : bool = False
     bertscore_model : str  = "bert-base-multilingual-cased"
     bertscore_device: str  = "cuda"
     bertscore_batch : int  = 32
 
 
-def load_generation_config(path: str) -> GenerationConfig:
-    with open(path) as f:
-        cfg = yaml.safe_load(f)
+def load_generation_config(path: str,
+                           overrides_path: str | None = None) -> GenerationConfig:
+    """Load generation_config.yaml, optionally merging the `generation` section
+    of an overrides file (config/kaggle.yaml) on top. Unknown keys are ignored,
+    so older config files keep loading unchanged."""
+    from src.utils import load_yaml_with_overrides
+
+    cfg = load_yaml_with_overrides(path, overrides_path, section="generation")
     return GenerationConfig(**{k: v for k, v in cfg.items()
                                 if k in GenerationConfig.__dataclass_fields__})
 
@@ -298,6 +321,9 @@ def enrich_dataframe_with_aspects(df: pd.DataFrame,
 
 
 def resolve_data_path(args, cfg: GenerationConfig) -> str:
+    # the fixed minimal-run sample wins, so S1-S5 all score the same rows
+    if (getattr(cfg, "sample_csv", "") or "").strip():
+        return cfg.sample_csv.strip()
     if getattr(args, "input", None) and str(args.input).strip():
         return str(args.input).strip()
     if getattr(args, "aspects", None) and str(args.aspects).strip():
@@ -1612,6 +1638,17 @@ if __name__ == "__main__":
         ),
     )
     p.add_argument("--config", default="generation_config.yaml")
+    p.add_argument("--overrides", default=None,
+                   help="YAML whose `generation` section is merged on top of "
+                        "--config (e.g. config/kaggle.yaml)")
+    p.add_argument("--model_id", default=None,
+                   help="Override model_id (one config serves S1-S5)")
+    p.add_argument("--adapter_path", default=None,
+                   help="RAFT adapter: local directory or HF repo id")
+    p.add_argument("--crag_threshold", type=float, default=None,
+                   help="CRAG router threshold (see minimal_run crag_tune)")
+    p.add_argument("--sample_csv", default=None,
+                   help="Fixed minimal-run sample CSV; overrides --input")
     p.add_argument("--n", type=int, default=None,
                    help="rows to process (default: all)")
     p.add_argument("--start_idx", type=int, default=None,
@@ -1620,13 +1657,23 @@ if __name__ == "__main__":
                    help="process only rows with idx <= end_idx (inclusive)")
     args = p.parse_args()
 
-    cfg = (load_generation_config(args.config)
+    cfg = (load_generation_config(args.config, args.overrides)
            if Path(args.config).exists()
            else GenerationConfig())
 
     # Allow CLI override for separate aspects file merge
     if getattr(args, "aspects_file", None) and str(args.aspects_file).strip():
         cfg.aspects_file = str(args.aspects_file).strip()
+
+    # CLI wins over YAML and over --overrides, so one config serves S1-S5
+    for flag, field in (("model_id", "model_id"),
+                        ("adapter_path", "adapter_path"),
+                        ("sample_csv", "sample_csv")):
+        value = getattr(args, flag, None)
+        if value is not None and str(value).strip():
+            setattr(cfg, field, str(value).strip())
+    if args.crag_threshold is not None:
+        cfg.crag_threshold = float(args.crag_threshold)
 
     # Aliases
     if args.mode == "aspects_only":

@@ -202,6 +202,26 @@ ENTITY_FP_RE = re.compile(
 # CONFIG LOADER
 # ══════════════════════════════════════════════════════════════════════════════
 
+def apply_overrides(cfg: dict, overrides_path: Optional[str]) -> dict:
+    """Merge the `aspect` section of an overrides YAML (config/kaggle.yaml) on
+    top of cfg. No overrides path, or no `aspect` section, is a no-op."""
+    if not (overrides_path and str(overrides_path).strip()):
+        return cfg
+    import yaml
+
+    path = str(overrides_path).strip()
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"Overrides file not found: {path}")
+    with open(path, 'r', encoding='utf-8') as f:
+        data = yaml.safe_load(f) or {}
+    section = data.get('aspect') or {}
+    if not isinstance(section, dict):
+        raise ValueError(f"{path}: section 'aspect' must be a mapping")
+    merged = dict(cfg)
+    merged.update(section)
+    return merged
+
+
 def load_config(path: Optional[str]) -> dict:
     if not path:
         return {}
@@ -997,6 +1017,9 @@ if __name__ == '__main__':
     p = argparse.ArgumentParser(
         description='Aspect Extractor -- Ranker + Entity + SFT labels')
     p.add_argument('--config',             default=None)
+    p.add_argument('--overrides',          default=None,
+                   help='YAML whose `aspect` section is merged on top of --config '
+                        '(e.g. config/kaggle.yaml)')
     p.add_argument('--input',              default=None)
     p.add_argument('--out',                default=None)
     p.add_argument('--n',                  type=int, default=None)
@@ -1009,6 +1032,7 @@ if __name__ == '__main__':
     args = p.parse_args()
 
     cfg        = load_config(args.config)
+    cfg        = apply_overrides(cfg, args.overrides)
     raw_in     = args.input or cfg.get('input')
     input_path = raw_in.strip() if isinstance(raw_in, str) else raw_in
     if not input_path:

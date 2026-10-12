@@ -53,9 +53,27 @@ class IndexerConfig:
     body_max_chars : int
 
 
-def load_config(path: str) -> IndexerConfig:
-    with open(path, "r") as f:
-        cfg = yaml.safe_load(f)
+def _load_yaml(path: str, overrides_path: str | None = None) -> dict:
+    """utils.load_yaml_with_overrides, with a local fallback so indexer.py keeps
+    working when it is run as a plain script (python indexer.py)."""
+    try:
+        from src.utils import load_yaml_with_overrides
+    except ImportError:
+        with open(path, "r", encoding="utf-8") as f:
+            base = yaml.safe_load(f) or {}
+        if not (overrides_path and str(overrides_path).strip()):
+            return base
+        with open(str(overrides_path).strip(), "r", encoding="utf-8") as f:
+            overrides = (yaml.safe_load(f) or {}).get("retrieval") or {}
+        base.update(overrides)
+        return base
+    return load_yaml_with_overrides(path, overrides_path, section="retrieval")
+
+
+def load_config(path: str, overrides_path: str | None = None) -> IndexerConfig:
+    """Load retrieval_config.yaml, optionally merging the `retrieval` section of
+    an overrides file (config/kaggle.yaml) on top."""
+    cfg = _load_yaml(path, overrides_path)
     return IndexerConfig(
         aspects_csv    = cfg["aspects_csv"],
         train_csv      = cfg["train_csv"],
@@ -229,8 +247,11 @@ def main():
     parser = argparse.ArgumentParser(description="Build FAISS index from aspects CSV")
     parser.add_argument("--config", type=str,
                         default="retrieval_config.yaml")
+    parser.add_argument("--overrides", type=str, default=None,
+                        help="YAML whose `retrieval` section is merged on top of "
+                             "--config (e.g. config/kaggle.yaml)")
     args   = parser.parse_args()
-    config = load_config(args.config)
+    config = load_config(args.config, args.overrides)
     CorpusIndexer(config).run()
 
 
