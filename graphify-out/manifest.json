@@ -24,9 +24,9 @@
     "semantic_hash": ""
   },
   "src/aspect/aspect_extractor.py": {
-    "mtime": 1791831294.9919279,
-    "seen": 1791831818.9717064,
-    "ast_hash": "cf515bddbe6dc6dcc3a3a1547769bff7",
+    "mtime": 1791833726.7384977,
+    "seen": 1791834008.3798075,
+    "ast_hash": "1607385caa8f59a8f98149188a898036",
     "semantic_hash": ""
   },
   "src/baseline/__init__.py": {
@@ -48,9 +48,9 @@
     "semantic_hash": ""
   },
   "src/generation/response_generator_v2.py": {
-    "mtime": 1791832133.0415342,
-    "seen": 1791832995.2754974,
-    "ast_hash": "228186501662beaee426465595150dd1",
+    "mtime": 1791833314.0935104,
+    "seen": 1791834008.3798075,
+    "ast_hash": "02a7be4ce5f8169f53c3439b46f3360d",
     "semantic_hash": ""
   },
   "src/preprocessing.py": {
@@ -66,21 +66,21 @@
     "semantic_hash": ""
   },
   "src/retrieval/indexer.py": {
-    "mtime": 1791831310.2033575,
-    "seen": 1791831818.9717064,
-    "ast_hash": "354abce5f75b889dd1e2dc8ca920c8d2",
+    "mtime": 1791833394.552698,
+    "seen": 1791834008.3798075,
+    "ast_hash": "bcf3790eaf991f47d4cc4b25f598f484",
     "semantic_hash": ""
   },
   "src/retrieval/inference_retriever.py": {
-    "mtime": 1791169221.1117654,
-    "seen": 1791169417.4103472,
-    "ast_hash": "ad8da990f4aa47c405c255306b6007cd",
+    "mtime": 1791833300.6114752,
+    "seen": 1791834008.3798075,
+    "ast_hash": "d49b8fa12761052eda1bc8d291acf3d6",
     "semantic_hash": ""
   },
   "src/retrieval/retriever.py": {
-    "mtime": 1791169221.1127608,
-    "seen": 1791169417.4103472,
-    "ast_hash": "32b5394692bfb2dc09f7e8b2bc93eaba",
+    "mtime": 1791833266.0236042,
+    "seen": 1791834008.3798075,
+    "ast_hash": "64b3a66c9ad56b9d2427c048ec944ace",
     "semantic_hash": ""
   },
   "src/step1_silver_labels.py": {
@@ -96,9 +96,9 @@
     "semantic_hash": ""
   },
   "src/utils.py": {
-    "mtime": 1791832070.7868814,
-    "seen": 1791832995.2754974,
-    "ast_hash": "5698a21527e0b0de9751d99461528a1e",
+    "mtime": 1791833172.2234094,
+    "seen": 1791834008.3798075,
+    "ast_hash": "8bd210ff52509726dec95900e0cf798d",
     "semantic_hash": ""
   },
   ".claude/CLAUDE.md": {
@@ -138,21 +138,21 @@
     "semantic_hash": ""
   },
   "config/generation_config.yaml": {
-    "mtime": 1791831240.5408342,
-    "seen": 1791831818.9717064,
-    "ast_hash": "de5333f3d42160ddc8dbd248682acc54",
+    "mtime": 1791833314.0915122,
+    "seen": 1791834008.3798075,
+    "ast_hash": "f0d8764274b67cf159aad90911a9321e",
     "semantic_hash": ""
   },
   "config/inference_retrieval_config.yaml": {
-    "mtime": 1791169221.1037858,
-    "seen": 1791169417.4103472,
-    "ast_hash": "f0d0a87a81b330df6a4ce8272da5655f",
+    "mtime": 1791833313.910438,
+    "seen": 1791834008.3798075,
+    "ast_hash": "bc5decf74442c3c166e7297a4ce38a2a",
     "semantic_hash": ""
   },
   "config/retrieval_config.yaml": {
-    "mtime": 1791169221.1049821,
-    "seen": 1791169417.4103472,
-    "ast_hash": "d5baddc0bad235fa35e22ce27f2405d1",
+    "mtime": 1791833394.5543084,
+    "seen": 1791834008.3798075,
+    "ast_hash": "8550450faea7dcbe45e4dfd8dd85e2ea",
     "semantic_hash": ""
   },
   "docs/LINKS.md": {
@@ -180,9 +180,9 @@
     "semantic_hash": ""
   },
   "PROGRESS.md": {
-    "mtime": 1791831873.449298,
-    "seen": 1791832995.2754974,
-    "ast_hash": "09b6942d2a7b29bf36ccdd6525d078cc",
+    "mtime": 1791833012.1951306,
+    "seen": 1791834008.3798075,
+    "ast_hash": "7bc48e4f6660074dad05e9a8bf153695",
     "semantic_hash": ""
   },
   "kaggle/hello/kernel-metadata.json": {
@@ -225,6 +225,18 @@
     "mtime": 1791832569.3240497,
     "seen": 1791832995.2754974,
     "ast_hash": "d5af032a2dde9b85af11f4869f1c3e64",
+    "semantic_hash": ""
+  },
+  "src/aspect/aspect_heads.py": {
+    "mtime": 1791833462.9124577,
+    "seen": 1791834008.3798075,
+    "ast_hash": "9d782ffc5f7d6a70dae42efbe83f70b0",
+    "semantic_hash": ""
+  },
+  "tests/test_aspects.py": {
+    "mtime": 1791833911.261969,
+    "seen": 1791834008.3798075,
+    "ast_hash": "0a2624269895b1ffbdb5521f2c60b47f",
     "semantic_hash": ""
   }
 }

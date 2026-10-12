@@ -642,7 +642,71 @@ def load_yaml_with_overrides(path: str,
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 8. FILE LOADER
+# 8. ASPECT CHECKLIST PROMPT  (plan A.3)
+# ─────────────────────────────────────────────────────────────────────────────
+
+_NONE_VALUES = ("", "none", "n/a", "na", "unknown", "general")
+
+
+def _aspect_value(spans: Dict, *keys: str) -> str:
+    """First usable value among `keys`; "none"/empty count as missing."""
+    for key in keys:
+        value = str(spans.get(key, "") or "").strip()
+        if value.lower() not in _NONE_VALUES:
+            return value
+    return ""
+
+
+def build_aspect_checklist(spans: Dict) -> str:
+    """
+    Turn extracted aspects into instructions the model can follow, instead of the
+    `Aspects : k: v | ...` dump it used to get: a dump tells the model what the
+    ticket is about, a checklist tells it what the reply has to do. Used by both
+    the RAG+aspect prompt and the aspect-only prompt, so Aspect-RAFT trains on
+    exactly the format that is used at inference.
+
+    Lines for missing aspects are dropped, and the remaining ones are renumbered.
+    Returns "" when no aspect survived, so callers can omit the block entirely.
+    """
+    spans = spans or {}
+    problem = _aspect_value(spans, "prob_sub", "prob_statement")
+    cause   = _aspect_value(spans, "cause")
+    action  = _aspect_value(spans, "action_taken")
+    urgency = _aspect_value(spans, "urgency").lower()
+    intent  = _aspect_value(spans, "intent")
+    ttype   = _aspect_value(spans, "ticket_type", "ticket_type_nli")
+    entities = _aspect_value(spans, "entities")
+
+    items = []
+    if problem:
+        items.append(f"Solve the problem: {problem}")
+    if cause:
+        items.append(f"Address the likely cause: {cause}")
+    if action:
+        items.append(f"Acknowledge what the customer already tried: {action}; "
+                     f"do not suggest it again")
+    if urgency:
+        tone = ("prioritise; give a concrete next step and timeline"
+                if urgency in ("high", "critical") else "friendly and concise")
+        items.append(f'Tone for urgency "{urgency}": {tone}')
+    if not items:
+        return ""
+
+    lines = ["Your reply must:"]
+    lines += [f"{i}. {item}" for i, item in enumerate(items, start=1)]
+
+    category = " / ".join(part for part in (intent, ttype) if part)
+    tail = f"Category: {category}." if category else ""
+    if entities:
+        tail = (f"{tail} Mention these products if relevant: {entities}."
+                if tail else f"Mention these products if relevant: {entities}.")
+    if tail:
+        lines.append(tail)
+    return "\n".join(lines)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 9. FILE LOADER
 # ─────────────────────────────────────────────────────────────────────────────
 
 def load_csv_or_excel(path: str, **kwargs) -> pd.DataFrame:
@@ -656,7 +720,7 @@ def load_csv_or_excel(path: str, **kwargs) -> pd.DataFrame:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 9. CHECKPOINTER
+# 10. CHECKPOINTER
 # ─────────────────────────────────────────────────────────────────────────────
 
 class Checkpointer:
@@ -697,7 +761,7 @@ class Checkpointer:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 10. COMPARISON TABLE
+# 11. COMPARISON TABLE
 # ─────────────────────────────────────────────────────────────────────────────
 
 def compare_models(results: Dict[str, pd.DataFrame],

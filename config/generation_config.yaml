@@ -23,6 +23,8 @@ max_input_tokens : 3072
 ctx_doc_max_chars: 1200
 # append an explicit reply-language line before "Support reply:"
 reply_language_instruction: true
+# checklist = aspect instructions (plan A.3) | slots = legacy aspect dump
+aspect_prompt_style: "checklist"
 # CRAG router threshold; set by `python -m src.minimal_run crag_tune`
 crag_threshold  : 0.30
 # ── Data ──────────────────────────────────────────────────────────────────────

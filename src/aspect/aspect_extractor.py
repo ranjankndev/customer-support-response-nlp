@@ -594,6 +594,147 @@ def build_prob_statement(prob_sub: str, cause: str) -> str:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# STAGE 2b -- SPAN CLEAN-UP  (plan A.2)
+# ══════════════════════════════════════════════════════════════════════════════
+# Evidence from docs/samples/aspects_SAMPLE.csv: `cause` was often the very same
+# sentence as `prob_sub`, `action_taken` was often a pleasantry ("Your timely
+# assistance is greatly appreciated"), and DE spans carried mojibake. A span that
+# says nothing is worse than no span, because the checklist prompt then asks the
+# model to act on it -- so an unusable span becomes 'none'.
+
+NONE = 'none'
+
+# Pleasantries: a span that only thanks or signs off carries no problem content.
+_PLEASANTRY_RE = re.compile(
+    r'(thank|thanks|appreciate|appreciated|look(ing)?\s+forward|regards|'
+    r'best\s+wishes|sincerely|'
+    r'danke|vielen\s+dank|freundliche\s+gr[üu][sß]e|mit\s+freundlichen|'
+    r'ich\s+freue\s+mich)',
+    re.IGNORECASE
+)
+
+# action_taken must name something the customer already did. The cue words are
+# the plan's, matched on their stem: the sample rows say "Attempts to restart
+# systems ..." as often as "restarted".
+_ACTION_CUE_RE = re.compile(
+    r'\b(tr(y|ied|ies)|attempt(s|ed)?|restart(s|ed|ing)?|reboot(s|ed|ing)?|'
+    r'reinstall(s|ed|ing)?|clear(s|ed|ing)?|updat(e|es|ed|ing)|reset|'
+    r'check(s|ed|ing)?|contact(s|ed|ing)?|follow(s|ed|ing)?|ran|run|'
+    r'versucht|neu\s+gestartet|neugestartet|neu\s+installiert|aktualisiert|'
+    r'zur[üu]ckgesetzt|[üu]berpr[üu]ft|gepr[üu]ft|kontaktiert)\b',
+    re.IGNORECASE
+)
+
+_JACCARD_DUPLICATE = 0.8
+
+
+def fix_encoding(text: str) -> str:
+    """ftfy.fix_text, so DE mojibake ("Klage Ã¼ber") never reaches the aspects."""
+    if not text:
+        return ''
+    try:
+        from ftfy import fix_text
+    except ImportError:          # ftfy is in requirements.txt; degrade gracefully
+        return str(text)
+    return fix_text(str(text))
+
+
+def _tokens(text: str) -> set:
+    """Unicode word tokens, lowercased -- umlauts survive (see utils._UnicodeTokenizer)."""
+    return set(re.findall(r'\w+', (text or '').lower(), re.UNICODE))
+
+
+def jaccard(a: str, b: str) -> float:
+    ta, tb = _tokens(a), _tokens(b)
+    if not ta or not tb:
+        return 0.0
+    return len(ta & tb) / len(ta | tb)
+
+
+def is_pleasantry(span: str) -> bool:
+    """True when the span is a pleasantry rather than problem content."""
+    text = (span or '').strip()
+    if not text:
+        return False
+    return bool(_PLEASANTRY_RE.search(text))
+
+
+def has_action_cue(span: str) -> bool:
+    return bool(_ACTION_CUE_RE.search(span or ''))
+
+
+def _next_candidate(ranked: List[Dict[str, Any]], used: set,
+                    min_words: int = 4) -> str:
+    """Next ranked sentence that is neither already used nor a pleasantry."""
+    for sentence in ranked or []:
+        text = str(sentence.get('cleaned_text', '') or '').strip()
+        if len(text.split()) < min_words:
+            continue
+        if text in used or is_pleasantry(text):
+            continue
+        return text
+    return ''
+
+
+def postprocess_spans(aspects: Dict[str, Any],
+                      ranked: Optional[Dict[str, List[Dict[str, Any]]]] = None
+                      ) -> Dict[str, Any]:
+    """
+    Clean the extracted spans (plan A.2). Order matters: fix the text, drop
+    pleasantries (replacing them with the next ranked candidate when one exists),
+    then remove duplicates, then require an action cue in action_taken.
+
+    `ranked` is the per-field ranking from rank_sentences(); without it a rejected
+    span simply becomes 'none'.
+    """
+    out = dict(aspects)
+    ranked = ranked or {}
+
+    for field in ('subject', 'body', 'prob_sub', 'prob_statement', 'cause',
+                  'action_taken', 'entities'):
+        if field in out:
+            out[field] = fix_encoding(str(out[field] or ''))
+
+    used = {str(out.get('prob_sub', '') or '').strip()}
+
+    # 1. pleasantry filter -- next-ranked candidate, else 'none'
+    for field in ('prob_sub', 'cause', 'action_taken'):
+        span = str(out.get(field, '') or '').strip()
+        if span and span.lower() != NONE and is_pleasantry(span):
+            replacement = fix_encoding(_next_candidate(ranked.get(field, []), used))
+            out[field] = replacement or NONE
+        if out.get(field):
+            used.add(str(out[field]).strip())
+
+    def _value(field: str) -> str:
+        value = str(out.get(field, '') or '').strip()
+        return '' if value.lower() == NONE else value
+
+    # 2. de-duplication: a cause identical to the problem adds nothing
+    prob = _value('prob_sub')
+    if prob and jaccard(_value('cause'), prob) > _JACCARD_DUPLICATE:
+        out['cause'] = NONE
+    action = _value('action_taken')
+    if action and (jaccard(action, prob) > _JACCARD_DUPLICATE
+                   or jaccard(action, _value('cause')) > _JACCARD_DUPLICATE):
+        out['action_taken'] = NONE
+
+    # 3. action_taken has to name an action
+    if _value('action_taken') and not has_action_cue(_value('action_taken')):
+        out['action_taken'] = NONE
+
+    # keep prob_statement consistent with the cleaned spans
+    if not str(out.get('prob_statement', '') or '').strip():
+        out['prob_statement'] = build_prob_statement(_value('prob_sub'),
+                                                     _value('cause')) or NONE
+
+    for field in ('prob_sub', 'cause', 'action_taken'):
+        if not str(out.get(field, '') or '').strip():
+            out[field] = NONE
+    return out
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # STAGE 3 -- ENTITY EXTRACTOR
 # ══════════════════════════════════════════════════════════════════════════════
 
@@ -629,12 +770,25 @@ def extract_entities(subject: str, body: str, language: str = 'en') -> str:
             if w.lower() not in ENTITY_STOPWORDS:
                 entities.append(w)
 
-    # 2. Single capitalised words
+    # 2. Single capitalised words (plan A.2.5)
+    # A subject in title case used to hand over "Detected, Unauthorized, Access,
+    # Hospital, System, ...", none of which is a product. Keep such a word only if
+    # the body repeats it (so it is a real referent) or it looks like a product
+    # name by itself (digit or camelCase); the domain patterns above already catch
+    # the rest.
+    body_counts: Dict[str, int] = {}
+    for m in _SINGLE_CAP_RE.finditer(body or ''):
+        key = m.group(0).lower()
+        body_counts[key] = body_counts.get(key, 0) + 1
+    camel_or_digit = re.compile(r'\d|[a-z][A-Z]')
+
     for m in _SINGLE_CAP_RE.finditer(text):
         w = m.group(0).strip()
         if ENTITY_FP_RE.match(w) or w.lower() in ENTITY_STOPWORDS:
             continue
         if len(w) < 3:
+            continue
+        if not (body_counts.get(w.lower(), 0) >= 2 or camel_or_digit.search(w)):
             continue
         entities.append(w)
 
@@ -866,8 +1020,10 @@ def process_row(row: Dict[str, Any],
                 anchor_vecs: Dict[str, np.ndarray],
                 ranker) -> Dict[str, Any]:
     """Run Stages 1-3 for one row. Returns dict for Stage 4 batch."""
-    subject  = str(row.get('subject',  '') or '')
-    body     = str(row.get('body',     '') or '')
+    # ftfy before extraction (plan A.2.1): mojibake in the body would otherwise
+    # end up inside every span.
+    subject  = fix_encoding(str(row.get('subject',  '') or ''))
+    body     = fix_encoding(str(row.get('body',     '') or ''))
     language = str(row.get('language', 'en') or 'en')
 
     sentences = get_content_sentences(body)               # Stage 1
@@ -891,6 +1047,17 @@ def process_row(row: Dict[str, Any],
     entities = extract_entities(subject, body, language)  # Stage 3
     urgency  = score_urgency(body)
 
+    cleaned = postprocess_spans({                         # Stage 2b (plan A.2)
+        'prob_sub'      : prob_sub_sent,
+        'prob_statement': prob_statement_sent,
+        'cause'         : cause_sent,
+        'action_taken'  : action_sent,
+    }, ranked)
+    prob_sub_sent       = cleaned['prob_sub']
+    prob_statement_sent = cleaned['prob_statement']
+    cause_sent          = cleaned['cause']
+    action_sent         = cleaned['action_taken']
+
     return {
         # Stage 4 inputs
         'subject'       : subject,
@@ -910,6 +1077,43 @@ def process_row(row: Dict[str, Any],
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# STAGE 4b -- SUPERVISED HEADS  (plan A.1)
+# ══════════════════════════════════════════════════════════════════════════════
+
+def predict_head_labels(rows: List[Dict[str, Any]],
+                        heads_config: Optional[str] = None,
+                        heads_path: Optional[str] = None,
+                        overrides: Optional[str] = None) -> List[Dict[str, str]]:
+    """
+    intent / ticket_type_nli / urgency from the supervised heads, in row order.
+    CPU only: the Qwen SFT model is never loaded on this path.
+    """
+    from src.aspect import aspect_heads as heads_module
+
+    config = heads_module.load_heads_config(
+        heads_config or 'config/retrieval_config.yaml', overrides)
+    if heads_path:
+        config.heads_path = heads_path
+    bundle = heads_module.load_bundle(config.heads_path)
+
+    texts = [heads_module.embedding_text(row.get('subject', ''),
+                                         row.get('body', ''),
+                                         config.body_max_chars)
+             for row in rows]
+    predicted = heads_module.predict_from_features(
+        bundle, heads_module.embed_texts(texts, config))
+
+    def column(name: str) -> List[str]:
+        return predicted.get(name, [''] * len(rows))
+
+    intents, types, urgencies = (column('intent'), column('ticket_type'),
+                                 column('urgency'))
+    return [{'intent': intents[i],
+             'ticket_type_nli': types[i],
+             'urgency': urgencies[i]} for i in range(len(rows))]
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # MAIN
 # ══════════════════════════════════════════════════════════════════════════════
 
@@ -921,10 +1125,19 @@ def run(input_path: str,
         adapter_subfolder: Optional[str],
         batch_size: int,
         max_seq_len: int,
-        max_new_tokens: int):
+        max_new_tokens: int,
+        labels: str = 'heads',
+        heads_config: Optional[str] = None,
+        heads_path: Optional[str] = None,
+        overrides: Optional[str] = None):
+
+    labels = (labels or 'heads').lower()
+    if labels not in ('heads', 'sft'):
+        raise ValueError("--labels must be 'heads' or 'sft'")
 
     print("=" * 65)
-    print("Aspect Extractor -- Ranker + Entity Coverage + SFT Labels")
+    print(f"Aspect Extractor -- Ranker + Entity Coverage + "
+          f"{'Supervised Heads' if labels == 'heads' else 'SFT Labels'}")
     print("=" * 65)
 
     profile = get_gpu_profile()
@@ -957,11 +1170,22 @@ def run(input_path: str,
     anchor_vecs = encode_anchors(ranker)
     print("  Anchor vectors encoded.")
 
-    print("\nLoading SFT model ...")
-    tok, model = get_model(student_base, adapter, adapter_subfolder,
-                           profile['dtype'])
-
     rows_in  = df.to_dict(orient='records')
+    tok = model = None
+    head_labels: List[Dict[str, str]] = []
+
+    if labels == 'sft':
+        print("\nLoading SFT model ...")
+        tok, model = get_model(student_base, adapter, adapter_subfolder,
+                               profile['dtype'])
+    else:
+        # Supervised heads (plan A.1): CPU only, so no GPU time is spent on
+        # labels -- and they predict the dataset's own queue/type/priority
+        # instead of the collapsed SFT label set.
+        print("\nPredicting labels with the supervised aspect heads ...")
+        head_labels = predict_head_labels(rows_in, heads_config, heads_path,
+                                          overrides)
+
     records: List[Dict[str, Any]] = []
     t0 = time.time()
 
@@ -971,11 +1195,14 @@ def run(input_path: str,
         # Stages 1-3: CPU, per row
         stage3_out = [process_row(r, anchor_vecs, ranker) for r in batch_rows]
 
-        # Stage 4: GPU batched -- classification only
-        label_out  = extract_labels_batch(tok, model, stage3_out,
-                                           max_seq_len, max_new_tokens)
+        if labels == 'sft':
+            # Stage 4: GPU batched -- classification only
+            label_out = extract_labels_batch(tok, model, stage3_out,
+                                             max_seq_len, max_new_tokens)
+        else:
+            label_out = head_labels[start:start + len(batch_rows)]
 
-        for orig, s3, labels in zip(batch_rows, stage3_out, label_out):
+        for orig, s3, row_labels in zip(batch_rows, stage3_out, label_out):
             records.append({
                 'idx'            : orig.get('idx', ''),
                 'language'       : s3['language'],
@@ -985,18 +1212,21 @@ def run(input_path: str,
                 'prob_sub'       : s3['prob_sub'],
                 'prob_statement' : s3['prob_statement'],
                 'cause'          : s3['cause'],
-                'intent'         : labels['intent'],
-                'ticket_type_nli': labels['ticket_type_nli'],
+                'intent'         : row_labels['intent'],
+                'ticket_type_nli': row_labels['ticket_type_nli'],
                 # New fields
                 'entities'       : s3['entities'],
                 'action_taken'   : s3['action_taken'],
-                'urgency'        : s3['urgency'],
+                # heads learn the gold `priority`; the rule-based score is the
+                # fallback (plan A.0: the rules disagree with gold on most rows)
+                'urgency'        : row_labels.get('urgency') or s3['urgency'],
             })
 
         done = min(start + batch_size, total)
         if done % max(batch_size * 5, 50) == 0 or done == total:
             el   = time.time() - t0
-            mem  = torch.cuda.memory_allocated() / 1e9
+            mem  = (torch.cuda.memory_allocated() / 1e9
+                    if torch.cuda.is_available() else 0.0)
             rate = done / max(el, 1e-6)
             print(f"  [{done:>6,}/{total:,}]  {rate:.2f} rec/s  GPU {mem:.1f} GB")
 
@@ -1029,6 +1259,14 @@ if __name__ == '__main__':
     p.add_argument('--batch',              type=int, default=0)
     p.add_argument('--max_seq_len',        type=int, default=0)
     p.add_argument('--max_new_tokens',     type=int, default=0)
+    p.add_argument('--labels',             default=None, choices=['heads', 'sft'],
+                   help='heads = supervised aspect heads, CPU only (default); '
+                        'sft = legacy Qwen SFT labels on GPU')
+    p.add_argument('--heads_config',       default=None,
+                   help='Retrieval config the heads were trained with '
+                        '(default: config/retrieval_config.yaml)')
+    p.add_argument('--heads_path',         default=None,
+                   help='Head bundle (default: data/index/aspect_heads.joblib)')
     args = p.parse_args()
 
     cfg        = load_config(args.config)
@@ -1056,4 +1294,8 @@ if __name__ == '__main__':
                                 or cfg.get('max_seq_len', MAX_SEQ_LEN_DEFAULT)),
         max_new_tokens    = int(args.max_new_tokens
                                 or cfg.get('max_new_tokens', MAX_NEW_TOKENS_DEFAULT)),
+        labels            = (args.labels or cfg.get('labels', 'heads')),
+        heads_config      = (args.heads_config or cfg.get('heads_config')),
+        heads_path        = (args.heads_path or cfg.get('heads_path')),
+        overrides         = args.overrides,
     )

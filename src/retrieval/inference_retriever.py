@@ -53,6 +53,8 @@ class RetrievalConfig:
     aspect_rerank_weight: float = 0.1    # reduced from 0.25 -- prevents aspect bonus flipping ranking
     use_cross_encoder: bool = True        # EN: cross-encoder reranking; DE: pure dense
     cross_encoder_model: str = "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1"
+    # checklist = aspect instructions (plan A.3) | slots = legacy "Aspects : k: v" dump
+    aspect_prompt_style: str = "checklist"
 
 
 def load_retriever_config(path: str) -> RetrievalConfig:

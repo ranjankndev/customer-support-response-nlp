@@ -29,3 +29,8 @@ cross_encoder_model: cross-encoder/mmarco-mMiniLMv2-L12-H384-v1
 # aspect_rerank_weight: only applies to DE (pure dense) or when use_cross_encoder=false.
 # Reduced from 0.25 -> 0.1 to prevent aspect bonus flipping top-5 ranking.
 aspect_rerank_weight: 0.1
+
+# ── Prompt ────────────────────────────────────────────────────────────────────
+# checklist = aspect instructions the model can follow (plan A.3)
+# slots     = legacy "Aspects : k: v | ..." dump
+aspect_prompt_style: checklist

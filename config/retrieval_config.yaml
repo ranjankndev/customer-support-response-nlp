@@ -18,6 +18,8 @@ col_aspects   : ["prob_sub", "prob_statement", "cause", "intent", "ticket_type_n
 # ── Output paths ──────────────────────────────────────────────────────────────
 index_path    : "data/index/faiss_index.bin"
 metadata_path : "data/index/metadata.json"
+# dense embedding matrix (row order = metadata order); aspect heads train on it
+dense_path    : "data/index/dense.npy"
 
 # ── Dense embedder ────────────────────────────────────────────────────────────
 # Recommended: E5 multilingual for dense FAISS retrieval.

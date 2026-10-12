@@ -360,7 +360,27 @@ class TicketRetriever:
         prompt_body_max = int(getattr(self.config, "prompt_body_max_chars", BODY_LEN) or 0)
         body_for_prompt = body[:prompt_body_max] if prompt_body_max > 0 else body
 
-        # Build optional new-field lines
+        # ── checklist style (plan A.3, default) ───────────────────────────────
+        # The aspect dump tells the model what the ticket is about; the checklist
+        # tells it what the reply has to do. Aspect-RAFT trains on this format,
+        # so it has to be the same string at inference time.
+        style = str(getattr(self.config, "aspect_prompt_style", "checklist")
+                    or "checklist").lower()
+        if style == "checklist":
+            from src.utils import build_aspect_checklist
+
+            checklist = build_aspect_checklist(spans)
+            return (
+                f"Write a concise customer support reply (under 150 words). "
+                f"No markdown headers, bullet points, or invented examples.\n"
+                + (f"{checklist}\n" if checklist else "")
+                + f"\nContext : {ctx_str}\n"
+                f"Subject : {subject}\n"
+                f"Message : {body_for_prompt}\n"
+                f"Support reply:"
+            )
+
+        # ── legacy slot dump (aspect_prompt_style: slots) ─────────────────────
         extra_lines = ''
         if entities:
             extra_lines += f"Entities : {entities}\n"

@@ -46,6 +46,8 @@ class IndexerConfig:
     col_aspects    : List[str]
     index_path     : str
     metadata_path  : str
+    # dense matrix saved alongside the index; aspect heads train on it (plan A.1)
+    dense_path     : str
     model_name     : str
     device         : str
     batch_size     : int
@@ -86,6 +88,7 @@ def load_config(path: str, overrides_path: str | None = None) -> IndexerConfig:
                                                     "cause","intent","ticket_type_nli"]),
         index_path     = cfg["index_path"],
         metadata_path  = cfg["metadata_path"],
+        dense_path     = cfg.get("dense_path",     "data/index/dense.npy"),
         # Recommended: E5 multilingual dense embedder
         model_name     = cfg.get("model_name",     "intfloat/multilingual-e5-large"),
         device         = cfg.get("device",         "cuda"),
@@ -231,6 +234,16 @@ class CorpusIndexer:
         with open(self.config.metadata_path, "w", encoding="utf-8") as f:
             json.dump(metadata, f, ensure_ascii=False, indent=2)
         print(f"[Indexer] Metadata saved     → {self.config.metadata_path}")
+
+        # save the dense matrix (plan A.1): the aspect heads train on exactly these
+        # embeddings, so they must not be recomputed with a different model.
+        # Row order == metadata order.
+        if self.config.dense_path:
+            dense_path = Path(self.config.dense_path)
+            dense_path.parent.mkdir(parents=True, exist_ok=True)
+            np.save(dense_path, dense_vecs)
+            print(f"[Indexer] Dense matrix saved → {dense_path} {dense_vecs.shape}")
+
         print(f"[Indexer] Done — {index.ntotal} vectors indexed")
         return index
 

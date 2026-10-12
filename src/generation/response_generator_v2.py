@@ -160,6 +160,8 @@ class GenerationConfig:
     ctx_doc_max_chars: int = 1200
     # append an explicit reply-language line before "Support reply:" (plan 5.4)
     reply_language_instruction: bool = True
+    # checklist = aspect instructions (plan A.3) | slots = legacy aspect dump
+    aspect_prompt_style: str = "checklist"
     # CRAG router (plan 7.5); set by `minimal_run crag_tune`
     crag_threshold  : float = 0.30
     # data — primary: raw tickets (subject, body, language); optional gold `answer`
@@ -504,7 +506,8 @@ def build_baseline_prompt_pt(row: pd.Series) -> str:
 
 
 def build_aspect_only_prompt(row: pd.Series, spans: Dict,
-                              body_max_chars: int = 0) -> str:
+                              body_max_chars: int = 0,
+                              config: "GenerationConfig | None" = None) -> str:
     """
     Aspect-only prompt — all 5 aspect columns injected into prompt slots.
     No retrieved context. Isolates the contribution of aspect extraction alone.
@@ -531,7 +534,25 @@ def build_aspect_only_prompt(row: pd.Series, spans: Dict,
     action_taken = spans.get("action_taken", "") or ""
     urgency_span = spans.get("urgency",      "") or ""
 
-    # Build optional new-field lines
+    # ── checklist style (plan A.3, default) ──────────────────────────────────
+    style = str(getattr(config, "aspect_prompt_style", "checklist")
+                or "checklist").lower() if config is not None else "checklist"
+    if style == "checklist":
+        from src.utils import build_aspect_checklist
+
+        checklist = build_aspect_checklist(spans)
+        return (
+            "Write a concise, professional customer support reply. "
+            "Keep the reply under 150 words. "
+            "Do not use markdown headers or bullet points. "
+            "Do not invent case studies or external links.\n"
+            + (f"{checklist}\n" if checklist else "")
+            + f"\nSubject  : {subject}\n"
+            f"Message  : {body}\n\n"
+            "Support reply:"
+        )
+
+    # ── legacy slot dump (aspect_prompt_style: slots) ─────────────────────────
     extra = ""
     if entities:
         extra += f"Entities   : {entities}\n"
@@ -870,7 +891,8 @@ def run_aspect_only(df: pd.DataFrame, tok, model, seq2seq: bool,
         meta_batch, prompts = [], []
         for i, row in batch:
             spans  = _get_spans(row, df)
-            prompt = build_aspect_only_prompt(row, spans, config.body_max_chars)
+            prompt = build_aspect_only_prompt(row, spans, config.body_max_chars,
+                                              config)
             prompts.append(prompt)
             meta_batch.append((i, row, spans, prompt))
 
