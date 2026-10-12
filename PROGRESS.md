@@ -17,7 +17,7 @@ Legend: `[x]` done (date, sha) · `[~]` in progress · `[ ]` todo
 - [x] 2026-10-13 (cbe206a) 2b. Aspect v2 (heads, span clean-up, entity fix, checklist prompt) — heads are unit-tested on synthetic clusters; the real macro-F1 vs majority run needs the train split (blocked with Kaggle auth). `aspect_extractor --labels heads` is now the default and loads no GPU model
 - [~] 3. model_backend + generator fixes (Gemma-3, double BOS, budget, language line) — code done 2026-10-13 (884c7d1), `tests/test_prompt.py` green. The GPU acceptance checks (one `<bos>`, DE prompt -> German reply, 5 long hits within budget) need the Kaggle smoke cell: **blocked on Kaggle auth**
 - [x] 2026-10-13 (a3b5137) 4. Runners / modes / labels / Checkpointer dir — `--mode rag_aspect --label s2_gemma3` writes `{output_dir}/s2_gemma3.csv` with `top_ce_score` and `n_ctx_used`; `tests/test_runners.py` covers it with a fake retriever
-- [ ] 5. Hybrid retrieval + multilingual reranker
+- [x] 2026-10-13 (2d3f55a) 5. Hybrid retrieval + multilingual reranker — DE rows now get a `ce_score` (bge-reranker-v2-m3), the aspect bonus is applied after reranking for both languages, `exclude_ids` works; `tests/test_retriever_fusion.py` builds a 3-doc FAISS+BM25 index. The `inference_retriever --n 20` run on real data needs the index (blocked with Kaggle auth / no local data)
 - [ ] 6. `minimal_run sample` / `attach_aspects`
 - [ ] 7. `eval_retrieval`
 - [ ] 8. `step3_raft build` + `train`
