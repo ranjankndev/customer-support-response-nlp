@@ -1,0 +1,42 @@
+# config_raft.yaml — Aspect-RAFT (plan §7)
+# ── Model ─────────────────────────────────────────────────────────────────────
+# unsloth/gemma-3-4b-it: the same weights as google/gemma-3-4b-it, but ungated,
+# so a Kaggle kernel needs no licence acceptance and no token.
+base_model        : "unsloth/gemma-3-4b-it"
+# The prompts must be built exactly as at inference, so both configs are reused.
+retrieval_config  : "config/inference_retrieval_config.yaml"
+generation_config : "config/generation_config.yaml"
+
+# ── Build ─────────────────────────────────────────────────────────────────────
+train_csv         : "data/minimal/raft_train_3000_with_aspects.csv"
+raft_jsonl        : "output/raft/raft_train.jsonl"
+top_k             : 3
+# RAFT: share of examples whose context is random documents only, so the model
+# learns to answer from the ticket when retrieval is useless
+distractor_prob   : 0.2
+# 20% of examples are built without the aspect checklist, so one adapter serves
+# both S4 (with aspects) and S5 (without)
+use_aspects_prob  : 0.8
+# a hit this close to the query is the training row itself under another id
+near_dup_cos      : 0.97
+max_seq_len       : 2048
+seed              : 42
+
+# ── Train (Unsloth QLoRA) ─────────────────────────────────────────────────────
+lora:
+  r       : 16
+  alpha   : 16
+  dropout : 0.0
+lr                : 2.0e-4
+epochs            : 1
+batch             : 2
+grad_accum        : 8
+val_frac          : 0.05
+save_steps        : 50
+eval_steps        : 50
+logging_steps     : 10
+warmup_ratio      : 0.03
+out_dir           : "output/raft/gemma3-4b-aspect-raft"
+# Pushed from the local machine after `kaggle_job.py pull` (no secrets on Kaggle).
+# The local HF login is user `ranjankn`; ranjan56cse is read-only for us.
+hf_repo           : "ranjankn/aspectforge-raft-gemma3"
