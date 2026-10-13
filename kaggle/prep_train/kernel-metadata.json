@@ -1,0 +1,14 @@
+{
+  "id": "ranjankumarnayak/aspectforge-prep-train",
+  "title": "AspectForge prep + RAFT train",
+  "code_file": "run.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": true,
+  "machine_shape": "NvidiaTeslaT4",
+  "dataset_sources": ["tobiasbueck/multilingual-customer-support-tickets"],
+  "competition_sources": [],
+  "kernel_sources": []
+}
