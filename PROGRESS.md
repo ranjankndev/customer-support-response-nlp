@@ -21,7 +21,7 @@ Legend: `[x]` done (date, sha) · `[~]` in progress · `[ ]` todo
 - [x] 2026-10-13 (08cc0c2) 6. `minimal_run sample` / `attach_aspects` — 250/250 split and sample reuse (same hash) covered by `tests/test_minimal_run.py`; the real samples need the processed splits, which are not on this machine
 - [x] 2026-10-13 (b04fde1) 7. `eval_retrieval` — `top1_rougeL`, `top1_cos`, `intent@3` with bootstrap CIs per language, written to `output/report/retrieval_table.csv` (one row set per config label). Needs the built index to run on real data
 - [~] 8. `step3_raft build` + `train` — code done 2026-10-13 (8d34db4), `tests/test_raft.py` covers the build, the leakage guards and the TRL-argument shim. `build --limit 20` needs the index and `train --limit 64 --max_steps 5` needs Kaggle: **both blocked on Kaggle auth**
-- [ ] 9. CRAG router + `crag_tune`
+- [x] 2026-10-13 (b7a6f55) 9. CRAG router + `crag_tune` — `--mode rag_aspect_crag` stores `route`; `crag_tune` replays the router over tau 0.05-0.60 from paired generations (no sweep re-runs) and `crag_reuse` builds S3 from S2's outputs. `tests/test_crag.py` covers all three
 - [ ] 10. `minimal_run report` (+ ACS/AAS, aspect table)
 - [ ] 11. Kaggle jobs `prep_train`, `generate_eval` (+ optional notebook mirrors)
 - [ ] 12. README + figures; open PR
