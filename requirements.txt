@@ -34,6 +34,8 @@ gensim
 
 # ── Visualization ─────────────────────────────────────────────────────────────
 matplotlib>=3.7.0
+# DataFrame.to_markdown in `minimal_run report`
+tabulate>=0.9
 seaborn>=0.12.0
 plotly>=5.17.0
 
