@@ -10,22 +10,42 @@ index_path: data/index/faiss_index.bin
 metadata_path: data/index/metadata.json
 
 # Embedder (must match what you indexed with)
-model_name: intfloat/multilingual-e5-large
+model_name: BAAI/bge-m3
+# prefixes must match the indexer's (E5: "query: " / "passage: "; BGE-M3: none)
+query_prefix: ""
+passage_prefix: ""
 device: cuda
 batch_size: 64
+max_length: 512
 
 # Retrieval
 top_k: 5
 body_max_chars: 0
 prompt_body_max_chars: 0
 filter_by_language: false
+# dense = FAISS only | hybrid = FAISS + BM25 fused by reciprocal rank fusion
+retrieval_mode: hybrid
+bm25_path: data/index/bm25
+rrf_k: 60
+n_candidates: 50
 
 # Reranking
-# Cross-encoder used for EN tickets only (DE uses pure dense).
-# mmarco-mMiniLMv2-L12-H384-v1: multilingual, trained on MS MARCO EN+DE+24 langs.
+# bge-reranker-v2-m3 is trained for EN *and* DE, so DE rows are reranked too
+# (the old mmarco MiniLM was EN-only in practice, so DE fell back to raw dense).
 use_cross_encoder: true
-cross_encoder_model: cross-encoder/mmarco-mMiniLMv2-L12-H384-v1
+cross_encoder_model: BAAI/bge-reranker-v2-m3
+cross_encoder_max_length: 512
+rerank_languages: ["en", "de"]
+# body = ticket vs ticket (matches the index) | response = ticket vs past answer
+rerank_doc_field: body
+rerank_batch_size: 64
 
-# aspect_rerank_weight: only applies to DE (pure dense) or when use_cross_encoder=false.
-# Reduced from 0.25 -> 0.1 to prevent aspect bonus flipping top-5 ranking.
+# languages whose aspect spans are trusted enough to weight the query vector
+aspect_query_languages: ["en"]
+# aspect bonus added on top of the rerank (or dense) score for every language
 aspect_rerank_weight: 0.1
+
+# ── Prompt ────────────────────────────────────────────────────────────────────
+# checklist = aspect instructions the model can follow (plan A.3)
+# slots     = legacy "Aspects : k: v | ..." dump
+aspect_prompt_style: checklist

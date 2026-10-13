@@ -24,25 +24,65 @@ import numpy as np
 import faiss
 from typing import Dict, List, Optional
 
-_cross_encoder = None
+_cross_encoders: Dict[str, object] = {}
 
 
-def get_cross_encoder(model_name: str = "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1"):
+def get_cross_encoder(model_name: str = "BAAI/bge-reranker-v2-m3",
+                      max_length: int = 512):
     """
-    Singleton cross-encoder loader.
-    mmarco-mMiniLMv2-L12-H384-v1 is trained on MS MARCO multilingual —
-    works for both EN and DE without language-specific fine-tuning.
+    Cross-encoder singleton, keyed by name so the retrieval table can compare
+    rerankers in one process (plan §6.3).
+
+    bge-reranker-v2-m3 is the multilingual default: unlike the mmarco MiniLM it
+    was trained for EN *and* DE reranking, which is what lets DE tickets be
+    reranked at all instead of falling back to pure dense scores. On a T4 it is
+    loaded in fp16 when the installed sentence-transformers supports passing
+    model_kwargs.
     """
-    global _cross_encoder
-    if _cross_encoder is None:
+    key = f"{model_name}@{max_length}"
+    if key not in _cross_encoders:
         from sentence_transformers import CrossEncoder
         print(f"[Retriever] Loading cross-encoder: {model_name}")
-        _cross_encoder = CrossEncoder(model_name)
-        print("[Retriever] Cross-encoder ready.")
-    return _cross_encoder
+        try:
+            import torch
+
+            fp16 = torch.cuda.is_available()
+        except ImportError:
+            fp16 = False
+        encoder = None
+        if fp16:
+            try:
+                import torch
+
+                encoder = CrossEncoder(
+                    model_name, max_length=max_length,
+                    model_kwargs={"torch_dtype": torch.float16})
+            except TypeError:
+                encoder = None          # older sentence-transformers
+        if encoder is None:
+            encoder = CrossEncoder(model_name, max_length=max_length)
+        _cross_encoders[key] = encoder
+    return _cross_encoders[key]
+
+
+def _legacy_cross_encoder_cache():
+    """Kept so tests and callers can clear the singleton cache."""
+    return _cross_encoders
 
 ANSWER_LEN = 0   # 0 = no truncation
 BODY_LEN   = 0   # 0 = no truncation
+
+# ── Reply language (plan §5.4) ────────────────────────────────────────────────
+# A German ticket with English retrieved context used to get an English reply:
+# the prompt never said which language to answer in. The instruction goes last,
+# directly before "Support reply:", where the model is least likely to lose it.
+LANG_NAMES = {"en": "English", "de": "German"}
+
+
+def reply_language_line(language: str) -> str:
+    name = LANG_NAMES.get((language or "en").lower().strip()[:2],
+                          "the customer's language")
+    return f"Write the reply in {name}, the same language as the customer's message."
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -110,31 +150,66 @@ def aspect_score(query_spans: Dict[str, str],
     if not query_spans or not stored_aspects:
         return 0.0
 
+    def field(source: Dict[str, str], *keys: str) -> str:
+        for key in keys:
+            value = str(source.get(key, "") or "").strip().lower()
+            if value and value != "none":
+                return value
+        return ""
+
+    def tokens(text: str) -> set:
+        # Unicode tokens, so German overlap is measured on real words and not on
+        # umlaut-mangled fragments (plan A.3).
+        return set(re.findall(r"\w+", text, re.UNICODE))
+
     score = 0.0
 
-    # exact intent match — most discriminative signal
-    if (query_spans.get("intent","").lower() ==
-            stored_aspects.get("intent","").lower()):
+    # The query's intent/type come from the supervised heads; a train document's
+    # come from its gold queue/type, which it legitimately carries (plan A.3).
+    query_intent = field(query_spans, "intent")
+    doc_intent   = field(stored_aspects, "intent", "queue")
+    if query_intent and query_intent == doc_intent:
         score += 0.4
 
-    # exact ticket_type match
-    if (query_spans.get("ticket_type_nli","").lower() ==
-            stored_aspects.get("ticket_type_nli","").lower()):
+    query_type = field(query_spans, "ticket_type", "ticket_type_nli")
+    doc_type   = field(stored_aspects, "ticket_type", "ticket_type_nli", "type")
+    if query_type and query_type == doc_type:
         score += 0.2
 
-    # prob_sub word overlap
-    q_words = set(query_spans.get("prob_sub","").lower().split())
-    s_words = set(stored_aspects.get("prob_sub","").lower().split())
+    # prob_sub token overlap
+    q_words = tokens(field(query_spans, "prob_sub"))
+    s_words = tokens(field(stored_aspects, "prob_sub"))
     if q_words and s_words:
         score += 0.3 * len(q_words & s_words) / len(q_words | s_words)
 
-    # cause word overlap
-    q_cause = set(query_spans.get("cause","").lower().split())
-    s_cause = set(stored_aspects.get("cause","").lower().split())
+    # cause token overlap
+    q_cause = tokens(field(query_spans, "cause"))
+    s_cause = tokens(field(stored_aspects, "cause"))
     if q_cause and s_cause:
         score += 0.1 * len(q_cause & s_cause) / len(q_cause | s_cause)
 
     return round(score, 4)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# RECIPROCAL RANK FUSION  (plan §6.3)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def rrf_fuse(rank_lists: List[List[int]], k: int = 60) -> Dict[int, float]:
+    """
+    Reciprocal rank fusion: score(d) = sum over lists of 1 / (k + rank(d)).
+
+    Dense cosine and BM25 scores are not on a comparable scale, so they are
+    fused by rank, not by value. `k` damps the head of each list; 60 is the
+    value from the original RRF paper and the one the config defaults to.
+
+    Returns {doc_id: fused_score} for every id seen in any list.
+    """
+    fused: Dict[int, float] = {}
+    for ranked in rank_lists:
+        for rank, doc_id in enumerate(ranked, start=1):
+            fused[doc_id] = fused.get(doc_id, 0.0) + 1.0 / (k + rank)
+    return fused
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -145,7 +220,10 @@ def cross_encoder_rerank(
     query_subject: str,
     query_body: str,
     candidates: List[Dict],
-    ce_model_name: str = "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1",
+    ce_model_name: str = "BAAI/bge-reranker-v2-m3",
+    doc_field: str = "body",
+    batch_size: int = 64,
+    max_length: int = 512,
 ) -> List[Dict]:
     """
     Rerank FAISS candidates using a multilingual cross-encoder.
@@ -161,13 +239,19 @@ def cross_encoder_rerank(
 
     Returns candidates list with 'ce_score' added and sorted by ce_score.
     """
-    ce = get_cross_encoder(ce_model_name)
-    query_text = f"{query_subject} {query_body}".strip()
-    pairs = [
-        (query_text, f"{r['subject']} {r['response']}")
-        for r in candidates
-    ]
-    ce_scores = ce.predict(pairs)
+    ce = get_cross_encoder(ce_model_name, max_length=max_length)
+    query_text = f"{query_subject}\n{query_body}".strip()
+
+    def document_text(record: Dict) -> str:
+        # "body" compares ticket to ticket (what the index was built on);
+        # "response" compares the ticket to the past answer (plan §6.3).
+        if doc_field == "response":
+            return f"{record.get('subject', '')} {record.get('response', '')}".strip()
+        body = record.get("body") or record.get("response", "")
+        return f"{record.get('subject', '')}\n{body}".strip()
+
+    pairs = [(query_text, document_text(r)) for r in candidates]
+    ce_scores = ce.predict(pairs, batch_size=batch_size)
     for r, sc in zip(candidates, ce_scores):
         r['ce_score'] = round(float(sc), 4)
     candidates.sort(key=lambda x: x['ce_score'], reverse=True)
@@ -183,17 +267,21 @@ class STEmbedder:
         from sentence_transformers import SentenceTransformer
         self.model  = SentenceTransformer(config.model_name, device=getattr(config, "device", "cuda"))
         self.config = config
+        max_length = int(getattr(config, "max_length", 0) or 0)
+        if max_length:
+            self.model.max_seq_length = max_length
 
     def encode(self, texts: List[str], kind: str = "passage") -> np.ndarray:
         """
-        E5 convention:
-          - documents: "passage: ..."
-          - queries:   "query: ..."
-        We always return L2-normalized float32 vectors (cosine similarity).
+        Prefixes come from the config (plan §6.3): E5 wants "query: "/"passage: ",
+        BGE-M3 wants none. They used to be hard-coded to the E5 convention, which
+        silently prepended "passage: " to every BGE-M3 text.
+        Always returns L2-normalized float32 vectors (cosine similarity).
         """
         if kind not in ("query", "passage"):
             kind = "passage"
-        prefix = "query: " if kind == "query" else "passage: "
+        prefix = (getattr(self.config, "query_prefix", "") if kind == "query"
+                  else getattr(self.config, "passage_prefix", "")) or ""
         prefixed = [prefix + t for t in texts]
         vecs = self.model.encode(
             prefixed,
@@ -218,18 +306,66 @@ class TicketRetriever:
             self.metadata = json.load(f)
         print(f"[Retriever] {self.index.ntotal} vectors | "
               f"{len(self.metadata)} records loaded")
+
+        # ── BM25 (hybrid mode, plan §6.3) ─────────────────────────────────────
+        # Dense retrieval misses exact strings — error codes, product names,
+        # invoice numbers — which is exactly what support tickets quote.
+        self.bm25 = None
+        self.bm25_mode = str(getattr(config, "retrieval_mode", "dense")
+                             or "dense").lower()
+        if self.bm25_mode == "hybrid":
+            self.bm25 = self._load_bm25()
+
         # Pre-load cross-encoder at init so first retrieve() call is not slow
-        ce_model = getattr(config, "cross_encoder_model",
-                           "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1")
         if getattr(config, "use_cross_encoder", True):
-            get_cross_encoder(ce_model)
+            get_cross_encoder(
+                getattr(config, "cross_encoder_model", "BAAI/bge-reranker-v2-m3"),
+                int(getattr(config, "cross_encoder_max_length", 512) or 512))
+
+    def _load_bm25(self):
+        """Load the BM25 index the indexer saved in the same row order as FAISS."""
+        path = str(getattr(self.config, "bm25_path", "") or "")
+        if not path:
+            print("[Retriever] retrieval_mode=hybrid but bm25_path is empty "
+                  "— falling back to dense")
+            self.bm25_mode = "dense"
+            return None
+        try:
+            import bm25s
+        except ImportError:
+            print("[Retriever] bm25s is not installed — falling back to dense")
+            self.bm25_mode = "dense"
+            return None
+        try:
+            retriever = bm25s.BM25.load(path, mmap=False)
+        except Exception as exc:
+            print(f"[Retriever] Could not load BM25 from {path} ({exc}) "
+                  f"— falling back to dense")
+            self.bm25_mode = "dense"
+            return None
+        print(f"[Retriever] BM25 loaded from {path}")
+        return retriever
+
+    def _bm25_ranking(self, query: str, n_candidates: int) -> List[int]:
+        """BM25 document ids, best first."""
+        if self.bm25 is None:
+            return []
+        import bm25s
+
+        tokens = bm25s.tokenize([query], stopwords=None, show_progress=False)
+        count = min(n_candidates, len(self.metadata))
+        if count <= 0:
+            return []
+        doc_ids, _ = self.bm25.retrieve(tokens, k=count, show_progress=False)
+        return [int(i) for i in doc_ids[0]]
 
     def retrieve(self,
                  subject      : str,
                  body         : str,
                  language     : str,
                  aspect_spans : Dict[str, str] = None,
-                 top_k        : int = None) -> List[Dict]:
+                 top_k        : int = None,
+                 exclude_ids  : set = None) -> List[Dict]:
         """
         Retrieve top-K similar past tickets.
 
@@ -239,99 +375,138 @@ class TicketRetriever:
         aspect_spans : {prob_sub, prob_statement, cause, intent, ticket_type_nli,
                         entities, action_taken, urgency}  -- from aspect_extractor.py
 
-        FIXES applied:
-          1. Body included in aspect_query_vector (weight 1.0) — stops query drift
-          2. alpha reduced to 0.1 (was 0.25) — aspect bonus no longer flips ranking
-          3. Cross-encoder reranking for EN (replaces aspect_score Jaccard)
-          4. Pure dense retrieval for DE — avoids noisy DE aspect extraction
-             pulling FAISS in the wrong direction
+        exclude_ids  : ticket_ids never to return (RAFT leakage guard, §7.4)
+
+        Pipeline (plan §6.3): dense (aspect-weighted where the aspects are
+        trustworthy) + optional BM25, fused by RRF, then a multilingual
+        cross-encoder, then the aspect bonus on top of whichever score ranked.
+
+        What changed from v2, and why:
+          - DE is no longer excluded from reranking. bge-reranker-v2-m3 handles
+            German, so DE rows get a cross-encoder score instead of raw dense.
+          - the aspect bonus is applied *after* reranking for both languages; it
+            used to be dropped entirely for EN and ignored for DE queries.
+          - BM25 joins the dense list, so quoted error codes and product names
+            can be matched literally.
+          - exclude_ids keeps a RAFT training row from retrieving itself.
         """
         top_k  = top_k or self.config.top_k
         spans  = aspect_spans or {}
-        # Retrieve more candidates to give reranker good material
-        n_cand = top_k * 6
+        n_cand = int(getattr(self.config, "n_candidates", 0) or 0) or top_k * 6
+        exclude = {str(i) for i in (exclude_ids or set())}
 
         body_clip = (body[:self.config.body_max_chars]
                      if getattr(self.config, "body_max_chars", 0) else body)
+        lang_lower = (language or "en").lower().strip()[:2]
 
-        # ── Query vector ──────────────────────────────────────────────────────
-        # FIX 1: body now included in aspect_query_vector (weight 1.0).
-        # FIX 4: For DE, always use pure dense query (subject+body) regardless
-        #        of whether aspects are present — DE aspect extraction is noisier
-        #        and the weighted aspect vector degrades retrieval quality.
-        lang_lower = (language or "en").lower().strip()
-        use_aspect_query = bool(spans) and lang_lower == "en"
-
+        # ── 1. query vector ───────────────────────────────────────────────────
+        aspect_langs = [str(l).lower()[:2] for l in
+                        (getattr(self.config, "aspect_query_languages", ["en"])
+                         or [])]
+        use_aspect_query = bool(spans) and lang_lower in aspect_langs
         if use_aspect_query:
             qvec = aspect_query_vector(self.embedder, subject, body_clip, spans)
         else:
             qvec = self.embedder.encode(
                 [f"{subject}\n\n{body_clip}"], kind="query")[0]
 
-        # ── FAISS dense retrieval ─────────────────────────────────────────────
+        # ── 2. dense + BM25 candidates ────────────────────────────────────────
         qvec_norm = qvec.reshape(1, -1).copy()
         faiss.normalize_L2(qvec_norm)
         dense_scores, d_idx = self.index.search(qvec_norm, n_cand)
-        dense_scores = dense_scores[0].tolist()
+        dense_by_id = {int(i): float(s)
+                       for i, s in zip(d_idx[0].tolist(), dense_scores[0].tolist())
+                       if i >= 0}
+        dense_ranking = [int(i) for i in d_idx[0].tolist() if i >= 0]
 
-        candidates = []
-        for i, s in zip(d_idx[0].tolist(), dense_scores):
-            if i < 0:
-                continue
-            meta = self.metadata[i]
-            if (getattr(self.config, "filter_by_language", False)
-                    and meta["language"] != language):
-                continue
-            candidates.append({
-                "idx"     : int(i),
-                "subject" : meta["subject"],
-                "response": meta.get("response", ""),
-                "language": meta["language"],
-                "aspects" : meta.get("aspects", {}),
-                "dense"   : round(float(s), 4),
-            })
+        rank_lists = [dense_ranking]
+        bm25_ranking = []
+        if self.bm25_mode == "hybrid":
+            bm25_ranking = self._bm25_ranking(f"{subject}\n{body_clip}", n_cand)
+            if bm25_ranking:
+                rank_lists.append(bm25_ranking)
 
-        if not candidates:
+        # ── 3. filters ────────────────────────────────────────────────────────
+        filter_by_language = bool(getattr(self.config, "filter_by_language", False))
+
+        def keep(doc_id: int) -> bool:
+            if doc_id < 0 or doc_id >= len(self.metadata):
+                return False
+            meta = self.metadata[doc_id]
+            if exclude and str(meta.get("ticket_id", doc_id)) in exclude:
+                return False
+            if filter_by_language and meta.get("language") != language:
+                return False
+            return True
+
+        rank_lists = [[i for i in ranked if keep(i)] for ranked in rank_lists]
+
+        # ── 4. reciprocal rank fusion ─────────────────────────────────────────
+        rrf_k = int(getattr(self.config, "rrf_k", 60) or 60)
+        fused = rrf_fuse(rank_lists, rrf_k)
+        if not fused:
             return []
 
-        # ── Reranking — language-conditional ─────────────────────────────────
-        # FIX 3: EN — cross-encoder reranking replaces Jaccard aspect_score.
-        #         Cross-encoder jointly encodes [query, document] — far richer
-        #         than word-overlap scoring and works well for EN.
-        # FIX 4: DE — pure dense ranking, no reranking.
-        #         Avoids noisy DE aspect spans degrading retrieval quality.
-        use_ce = (getattr(self.config, "use_cross_encoder", True)
-                  and lang_lower == "en")
+        candidates = []
+        for doc_id, rrf_score in sorted(fused.items(), key=lambda kv: -kv[1])[:n_cand]:
+            meta = self.metadata[doc_id]
+            candidates.append({
+                "idx"       : int(doc_id),
+                "ticket_id" : str(meta.get("ticket_id", doc_id)),
+                "subject"   : meta.get("subject", ""),
+                "body"      : meta.get("body", ""),
+                "response"  : meta.get("response", ""),
+                "language"  : meta.get("language", ""),
+                "aspects"   : meta.get("aspects", {}),
+                "dense"     : round(dense_by_id.get(doc_id, 0.0), 4),
+                "rrf"       : round(float(rrf_score), 6),
+            })
+
+        # ── 5/6. rerank, then the aspect bonus on top ─────────────────────────
+        rerank_langs = [str(l).lower()[:2] for l in
+                        (getattr(self.config, "rerank_languages", ["en", "de"])
+                         or [])]
+        use_ce = (bool(getattr(self.config, "use_cross_encoder", True))
+                  and lang_lower in rerank_langs)
+        alpha = float(getattr(self.config, "aspect_rerank_weight", 0.1) or 0.0)
 
         if use_ce:
-            ce_model = getattr(self.config, "cross_encoder_model",
-                               "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1")
             candidates = cross_encoder_rerank(
-                subject, body_clip, candidates, ce_model)
-            for r in candidates:
-                r["final"] = r["ce_score"]
-                r["a_score"] = 0.0
+                subject, body_clip, candidates,
+                getattr(self.config, "cross_encoder_model",
+                        "BAAI/bge-reranker-v2-m3"),
+                doc_field=str(getattr(self.config, "rerank_doc_field", "body")),
+                batch_size=int(getattr(self.config, "rerank_batch_size", 64) or 64),
+                max_length=int(getattr(self.config, "cross_encoder_max_length",
+                                       512) or 512))
+            base_key = "ce_score"
         else:
-            # FIX 2: alpha reduced from 0.25 → 0.1 — aspect bonus no longer
-            # flips top-5 ranking when dense scores are close.
-            alpha = float(getattr(self.config, "aspect_rerank_weight", 0.1) or 0.1)
-            for r in candidates:
-                a_sc = (aspect_score(spans, r["aspects"])
-                        if spans else 0.0)
-                r["a_score"] = round(a_sc, 3)
-                r["final"]   = round(r["dense"] + alpha * a_sc, 4)
-            candidates.sort(key=lambda x: x["final"], reverse=True)
+            for record in candidates:
+                record["ce_score"] = ""
+            base_key = "dense"
 
+        for record in candidates:
+            a_score = aspect_score(spans, record["aspects"]) if spans else 0.0
+            record["a_score"] = round(a_score, 3)
+            base = record[base_key] if isinstance(record[base_key], (int, float)) else 0.0
+            record["final"] = round(float(base) + alpha * a_score, 4)
+        candidates.sort(key=lambda r: r["final"], reverse=True)
+
+        # ── 7. top_k ──────────────────────────────────────────────────────────
         return candidates[:top_k]
 
     def build_prompt(self, subject: str, body: str,
                      retrieved: List[Dict],
-                     aspect_spans: Dict[str, str] = None) -> str:
+                     aspect_spans: Dict[str, str] = None,
+                     language: str = "en") -> str:
         """
-        [OUR C] Structured aspect-slot prompt for the generator.
-        Slot order: Enforce → Aspects → Entities/ActionTaken/Urgency → Context → Ticket
+        [OUR C] Structured aspect prompt for the generator.
+        Slot order: instruction → aspect checklist → context → ticket → language
 
-        NEW fields integrated: entities, action_taken, urgency
+        The reply-language line comes last, directly before "Support reply:"
+        (plan §5.4); `reply_language_instruction: false` in the config turns it
+        off. Each retrieved response is capped at `ctx_doc_max_chars` so one long
+        past answer cannot eat the whole prompt budget (§5.3).
         """
         spans   = aspect_spans or {}
 
@@ -347,10 +522,22 @@ class TicketRetriever:
         action_taken= spans.get('action_taken','') or ''
         urgency     = spans.get('urgency',     '') or ''
 
+        ctx_doc_max = int(getattr(self.config, "ctx_doc_max_chars", 0) or 0)
+
+        def _ctx_response(record: Dict) -> str:
+            response = str(record.get('response', '') or '')
+            return response[:ctx_doc_max] if ctx_doc_max > 0 else response
+
         ctx_str = '\n'.join(
-            f"[{i+1}] Subject: {r['subject']}\n     Response: {r['response']}"
+            f"[{i+1}] Subject: {r['subject']}\n     Response: {_ctx_response(r)}"
             for i, r in enumerate(retrieved)
         )
+
+        want_language_line = bool(getattr(self.config,
+                                          "reply_language_instruction", True))
+        language_line = (f"{reply_language_line(language)}\n"
+                         if want_language_line else "")
+
         prob    = spans.get('prob_sub', '') or spans.get('prob_statement', '')
         cause   = spans.get('cause', '')
         enforce = (
@@ -360,7 +547,28 @@ class TicketRetriever:
         prompt_body_max = int(getattr(self.config, "prompt_body_max_chars", BODY_LEN) or 0)
         body_for_prompt = body[:prompt_body_max] if prompt_body_max > 0 else body
 
-        # Build optional new-field lines
+        # ── checklist style (plan A.3, default) ───────────────────────────────
+        # The aspect dump tells the model what the ticket is about; the checklist
+        # tells it what the reply has to do. Aspect-RAFT trains on this format,
+        # so it has to be the same string at inference time.
+        style = str(getattr(self.config, "aspect_prompt_style", "checklist")
+                    or "checklist").lower()
+        if style == "checklist":
+            from src.utils import build_aspect_checklist
+
+            checklist = build_aspect_checklist(spans)
+            return (
+                f"Write a concise customer support reply (under 150 words). "
+                f"No markdown headers, bullet points, or invented examples.\n"
+                + (f"{checklist}\n" if checklist else "")
+                + f"\nContext : {ctx_str}\n"
+                f"Subject : {subject}\n"
+                f"Message : {body_for_prompt}\n"
+                + language_line
+                + f"Support reply:"
+            )
+
+        # ── legacy slot dump (aspect_prompt_style: slots) ─────────────────────
         extra_lines = ''
         if entities:
             extra_lines += f"Entities : {entities}\n"
@@ -378,5 +586,6 @@ class TicketRetriever:
             f"Context : {ctx_str}\n"
             f"Subject : {subject}\n"
             f"Message : {body_for_prompt}\n"
-            f"Support reply:"
+            + language_line
+            + f"Support reply:"
         )

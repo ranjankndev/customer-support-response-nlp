@@ -9,6 +9,8 @@ torch>=2.0
 
 # ── Retrieval ─────────────────────────────────────────────────────────────────
 faiss-cpu>=1.7.4
+# BM25 half of hybrid retrieval (plan 6.2); rank-bm25 is the older one
+bm25s>=0.2
 rank-bm25
 
 # ── Metrics ───────────────────────────────────────────────────────────────────
@@ -16,6 +18,8 @@ rouge-score>=0.1.2
 bert-score>=0.3.13
 nltk>=3.8.1
 sacrebleu>=2.3.1
+# reply-language metric (plan 8.1); DetectorFactory.seed is pinned in utils.py
+langdetect>=1.0.9
 
 # ── Data processing ───────────────────────────────────────────────────────────
 pandas>=2.1.0
@@ -30,8 +34,16 @@ gensim
 
 # ── Visualization ─────────────────────────────────────────────────────────────
 matplotlib>=3.7.0
+# DataFrame.to_markdown in `minimal_run report`
+tabulate>=0.9
 seaborn>=0.12.0
 plotly>=5.17.0
+
+# ── Fine-tuning / adapters ────────────────────────────────────────────────────
+peft>=0.11.0
+
+# ── Local CPU test harness (plan K.3) ─────────────────────────────────────────
+pytest>=8.0
 
 # ── Project utilities ─────────────────────────────────────────────────────────
 tqdm>=4.66.0

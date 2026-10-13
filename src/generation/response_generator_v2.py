@@ -139,14 +139,31 @@ from dataclasses import dataclass
 class GenerationConfig:
     # model
     model_id        : str  = "google/gemma-2-2b-it"
+    # hf = plain transformers (bf16 GPUs) | unsloth = Kaggle T4 (see model_backend.py)
+    backend         : str  = "hf"
     device          : str  = "cuda"
     torch_dtype     : str  = "bfloat16"
     use_4bit        : bool = True
+    # hf backend only; gemma-2 needs "eager"
+    attn_implementation: str = "sdpa"
+    # RAFT adapter: local directory or HF repo id ("" = base model)
+    adapter_path    : str  = ""
     max_new_tokens  : int  = 200
     do_sample       : bool = False
+    repetition_penalty  : float = 1.0
+    no_repeat_ngram_size: int   = 0
     # retrieval
     retrieval_config: str  = "config/inference_retrieval_config.yaml"
     top_k           : int  = 3
+    # prompt budget (plan 5.3): the assembled prompt is truncated to fit
+    max_input_tokens : int = 3072
+    ctx_doc_max_chars: int = 1200
+    # append an explicit reply-language line before "Support reply:" (plan 5.4)
+    reply_language_instruction: bool = True
+    # checklist = aspect instructions (plan A.3) | slots = legacy aspect dump
+    aspect_prompt_style: str = "checklist"
+    # CRAG router (plan 7.5); set by `minimal_run crag_tune`
+    crag_threshold  : float = 0.30
     # data — primary: raw tickets (subject, body, language); optional gold `answer`
     input_tickets_csv: str = ""
     # optional: pre-extracted aspects CSV (used if input_tickets_csv empty / legacy)
@@ -167,18 +184,26 @@ class GenerationConfig:
     body_max_chars  : int  = 0
     # batched generation — RTX 4090 + 1B 4-bit handles 8 comfortably
     generation_batch_size: int = 8
+    # fixed 500-row minimal-run sample; overrides --input when set
+    sample_csv      : str  = ""
     # output
     output_dir      : str  = "output/generation"
     checkpoint_every: int  = 50
-    # metrics
+    # metrics — skip_metrics: true leaves them to `minimal_run report`
+    skip_metrics    : bool = False
     bertscore_model : str  = "bert-base-multilingual-cased"
     bertscore_device: str  = "cuda"
     bertscore_batch : int  = 32
 
 
-def load_generation_config(path: str) -> GenerationConfig:
-    with open(path) as f:
-        cfg = yaml.safe_load(f)
+def load_generation_config(path: str,
+                           overrides_path: str | None = None) -> GenerationConfig:
+    """Load generation_config.yaml, optionally merging the `generation` section
+    of an overrides file (config/kaggle.yaml) on top. Unknown keys are ignored,
+    so older config files keep loading unchanged."""
+    from src.utils import load_yaml_with_overrides
+
+    cfg = load_yaml_with_overrides(path, overrides_path, section="generation")
     return GenerationConfig(**{k: v for k, v in cfg.items()
                                 if k in GenerationConfig.__dataclass_fields__})
 
@@ -298,6 +323,9 @@ def enrich_dataframe_with_aspects(df: pd.DataFrame,
 
 
 def resolve_data_path(args, cfg: GenerationConfig) -> str:
+    # the fixed minimal-run sample wins, so S1-S5 all score the same rows
+    if (getattr(cfg, "sample_csv", "") or "").strip():
+        return cfg.sample_csv.strip()
     if getattr(args, "input", None) and str(args.input).strip():
         return str(args.input).strip()
     if getattr(args, "aspects", None) and str(args.aspects).strip():
@@ -398,43 +426,34 @@ def maybe_merge_aspects_file(df: pd.DataFrame, aspects_path: str) -> pd.DataFram
 # ─────────────────────────────────────────────────────────────────────────────
 
 def load_model(config: GenerationConfig):
-    from transformers import (AutoTokenizer, AutoModelForCausalLM,
-                               AutoModelForSeq2SeqLM, BitsAndBytesConfig)
+    """
+    Thin wrapper around model_backend.load_generator (plan §5.2).
 
-    token    = get_hf_token()
-    seq2seq  = any(config.model_id.lower().startswith(p)
-                   for p in ("t5", "flan", "bart", "mt5"))
-    ModelCls = AutoModelForSeq2SeqLM if seq2seq else AutoModelForCausalLM
+    Returns (tok, model, seq2seq) for the existing call sites; the chat function
+    is cached on the model so generate_batch can reuse it.
+    """
+    from src.generation.model_backend import load_generator
 
-    log.info(f"[Generator] Loading {config.model_id}  4bit={config.use_4bit}")
-
-    if config.use_4bit:
-        bnb = BitsAndBytesConfig(
-            load_in_4bit              = True,
-            bnb_4bit_compute_dtype    = torch.bfloat16,  # bfloat16 for gemma-2
-            bnb_4bit_use_double_quant = True,
-            bnb_4bit_quant_type       = "nf4",
-        )
-        model = ModelCls.from_pretrained(
-            config.model_id, quantization_config=bnb,
-            device_map="auto", token=token,
-        )
-    else:
-        dtype = {"bfloat16": torch.bfloat16,
-                 "float16" : torch.float16,
-                 "float32" : torch.float32}.get(config.torch_dtype, torch.float16)
-        model = ModelCls.from_pretrained(
-            config.model_id, torch_dtype=dtype,
-            device_map="auto", token=token,
+    seq2seq = any(config.model_id.lower().startswith(p)
+                  for p in ("t5", "flan", "bart", "mt5"))
+    if seq2seq:
+        raise ValueError(
+            f"{config.model_id} is a seq2seq model; use --mode t5_base "
+            f"(load_extra_model) for those. The minimal run is decoder-only."
         )
 
-    tok = AutoTokenizer.from_pretrained(config.model_id, token=token)
-    if tok.pad_token is None:
-        tok.pad_token = tok.eos_token
-
-    model.eval()
-    log.info(f"[Generator] Ready | seq2seq={seq2seq}")
-    return tok, model, seq2seq
+    tok, model, chat_fn = load_generator(
+        model_id     = config.model_id,
+        backend      = config.backend,
+        use_4bit     = config.use_4bit,
+        adapter_path = config.adapter_path,
+        max_seq_len  = max(config.max_input_tokens + config.max_new_tokens, 1024),
+        attn_impl    = config.attn_implementation,
+        torch_dtype  = config.torch_dtype,
+        token        = get_hf_token() or None,
+    )
+    model._aspectforge_chat_fn = chat_fn
+    return tok, model, False
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -478,7 +497,8 @@ def build_baseline_prompt_pt(row: pd.Series) -> str:
 
 
 def build_aspect_only_prompt(row: pd.Series, spans: Dict,
-                              body_max_chars: int = 0) -> str:
+                              body_max_chars: int = 0,
+                              config: "GenerationConfig | None" = None) -> str:
     """
     Aspect-only prompt — all 5 aspect columns injected into prompt slots.
     No retrieved context. Isolates the contribution of aspect extraction alone.
@@ -505,7 +525,30 @@ def build_aspect_only_prompt(row: pd.Series, spans: Dict,
     action_taken = spans.get("action_taken", "") or ""
     urgency_span = spans.get("urgency",      "") or ""
 
-    # Build optional new-field lines
+    # ── checklist style (plan A.3, default) ──────────────────────────────────
+    style = str(getattr(config, "aspect_prompt_style", "checklist")
+                or "checklist").lower() if config is not None else "checklist"
+    if style == "checklist":
+        from src.utils import build_aspect_checklist
+
+        from src.retrieval.retriever import reply_language_line
+
+        checklist = build_aspect_checklist(spans)
+        want_language_line = bool(getattr(config, "reply_language_instruction",
+                                          True)) if config is not None else True
+        return (
+            "Write a concise, professional customer support reply. "
+            "Keep the reply under 150 words. "
+            "Do not use markdown headers or bullet points. "
+            "Do not invent case studies or external links.\n"
+            + (f"{checklist}\n" if checklist else "")
+            + f"\nSubject  : {subject}\n"
+            f"Message  : {body}\n\n"
+            + (f"{reply_language_line(lang)}\n" if want_language_line else "")
+            + "Support reply:"
+        )
+
+    # ── legacy slot dump (aspect_prompt_style: slots) ─────────────────────────
     extra = ""
     if entities:
         extra += f"Entities   : {entities}\n"
@@ -522,8 +565,9 @@ def build_aspect_only_prompt(row: pd.Series, spans: Dict,
         f"{enforce}\n\n"
         f"Aspects  : {asp_str}\n"
         f"{extra}"
-        f"Sentiment: {sentiment} (compound={sent_compound:.3f})\n"
-        f"Urgency  : {urgency_line}\n"
+        + ("" if sentiment == "n/a" else
+           f"Sentiment: {sentiment} (compound={sent_compound:.3f})\n")
+        + f"Urgency  : {urgency_line}\n"
         f"Subject  : {subject}\n"
         f"Message  : {body}\n\n"
         "Support reply:"
@@ -555,52 +599,27 @@ def _apply_chat_template(tok, prompts: List[str], seq2seq: bool) -> List[str]:
 
 
 def generate_batch(prompts: List[str], tok, model, config: GenerationConfig,
-                   seq2seq: bool) -> List[str]:
+                   seq2seq: bool = False, row_ids: Optional[List] = None
+                   ) -> List[str]:
     """
-    Batched generation — tokenize all prompts together, single model.generate() call.
-    Left-pads so all sequences are aligned on the right (required for causal LMs).
+    Thin wrapper around model_backend.generate (plan §5.2).
+
+    No truncation (the prompt budget is applied when the prompt is built), one
+    <bos>, and the repetition settings come from the config instead of the
+    hard-coded 1.3 / 4 that used to clip legitimate repeated phrasing.
     """
-    prompts = _apply_chat_template(tok, prompts, seq2seq)
+    from src.generation.model_backend import generate as backend_generate
 
-    dev = config.device
-    try:
-        dev = str(next(model.parameters()).device)
-    except Exception:
-        pass
-
-    # Left-padding for causal LM batch decoding
-    orig_padding_side = tok.padding_side
-    tok.padding_side = "left"
-
-    inputs = tok(
-        prompts,
-        return_tensors="pt",
-        padding=True,
-        truncation=True,
-        max_length=2048,   # 2048 safe for gemma-2 — 4096 risks CUDA OOM at batch>1
-    ).to(dev)
-
-    tok.padding_side = orig_padding_side
-
-    gen_kw = dict(
-        max_new_tokens      = config.max_new_tokens,
-        do_sample           = config.do_sample,
-        pad_token_id        = tok.eos_token_id,
-        repetition_penalty  = 1.3,   # PT models loop without this — penalises
-                                     # repeated token sequences during generation
-        no_repeat_ngram_size= 4,     # hard-blocks any 4-gram from repeating
+    return backend_generate(
+        prompts, tok, model,
+        chat_fn              = getattr(model, "_aspectforge_chat_fn", None),
+        max_new_tokens       = config.max_new_tokens,
+        do_sample            = config.do_sample,
+        repetition_penalty   = config.repetition_penalty,
+        no_repeat_ngram_size = config.no_repeat_ngram_size,
+        max_input_tokens     = config.max_input_tokens,
+        row_ids              = row_ids,
     )
-    with torch.no_grad():
-        out = model.generate(**inputs, **gen_kw)
-
-    results = []
-    for i, seq in enumerate(out):
-        if seq2seq:
-            results.append(tok.decode(seq, skip_special_tokens=True).strip())
-        else:
-            new_tokens = seq[inputs["input_ids"].shape[1]:]
-            results.append(tok.decode(new_tokens, skip_special_tokens=True).strip())
-    return results
 
 
 def generate_one(prompt: str, tok, model, config: GenerationConfig,
@@ -637,12 +656,18 @@ def extract_sentiment_severity(body: str, language: str) -> tuple[str, str, floa
     """
     text = (body or "").strip()
 
+    # VADER only has an English lexicon, so on a German ticket it scored the few
+    # English-looking tokens and called the rest neutral. Saying "n/a" is honest;
+    # a made-up neutral label in the prompt is not (plan §5.5).
+    english = str(language or "en").lower().strip()[:2] == "en"
+
     compound = 0.0
-    if _VADER is not None and text:
-        # VADER is English-optimized; still provides a useful signal on many tickets.
+    if english and _VADER is not None and text:
         compound = float(_VADER.polarity_scores(text).get("compound", 0.0))
 
-    if compound >= 0.25:
+    if not english:
+        sentiment = "n/a"
+    elif compound >= 0.25:
         sentiment = "positive"
     elif compound <= -0.25:
         sentiment = "negative"
@@ -650,21 +675,28 @@ def extract_sentiment_severity(body: str, language: str) -> tuple[str, str, floa
         sentiment = "neutral"
 
     t = text.lower()
-    # Strong outage/blocked-work signals
+    # Severity is keyword-based, so a German ticket had no keywords to match and
+    # always came out "low". The DE terms are the ones aspect_extractor uses
+    # (_CRITICAL/_HIGH/_MEDIUM), kept in step with it (plan §5.5).
     critical_kw = [
         "down", "outage", "offline", "unavailable", "cannot access", "can't access",
         "cannot login", "can't login", "unable to login", "locked out", "security breach",
         "data loss", "lost data", "incident", "urgent", "asap", "immediately",
+        "dringend", "sofort", "systemausfall", "datenverlust",
+        "sicherheitsverletzung", "unerlaubter zugriff",
     ]
     high_kw = [
         "error", "failed", "failure", "not working", "doesn't work", "does not work",
         "crash", "crashing", "timeout", "time out", "bug", "broken",
-        "payment", "charged", "refund", "invoice", "billing",
+        "payment", "charged", "refund", "invoice", "billing", "persists",
+        "fehler", "absturz", "funktioniert nicht", "abgestürzt", "ausgefallen",
+        "rechnung", "zahlung", "erstattung",
     ]
     medium_kw = [
         "slow", "latency", "performance", "delay",
         "integration", "api", "sync", "export", "import",
         "feature request", "request", "how do i", "how to",
+        "langsam", "verzögerung", "synchronisation", "optimierung",
     ]
 
     if any(k in t for k in critical_kw):
@@ -688,7 +720,10 @@ def inject_sentiment_severity(prompt: str, sentiment: str, severity: str, compou
     Insert sentiment/severity lines near the top of the prompt.
     Keeps the rest of the prompt unchanged to avoid breaking existing formatting.
     """
-    insert = f"Sentiment: {sentiment} (compound={compound:.3f})\nSeverity : {severity}\n"
+    # No sentiment line for a non-English ticket: VADER cannot score it (§5.5).
+    insert = (f"Severity : {severity}\n" if sentiment == "n/a" else
+              f"Sentiment: {sentiment} (compound={compound:.3f})\n"
+              f"Severity : {severity}\n")
     if not prompt:
         return insert
     # Place after the first line if possible.
@@ -703,9 +738,14 @@ def _make_retriever(config: GenerationConfig):
     from dataclasses import replace
     from src.retrieval.retriever import TicketRetriever
     from src.retrieval.inference_retriever import load_retriever_config
+    # The prompt-side settings live on the generation config (one file per
+    # system), so they are pushed onto the retriever config here (plan §5.3/5.4).
     ret_cfg = replace(
         load_retriever_config(config.retrieval_config),
         top_k=config.top_k,
+        ctx_doc_max_chars=config.ctx_doc_max_chars,
+        reply_language_instruction=config.reply_language_instruction,
+        aspect_prompt_style=config.aspect_prompt_style,
     )
     return TicketRetriever(ret_cfg)
 
@@ -720,7 +760,8 @@ def run_baseline(df: pd.DataFrame, tok, model, seq2seq: bool,
     System 1 — Zero-shot baseline.
     No RAG, no aspects. Measures pure model capability.
     """
-    ckpt     = Checkpointer("baseline", every=config.checkpoint_every)
+    ckpt     = Checkpointer("baseline", every=config.checkpoint_every,
+                              dir=config.output_dir)
     done     = ckpt.load()
     done_idx = {r["idx"] for r in done}
     rows     = list(done)
@@ -766,7 +807,8 @@ def run_rag_only(df: pd.DataFrame, tok, model, seq2seq: bool,
     Isolates the contribution of retrieval alone vs baseline.
     """
     retriever = _make_retriever(config)
-    ckpt      = Checkpointer("rag_only", every=config.checkpoint_every)
+    ckpt      = Checkpointer("rag_only", every=config.checkpoint_every,
+                              dir=config.output_dir)
     done      = ckpt.load()
     done_idx  = {r["idx"] for r in done}
     rows      = list(done)
@@ -827,7 +869,8 @@ def run_aspect_only(df: pd.DataFrame, tok, model, seq2seq: bool,
       prob_sub, prob_statement, cause, intent, ticket_type_nli
     No FAISS retrieval. Isolates the contribution of aspect extraction alone.
     """
-    ckpt     = Checkpointer("aspect_only", every=config.checkpoint_every)
+    ckpt     = Checkpointer("aspect_only", every=config.checkpoint_every,
+                              dir=config.output_dir)
     done     = ckpt.load()
     done_idx = {r["idx"] for r in done}
     rows     = list(done)
@@ -844,7 +887,8 @@ def run_aspect_only(df: pd.DataFrame, tok, model, seq2seq: bool,
         meta_batch, prompts = [], []
         for i, row in batch:
             spans  = _get_spans(row, df)
-            prompt = build_aspect_only_prompt(row, spans, config.body_max_chars)
+            prompt = build_aspect_only_prompt(row, spans, config.body_max_chars,
+                                              config)
             prompts.append(prompt)
             meta_batch.append((i, row, spans, prompt))
 
@@ -872,34 +916,66 @@ def run_aspect_only(df: pd.DataFrame, tok, model, seq2seq: bool,
     return pd.DataFrame(rows)
 
 
+def crag_route(retrieved: List[Dict], threshold: float) -> str:
+    """
+    CRAG router (plan §7.5): "rag" or "no_context" for one row.
+
+    The decision is the reranker's top score. Below the threshold the retrieved
+    tickets are not about this problem, and an irrelevant example is worse than
+    none — the model follows it. A row with no hits, or with no ce_score (the
+    reranker was off for that language), routes to no_context as well.
+    """
+    if not retrieved:
+        return "no_context"
+    top = retrieved[0].get("ce_score")
+    if not isinstance(top, (int, float)) or isinstance(top, bool):
+        return "no_context"
+    return "rag" if float(top) >= float(threshold) else "no_context"
+
+
 def run_rag_aspect(df: pd.DataFrame, tok, model, seq2seq: bool,
-                   config: GenerationConfig) -> pd.DataFrame:
+                   config: GenerationConfig, label: str = "rag_aspect",
+                   use_aspects: bool = True, crag: bool = False) -> pd.DataFrame:
     """
-    System 4 — RAG + Aspects (full system).
-    Aspects drive THREE things:
-      (a) aspect_query_vector — weighted query embedding (subject+body+spans) for FAISS
-      (b) cross-encoder reranking for EN / pure dense for DE
-      (c) prompt slots — all 8 aspect fields in build_prompt()
-    All 8 aspect columns (5 original + entities, action_taken, urgency) stored in output.
+    The minimal run's workhorse (plan §5.6). One function serves S1-S5:
+
+      label       names the checkpoint and the {label}_prompt/_response/_length
+                  columns, so the report can find each system by its label
+      use_aspects False passes aspect_spans=None to both retrieve and
+                  build_prompt — that is S5, RAFT without aspects
+      crag        True routes each row through the CRAG router (§7.5)
+
+    Aspects drive three things: the weighted query vector, the rerank bonus, and
+    the checklist in the prompt. Every row records top_ce_score and n_ctx_used.
     """
+    from src.generation.model_backend import count_tokens_fn
+    from src.utils import fit_prompt
+
     retriever = _make_retriever(config)
-    ckpt      = Checkpointer("rag_aspect", every=config.checkpoint_every)
+    count_tokens = count_tokens_fn(tok)
+    ckpt      = Checkpointer(label, every=config.checkpoint_every,
+                             dir=config.output_dir)
     done      = ckpt.load()
-    done_idx  = {r["idx"] for r in done}
+    done_idx  = {int(r["idx"]) for r in done if str(r.get("idx", "")).strip()}
     rows      = list(done)
     t0        = time.time()
     bs        = config.generation_batch_size
+    tag       = f"[{label}]"
 
     pending = [(i, row) for i, row in df.iterrows()
                if int(row.get("idx", i)) not in done_idx]
-    log.info(f"[RAG+Aspects] {len(pending)} rows to generate  batch_size={bs}")
+    log.info(f"{tag} {len(pending)} rows to generate  batch_size={bs}  "
+             f"aspects={use_aspects}  crag={crag}")
+    if crag:
+        log.info(f"{tag} CRAG threshold = {config.crag_threshold}")
+    route_counts: Dict[str, int] = {}
 
     for b_start in range(0, len(pending), bs):
         batch = pending[b_start : b_start + bs]
 
         meta_batch, prompts = [], []
         for i, row in batch:
-            spans   = _get_spans(row, df)
+            spans   = _get_spans(row, df) if use_aspects else {}
             subject = str(row.get("subject", "") or "")
             body    = str(row.get("body",    "") or "")
             lang    = str(row.get("language", "en") or "en")
@@ -907,34 +983,61 @@ def run_rag_aspect(df: pd.DataFrame, tok, model, seq2seq: bool,
                 subject=subject, body=body, language=lang,
                 aspect_spans=(spans if spans else None),
             )
-            prompt = retriever.build_prompt(
-                subject, body, retrieved, (spans if spans else None))
+            # Prompt budget (plan §5.3): drop the lowest-ranked hits until the
+            # prompt fits, instead of letting the tokenizer cut it mid-context.
+            build = lambda docs: retriever.build_prompt(
+                subject, body, docs, (spans if spans else None), lang)
+
+            # CRAG router (plan §7.5): when even the best hit scores below the
+            # threshold, retrieval found nothing useful, and a bad example is
+            # worse than none — so the same template is used with no context.
+            route = "rag"
+            if crag and crag_route(retrieved, config.crag_threshold) == "no_context":
+                route = "no_context"
+                prompt, n_ctx_used = build([]), 0
+            else:
+                prompt, n_ctx_used = fit_prompt(build, retrieved, count_tokens,
+                                                config.max_input_tokens)
+            route_counts[route] = route_counts.get(route, 0) + 1
             # NOTE: Sentiment/Severity NOT injected here for System 4.
             prompts.append(prompt)
-            meta_batch.append((i, row, spans, subject, lang, len(retrieved), prompt))
+            meta_batch.append((i, row, spans, subject, lang, len(retrieved),
+                               n_ctx_used, retrieved, prompt, route))
 
-        responses = generate_batch(prompts, tok, model, config, seq2seq)
+        responses = generate_batch(prompts, tok, model, config, seq2seq,
+                                   row_ids=[int(r.get("idx", i))
+                                            for i, r in batch])
 
-        for (i, row, spans, subject, lang, n_ret, prompt), response in zip(meta_batch, responses):
+        for (i, row, spans, subject, lang, n_ret, n_ctx_used, retrieved,
+             prompt, route), response in zip(meta_batch, responses):
             rows.append({
-                "idx"                : int(row.get("idx", i)),
-                "language"           : lang,
-                "subject"            : subject,
-                "answer"             : str(row.get("answer", "") or ""),
-                "generated_answer"   : response,
-                "rag_aspect_prompt"  : prompt,
-                "rag_aspect_response": response,
-                "rag_aspect_length"  : len(response.split()),
-                "n_retrieved"        : n_ret,
+                "idx"               : int(row.get("idx", i)),
+                "language"          : lang,
+                "subject"           : subject,
+                "answer"            : str(row.get("answer", "") or ""),
+                "generated_answer"  : response,
+                f"{label}_prompt"   : prompt,
+                f"{label}_response" : response,
+                f"{label}_length"   : len(response.split()),
+                "n_retrieved"       : n_ret,
+                "n_ctx_used"        : n_ctx_used,
+                "top_ce_score"      : (retrieved[0].get("ce_score", "")
+                                       if retrieved else ""),
+                "route"             : route,
                 **_aspect_row(spans),
             })
         n_done = min(b_start + bs, len(pending))
         ckpt.save_if_due(rows, n_done)
         if n_done % 100 == 0 or n_done == len(pending):
-            log.info(f"[RAG+Aspects] {n_done}/{len(pending)}  "
+            log.info(f"{tag} {n_done}/{len(pending)}  "
                      f"{(time.time()-t0)/60:.1f}m")
 
     ckpt.clear()
+    if crag and route_counts:
+        total = sum(route_counts.values())
+        shares = {route: round(count / total, 4)
+                  for route, count in sorted(route_counts.items())}
+        log.info(f"{tag} CRAG route share: {shares} (n={total})")
     return pd.DataFrame(rows)
 
 
@@ -1046,7 +1149,8 @@ def run_extra_baseline(model_key: str, df: pd.DataFrame,
     tok, model, seq2seq, max_new_tokens = load_extra_model(model_key)
     bs        = config.generation_batch_size
 
-    ckpt     = Checkpointer(model_key, every=config.checkpoint_every)
+    ckpt     = Checkpointer(model_key, every=config.checkpoint_every,
+                            dir=config.output_dir)
     done     = ckpt.load()
     done_idx = {r["idx"] for r in done}
     rows     = list(done)
@@ -1170,7 +1274,8 @@ def run_rag_guided(df: pd.DataFrame, tok, model, seq2seq: bool,
     No aspects. Tests whether guided prompting improves over plain RAG.
     """
     retriever = _make_retriever(config)
-    ckpt      = Checkpointer("rag_guided", every=config.checkpoint_every)
+    ckpt      = Checkpointer("rag_guided", every=config.checkpoint_every,
+                              dir=config.output_dir)
     done      = ckpt.load()
     done_idx  = {r["idx"] for r in done}
     rows      = list(done)
@@ -1224,7 +1329,8 @@ def run_rag_asp_guided(df: pd.DataFrame, tok, model, seq2seq: bool,
     All 8 aspect fields injected. Tests guided prompting with full aspect info.
     """
     retriever = _make_retriever(config)
-    ckpt      = Checkpointer("rag_asp_guided", every=config.checkpoint_every)
+    ckpt      = Checkpointer("rag_asp_guided", every=config.checkpoint_every,
+                              dir=config.output_dir)
     done      = ckpt.load()
     done_idx  = {r["idx"] for r in done}
     rows      = list(done)
@@ -1292,11 +1398,15 @@ def compute_metrics(df: pd.DataFrame, prefix: str,
     @dc
     class MetCfg:
         rouge_use_stemmer: bool = True
+        # Unicode word tokenizer so DE is scored like EN (plan 8.1)
+        rouge_unicode_tokenizer: bool = True
         rouge_types      : list = None
         bleu_tokenizer   : str  = "13a"
         bertscore_model  : str  = config.bertscore_model
         bertscore_batch  : int  = config.bertscore_batch
         bertscore_device : str  = config.bertscore_device
+        bertscore_true_model: str = "xlm-roberta-large"
+        bertscore_true_batch: int = 16
         def __post_init__(self):
             if self.rouge_types is None:
                 self.rouge_types = ["rouge1", "rouge2", "rougeL"]
@@ -1317,34 +1427,46 @@ def compute_metrics(df: pd.DataFrame, prefix: str,
     hyps = df_sorted[resp_col].fillna("").tolist()
     refs = df_sorted["answer"].fillna("").tolist()
 
+    langs = (df_sorted["language"].fillna("").tolist()
+             if "language" in df_sorted.columns else [])
+
     results = {}
     results.update(calc.rouge(hyps, refs))
     results.update(calc.bleu(hyps, refs))
     results.update(calc.bertscore(hyps, refs))
+    # true BERTScore is left to `minimal_run report`: it loads xlm-roberta-large
+    # once for every system instead of once per run.
+    if langs:
+        results.update(calc.lang_match(hyps, langs))
 
     if "language" in df_sorted.columns:
         for lang in df_sorted["language"].unique():
             mask  = (df_sorted["language"] == lang).values
             h_sub = [h for h, m in zip(hyps, mask) if m]
             r_sub = [r for r, m in zip(refs,  mask) if m]
+            l_sub = [l for l, m in zip(langs, mask) if m]
             if len(h_sub) >= 2:
-                for k, v in {**calc.rouge(h_sub, r_sub),
-                             **calc.bleu(h_sub, r_sub),
-                             **calc.bertscore(h_sub, r_sub)}.items():
+                per_lang = {**calc.rouge(h_sub, r_sub),
+                            **calc.bleu(h_sub, r_sub),
+                            **calc.bertscore(h_sub, r_sub),
+                            **calc.lang_match(h_sub, l_sub)}
+                for k, v in per_lang.items():
                     results[f"{k}_{lang}"] = v
     return results
 
 
 def print_metrics(label: str, metrics: Dict):
     print(f"\n{'═'*65}\n  {label}\n{'═'*65}")
-    for k in ["rouge1", "rouge2", "rougeL", "bleu1", "bleu4", "bertscore_f1"]:
+    for k in ["rouge1", "rouge2", "rougeL", "bleu", "bleu_p1", "bleu_p4",
+              "cls_cosine_mbert", "bertscore_f1", "lang_match"]:
         if k in metrics:
             print(f"    {k:<22}: {metrics[k]}")
     langs = sorted(set(k.split("_")[-1] for k in metrics
                        if k.startswith("rouge1_")))
     for lang in langs:
         print(f"  LANGUAGE: {lang.upper()}")
-        for base in ["rouge1", "rouge2", "rougeL", "bleu1", "bleu4", "bertscore_f1"]:
+        for base in ["rouge1", "rouge2", "rougeL", "bleu", "bleu_p1", "bleu_p4",
+                     "cls_cosine_mbert", "bertscore_f1", "lang_match"]:
             key = f"{base}_{lang}"
             if key in metrics:
                 print(f"    {key:<28}: {metrics[key]}")
@@ -1364,20 +1486,54 @@ _ALL_BASELINES   = {"baseline", "t5_base", "gemma_pt"}
 _ALL_GUIDED      = _GUIDED_MODES
 _ALL_MODES       = _ORIGINAL_MODES | _EXTRA_MODES | _GUIDED_MODES
 
+# ── Minimal-run modes (plan §5.6) ─────────────────────────────────────────────
+# S1 and S2 are both `rag_aspect` with a different --model_id; S3 adds the CRAG
+# router; S4/S5 are the RAFT adapter with and without aspects. Each writes
+# {output_dir}/{label}.csv, and the report finds the systems by those labels.
+_MINIMAL_RUN_MODES = {
+    "rag_aspect"     : {"use_aspects": True,  "crag": False, "needs_adapter": False},
+    "rag_aspect_crag": {"use_aspects": True,  "crag": True,  "needs_adapter": False},
+    "raft_aspect"    : {"use_aspects": True,  "crag": False, "needs_adapter": True},
+    "raft_rag"       : {"use_aspects": False, "crag": False, "needs_adapter": True},
+}
+
 
 def run(data_path: str, mode: str, config: GenerationConfig,
         n: Optional[int] = None,
         start_idx: Optional[int] = None,
-        end_idx: Optional[int] = None):
+        end_idx: Optional[int] = None,
+        label: Optional[str] = None,
+        no_aspects: bool = False):
     """
     Unified orchestrator — all modes:
-      Original  : baseline | rag | aspect | rag_aspect | all
-      Baselines : t5_base | gemma_pt | all_baselines
-      Guided    : rag_guided | rag_asp_guided | all_guided
-      Everything: all_modes
+      Minimal run: rag_aspect | rag_aspect_crag | raft_aspect | raft_rag
+      Original   : baseline | rag | aspect | rag_aspect | all
+      Baselines  : t5_base | gemma_pt | all_baselines
+      Guided     : rag_guided | rag_asp_guided | all_guided
+      Everything : all_modes
     Index range: start_idx..end_idx inclusive (supports 2-8 record smoke tests)
     """
     log.info(f"[Generation] mode={mode}  model={config.model_id}  input={data_path}")
+
+    # ── minimal-run mode resolution (plan §5.6) ───────────────────────────────
+    minimal = _MINIMAL_RUN_MODES.get(mode)
+    if minimal:
+        run_label = (label or mode).strip()
+        use_aspects = minimal["use_aspects"] and not no_aspects
+        if minimal["needs_adapter"] and not (config.adapter_path or "").strip():
+            raise ValueError(
+                f"--mode {mode} needs a RAFT adapter: pass --adapter_path "
+                f"<dir or HF repo id> (or set adapter_path in the config)."
+            )
+        if not minimal["needs_adapter"] and (config.adapter_path or "").strip():
+            # S1-S3 must score the base model, so an adapter left in the config
+            # is ignored rather than silently changing the system.
+            log.warning(f"[Generation] mode={mode} ignores adapter_path="
+                        f"{config.adapter_path}")
+            config.adapter_path = ""
+    elif label:
+        log.warning(f"[Generation] --label {label} only names the output of a "
+                    f"minimal-run mode; mode={mode} keeps its own file names")
 
     if not data_path:
         raise ValueError(
@@ -1407,8 +1563,15 @@ def run(data_path: str, mode: str, config: GenerationConfig,
     # ── ASPECT EXTRACTION ─────────────────────────────────────────────────
     # Required for system 3 (aspect) and system 4 (rag_aspect).
     # Saved to disk immediately after extraction to survive crashes.
-    needs_aspects = mode in ("aspect", "rag_aspect", "all",
-                             "rag_asp_guided", "all_guided", "all_modes")
+    needs_aspects = (use_aspects if minimal else
+                     mode in ("aspect", "rag_aspect", "all",
+                              "rag_asp_guided", "all_guided", "all_modes"))
+    if needs_aspects and _aspect_columns_ready(df) and not config.force_reextract_aspects:
+        # The minimal run feeds a --sample_csv that already carries the aspect
+        # columns (plan §6.1), so nothing is extracted and no
+        # *_with_aspects*.csv is written (plan §5.6).
+        log.info("[Aspects] Aspect columns already present — using them as is")
+        needs_aspects = False
     if needs_aspects:
         # Include idx range in cache filename to prevent stale cache
         # from a different run range being loaded silently.
@@ -1480,8 +1643,27 @@ def run(data_path: str, mode: str, config: GenerationConfig,
             metric_rows.append({"system": "3_aspect_only", **m})
             completed["3_aspect_only"] = df_asp
 
+        # ── MINIMAL RUN: one labelled system (plan §5.6) ───────────────────
+        if minimal:
+            log.info(f"[Generation] ── {run_label}: mode={mode} "
+                     f"aspects={use_aspects} crag={minimal['crag']} ──")
+            df_run = run_rag_aspect(df, tok, model, seq2seq, config,
+                                    label=run_label, use_aspects=use_aspects,
+                                    crag=minimal["crag"])
+            out = Path(config.output_dir) / f"{run_label}.csv"
+            df_run.to_csv(out, index=False)
+            log.info(f"[Generation] Saved → {out}")
+            if config.skip_metrics:
+                log.info("[Generation] skip_metrics: metrics are left to "
+                         "`python -m src.minimal_run report`")
+            else:
+                m = compute_metrics(df_run, run_label, config)
+                print_metrics(f"{config.model_id} — {run_label}", m)
+                metric_rows.append({"system": run_label, **m})
+            completed[run_label] = df_run
+
         # ── SYSTEM 4: RAG + ASPECTS (FULL SYSTEM) ─────────────────────────
-        if mode in ("rag_aspect", "all"):
+        if not minimal and mode in ("rag_aspect", "all"):
             log.info("[Generation] ── System 4: RAG + Aspects (full system) ──")
             df_ra = run_rag_aspect(df, tok, model, seq2seq, config)
             out   = Path(config.output_dir) / f"{base}_rag_aspect.csv"
@@ -1587,6 +1769,8 @@ if __name__ == "__main__":
         "--mode",
         default="all",
         choices=[
+            # Minimal run (plan §5.6): S1-S5
+            "rag_aspect_crag", "raft_aspect", "raft_rag",
             # Original 4-way
             "baseline", "rag", "aspect", "aspects_only", "rag_aspect", "all",
             # Extra baselines
@@ -1597,6 +1781,10 @@ if __name__ == "__main__":
             "all_modes",
         ],
         help=(
+            "rag_aspect      — S1/S2/S6: RAG + aspects (use --model_id, --label)\n"
+            "rag_aspect_crag — S3: same with the CRAG router\n"
+            "raft_aspect     — S4: RAFT adapter + aspects (needs --adapter_path)\n"
+            "raft_rag        — S5: RAFT adapter, no aspects (needs --adapter_path)\n"
             "baseline      — Gemma zero-shot, no RAG, no aspects\n"
             "rag           — Gemma RAG only (dense retrieval)\n"
             "aspect        — Gemma aspects only (no RAG)\n"
@@ -1612,6 +1800,22 @@ if __name__ == "__main__":
         ),
     )
     p.add_argument("--config", default="generation_config.yaml")
+    p.add_argument("--overrides", default=None,
+                   help="YAML whose `generation` section is merged on top of "
+                        "--config (e.g. config/kaggle.yaml)")
+    p.add_argument("--model_id", default=None,
+                   help="Override model_id (one config serves S1-S5)")
+    p.add_argument("--adapter_path", default=None,
+                   help="RAFT adapter: local directory or HF repo id")
+    p.add_argument("--crag_threshold", type=float, default=None,
+                   help="CRAG router threshold (see minimal_run crag_tune)")
+    p.add_argument("--sample_csv", default=None,
+                   help="Fixed minimal-run sample CSV; overrides --input")
+    p.add_argument("--label", default=None,
+                   help="Names the minimal-run output: {output_dir}/{label}.csv "
+                        "(e.g. s1_gemma2). The report finds systems by label.")
+    p.add_argument("--no_aspects", action="store_true",
+                   help="Retrieve and prompt without aspects (S5/S6 ablation)")
     p.add_argument("--n", type=int, default=None,
                    help="rows to process (default: all)")
     p.add_argument("--start_idx", type=int, default=None,
@@ -1620,13 +1824,23 @@ if __name__ == "__main__":
                    help="process only rows with idx <= end_idx (inclusive)")
     args = p.parse_args()
 
-    cfg = (load_generation_config(args.config)
+    cfg = (load_generation_config(args.config, args.overrides)
            if Path(args.config).exists()
            else GenerationConfig())
 
     # Allow CLI override for separate aspects file merge
     if getattr(args, "aspects_file", None) and str(args.aspects_file).strip():
         cfg.aspects_file = str(args.aspects_file).strip()
+
+    # CLI wins over YAML and over --overrides, so one config serves S1-S5
+    for flag, field in (("model_id", "model_id"),
+                        ("adapter_path", "adapter_path"),
+                        ("sample_csv", "sample_csv")):
+        value = getattr(args, flag, None)
+        if value is not None and str(value).strip():
+            setattr(cfg, field, str(value).strip())
+    if args.crag_threshold is not None:
+        cfg.crag_threshold = float(args.crag_threshold)
 
     # Aliases
     if args.mode == "aspects_only":
@@ -1650,4 +1864,6 @@ if __name__ == "__main__":
         n=args.n,
         start_idx=args.start_idx,
         end_idx=args.end_idx,
+        label=args.label,
+        no_aspects=args.no_aspects,
     )
