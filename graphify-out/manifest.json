@@ -48,9 +48,9 @@
     "semantic_hash": ""
   },
   "src/generation/response_generator_v2.py": {
-    "mtime": 1791834658.9372513,
-    "seen": 1791834869.1582212,
-    "ast_hash": "0fa03feb201a75b47dde6c8b54daa537",
+    "mtime": 1791852903.3961294,
+    "seen": 1791853866.111818,
+    "ast_hash": "637810fb2de8a5ec2cc5c1cc55c6a80a",
     "semantic_hash": ""
   },
   "src/preprocessing.py": {
@@ -180,9 +180,9 @@
     "semantic_hash": ""
   },
   "PROGRESS.md": {
-    "mtime": 1791851401.235774,
-    "seen": 1791852829.1275277,
-    "ast_hash": "e1e83ee6eec62ec64a9a38c574ae60d1",
+    "mtime": 1791852849.3663027,
+    "seen": 1791853866.111818,
+    "ast_hash": "66d0473e14378f8909dba21f376e69af",
     "semantic_hash": ""
   },
   "kaggle/hello/kernel-metadata.json": {
@@ -252,9 +252,9 @@
     "semantic_hash": ""
   },
   "tests/test_runners.py": {
-    "mtime": 1791834764.351375,
-    "seen": 1791834869.1582212,
-    "ast_hash": "80208910e1fd4e3ac228359f8760a595",
+    "mtime": 1791853717.466045,
+    "seen": 1791853866.111818,
+    "ast_hash": "12e9d71f87dcafde59875751e2f218a4",
     "semantic_hash": ""
   },
   "tests/test_retriever_fusion.py": {
@@ -264,9 +264,9 @@
     "semantic_hash": ""
   },
   "src/minimal_run.py": {
-    "mtime": 1791835598.6790686,
-    "seen": 1791835713.6566942,
-    "ast_hash": "687cbce7f70dcfe8ef4edeeb062c3845",
+    "mtime": 1791852950.7321773,
+    "seen": 1791853866.111818,
+    "ast_hash": "81149b3a6139f9d0c88b64ed1930da1d",
     "semantic_hash": ""
   },
   "tests/test_minimal_run.py": {
@@ -303,6 +303,12 @@
     "mtime": 1791851437.5960212,
     "seen": 1791852829.1275277,
     "ast_hash": "479da3d8a2c1c802d33cde5414042c9a",
+    "semantic_hash": ""
+  },
+  "tests/test_crag.py": {
+    "mtime": 1791853127.6335075,
+    "seen": 1791853866.111818,
+    "ast_hash": "c8d38b3d3340600437e375b909b8d906",
     "semantic_hash": ""
   }
 }

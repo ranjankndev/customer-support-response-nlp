@@ -916,6 +916,23 @@ def run_aspect_only(df: pd.DataFrame, tok, model, seq2seq: bool,
     return pd.DataFrame(rows)
 
 
+def crag_route(retrieved: List[Dict], threshold: float) -> str:
+    """
+    CRAG router (plan §7.5): "rag" or "no_context" for one row.
+
+    The decision is the reranker's top score. Below the threshold the retrieved
+    tickets are not about this problem, and an irrelevant example is worse than
+    none — the model follows it. A row with no hits, or with no ce_score (the
+    reranker was off for that language), routes to no_context as well.
+    """
+    if not retrieved:
+        return "no_context"
+    top = retrieved[0].get("ce_score")
+    if not isinstance(top, (int, float)) or isinstance(top, bool):
+        return "no_context"
+    return "rag" if float(top) >= float(threshold) else "no_context"
+
+
 def run_rag_aspect(df: pd.DataFrame, tok, model, seq2seq: bool,
                    config: GenerationConfig, label: str = "rag_aspect",
                    use_aspects: bool = True, crag: bool = False) -> pd.DataFrame:
@@ -934,12 +951,6 @@ def run_rag_aspect(df: pd.DataFrame, tok, model, seq2seq: bool,
     from src.generation.model_backend import count_tokens_fn
     from src.utils import fit_prompt
 
-    if crag:
-        raise NotImplementedError(
-            "The CRAG router arrives with plan §7.5 (step 9); "
-            "run with crag=False until then."
-        )
-
     retriever = _make_retriever(config)
     count_tokens = count_tokens_fn(tok)
     ckpt      = Checkpointer(label, every=config.checkpoint_every,
@@ -954,7 +965,10 @@ def run_rag_aspect(df: pd.DataFrame, tok, model, seq2seq: bool,
     pending = [(i, row) for i, row in df.iterrows()
                if int(row.get("idx", i)) not in done_idx]
     log.info(f"{tag} {len(pending)} rows to generate  batch_size={bs}  "
-             f"aspects={use_aspects}")
+             f"aspects={use_aspects}  crag={crag}")
+    if crag:
+        log.info(f"{tag} CRAG threshold = {config.crag_threshold}")
+    route_counts: Dict[str, int] = {}
 
     for b_start in range(0, len(pending), bs):
         batch = pending[b_start : b_start + bs]
@@ -971,21 +985,31 @@ def run_rag_aspect(df: pd.DataFrame, tok, model, seq2seq: bool,
             )
             # Prompt budget (plan §5.3): drop the lowest-ranked hits until the
             # prompt fits, instead of letting the tokenizer cut it mid-context.
-            prompt, n_ctx_used = fit_prompt(
-                lambda docs: retriever.build_prompt(
-                    subject, body, docs, (spans if spans else None), lang),
-                retrieved, count_tokens, config.max_input_tokens)
+            build = lambda docs: retriever.build_prompt(
+                subject, body, docs, (spans if spans else None), lang)
+
+            # CRAG router (plan §7.5): when even the best hit scores below the
+            # threshold, retrieval found nothing useful, and a bad example is
+            # worse than none — so the same template is used with no context.
+            route = "rag"
+            if crag and crag_route(retrieved, config.crag_threshold) == "no_context":
+                route = "no_context"
+                prompt, n_ctx_used = build([]), 0
+            else:
+                prompt, n_ctx_used = fit_prompt(build, retrieved, count_tokens,
+                                                config.max_input_tokens)
+            route_counts[route] = route_counts.get(route, 0) + 1
             # NOTE: Sentiment/Severity NOT injected here for System 4.
             prompts.append(prompt)
             meta_batch.append((i, row, spans, subject, lang, len(retrieved),
-                               n_ctx_used, retrieved, prompt))
+                               n_ctx_used, retrieved, prompt, route))
 
         responses = generate_batch(prompts, tok, model, config, seq2seq,
                                    row_ids=[int(r.get("idx", i))
                                             for i, r in batch])
 
         for (i, row, spans, subject, lang, n_ret, n_ctx_used, retrieved,
-             prompt), response in zip(meta_batch, responses):
+             prompt, route), response in zip(meta_batch, responses):
             rows.append({
                 "idx"               : int(row.get("idx", i)),
                 "language"          : lang,
@@ -999,6 +1023,7 @@ def run_rag_aspect(df: pd.DataFrame, tok, model, seq2seq: bool,
                 "n_ctx_used"        : n_ctx_used,
                 "top_ce_score"      : (retrieved[0].get("ce_score", "")
                                        if retrieved else ""),
+                "route"             : route,
                 **_aspect_row(spans),
             })
         n_done = min(b_start + bs, len(pending))
@@ -1008,6 +1033,11 @@ def run_rag_aspect(df: pd.DataFrame, tok, model, seq2seq: bool,
                      f"{(time.time()-t0)/60:.1f}m")
 
     ckpt.clear()
+    if crag and route_counts:
+        total = sum(route_counts.values())
+        shares = {route: round(count / total, 4)
+                  for route, count in sorted(route_counts.items())}
+        log.info(f"{tag} CRAG route share: {shares} (n={total})")
     return pd.DataFrame(rows)
 
 

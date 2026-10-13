@@ -301,6 +301,166 @@ def cmd_attach_aspects(sample_path: str, aspects_path: str,
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# CRAG TUNING  (plan §7.5)
+# ─────────────────────────────────────────────────────────────────────────────
+
+CRAG_THRESHOLDS = [round(0.05 * i, 2) for i in range(1, 13)]   # 0.05 .. 0.60
+
+
+@dataclass
+class _RougeCfg:
+    rouge_types: List[str] = field(default_factory=lambda: ["rougeL"])
+    rouge_unicode_tokenizer: bool = True
+    rouge_use_stemmer: bool = False
+
+
+def _rouge_l_rows(hypotheses: List[str], references: List[str]) -> List[float]:
+    from src.utils import MetricsCalculator
+
+    scores = MetricsCalculator(_RougeCfg()).rouge(hypotheses, references,
+                                                  per_row=True)
+    return [float(v) for v in scores["rougeL_rows"]]
+
+
+def tune_crag_threshold(rows: pd.DataFrame,
+                        thresholds: Optional[List[float]] = None
+                        ) -> pd.DataFrame:
+    """
+    Pick the CRAG threshold without re-running generation per candidate.
+
+    `rows` holds, per row, both outputs (`rag_response` and
+    `no_context_response`), the gold `answer` and `top_ce_score`. For each τ the
+    row's output is chosen as the router would choose it, and ROUGE-L is
+    recomputed — so 300 generations answer twelve thresholds instead of 3600.
+    """
+    required = {"answer", "rag_response", "no_context_response", "top_ce_score"}
+    missing = required - set(rows.columns)
+    if missing:
+        raise ValueError(f"crag_tune needs the columns {sorted(missing)}")
+
+    thresholds = thresholds or CRAG_THRESHOLDS
+    references = rows["answer"].fillna("").astype(str).tolist()
+    rag = rows["rag_response"].fillna("").astype(str).tolist()
+    no_context = rows["no_context_response"].fillna("").astype(str).tolist()
+    scores = pd.to_numeric(rows["top_ce_score"], errors="coerce")
+
+    records = []
+    for threshold in thresholds:
+        chosen, n_rag = [], 0
+        for position, score in enumerate(scores):
+            use_rag = pd.notna(score) and float(score) >= threshold
+            chosen.append(rag[position] if use_rag else no_context[position])
+            n_rag += int(bool(use_rag))
+        per_row = _rouge_l_rows(chosen, references)
+        records.append({
+            "threshold": threshold,
+            "rougeL": round(float(sum(per_row) / len(per_row)), 4) if per_row else 0.0,
+            "rag_share": round(n_rag / len(chosen), 4) if chosen else 0.0,
+            "n": len(chosen),
+        })
+    table = pd.DataFrame(records)
+    # the smallest threshold among the best, so context is kept when it is free
+    best = table[table["rougeL"] == table["rougeL"].max()]["threshold"].min()
+    table["best"] = table["threshold"] == best
+    return table
+
+
+def cmd_crag_tune(rows_csv: str, out_path: Optional[str] = None,
+                  config_path: Optional[str] = None) -> float:
+    rows = pd.read_csv(rows_csv, dtype=str).fillna("")
+    table = tune_crag_threshold(rows)
+    print(table.to_string(index=False))
+
+    best = float(table.loc[table["best"], "threshold"].iloc[0])
+    destination = Path(out_path or "output/report/crag_tuning.csv")
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    table.to_csv(destination, index=False)
+    print(f"[CRAG] Best threshold {best} -> {destination}")
+
+    if config_path:
+        write_crag_threshold(config_path, best)
+    return best
+
+
+def write_crag_threshold(config_path: str, threshold: float) -> None:
+    """Update `crag_threshold` in generation_config.yaml in place."""
+    path = Path(config_path)
+    text = path.read_text(encoding="utf-8")
+    lines = text.splitlines()
+    for position, line in enumerate(lines):
+        if line.split(":")[0].strip() == "crag_threshold":
+            lines[position] = f"crag_threshold  : {threshold}"
+            path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+            print(f"[CRAG] crag_threshold = {threshold} written to {path}")
+            return
+    print(f"[CRAG] WARNING: no crag_threshold key in {path}; "
+          f"pass --crag_threshold {threshold} instead")
+
+
+def reuse_s2_outputs(s2_csv: str, no_context_csv: str, threshold: float,
+                     label: str = "s3_gemma3_crag") -> pd.DataFrame:
+    """
+    Build S3's output file from S2's (plan §7.5): a row whose top_ce_score is at
+    or above the threshold routes to "rag", and S2 already generated exactly
+    that reply with exactly that prompt — only the rows below the threshold need
+    the no-context generation. This halves S3's GPU cost.
+    """
+    s2 = pd.read_csv(s2_csv, dtype=str).fillna("")
+    no_context = pd.read_csv(no_context_csv, dtype=str).fillna("")
+    if "idx" not in s2.columns or "idx" not in no_context.columns:
+        raise ValueError("both files need an `idx` column")
+
+    s2_label = _response_label(s2)
+    nc_label = _response_label(no_context)
+    replies = dict(zip(no_context["idx"].astype(str),
+                       no_context[f"{nc_label}_response"]))
+    prompts = dict(zip(no_context["idx"].astype(str),
+                       no_context.get(f"{nc_label}_prompt",
+                                      pd.Series([""] * len(no_context)))))
+
+    out_rows = []
+    for _, row in s2.iterrows():
+        idx = str(row["idx"])
+        score = pd.to_numeric(pd.Series([row.get("top_ce_score", "")]),
+                              errors="coerce").iloc[0]
+        use_rag = pd.notna(score) and float(score) >= threshold
+        if use_rag:
+            reply = str(row.get(f"{s2_label}_response", "") or "")
+            prompt = str(row.get(f"{s2_label}_prompt", "") or "")
+            route = "rag"
+        else:
+            if idx not in replies:
+                raise ValueError(
+                    f"row {idx} routes to no_context but {no_context_csv} has "
+                    f"no generation for it")
+            reply = str(replies[idx] or "")
+            prompt = str(prompts.get(idx, "") or "")
+            route = "no_context"
+        record = {column: row[column] for column in row.index
+                  if not column.startswith(f"{s2_label}_")}
+        record.update({f"{label}_prompt": prompt,
+                       f"{label}_response": reply,
+                       f"{label}_length": len(reply.split()),
+                       "generated_answer": reply,
+                       "route": route})
+        out_rows.append(record)
+
+    out = pd.DataFrame(out_rows)
+    shares = out["route"].value_counts(normalize=True).round(4).to_dict()
+    print(f"[CRAG] Reused S2 for {shares.get('rag', 0.0):.0%} of rows "
+          f"(route share {shares})")
+    return out
+
+
+def _response_label(df: pd.DataFrame) -> str:
+    """The `{label}_response` column's label."""
+    for column in df.columns:
+        if column.endswith("_response"):
+            return column[: -len("_response")]
+    raise ValueError(f"no *_response column in {list(df.columns)}")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # CLI
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -327,6 +487,24 @@ def main(argv: Optional[List[str]] = None) -> int:
     attach_parser.add_argument("--aspects", required=True)
     attach_parser.add_argument("--out", default=None)
 
+    crag_parser = commands.add_parser(
+        "crag_tune", help="pick crag_threshold from paired generations")
+    crag_parser.add_argument("--rows", required=True,
+                             help="CSV with answer, rag_response, "
+                                  "no_context_response and top_ce_score")
+    crag_parser.add_argument("--out", default="output/report/crag_tuning.csv")
+    crag_parser.add_argument("--write_config", default=None,
+                             help="generation config to update in place, e.g. "
+                                  "config/generation_config.yaml")
+
+    reuse_parser = commands.add_parser(
+        "crag_reuse", help="build S3's output from S2's plus no-context rows")
+    reuse_parser.add_argument("--s2", required=True)
+    reuse_parser.add_argument("--no_context", required=True)
+    reuse_parser.add_argument("--threshold", type=float, required=True)
+    reuse_parser.add_argument("--label", default="s3_gemma3_crag")
+    reuse_parser.add_argument("--out", required=True)
+
     args = parser.parse_args(argv)
     try:
         if args.command == "sample":
@@ -336,8 +514,17 @@ def main(argv: Optional[List[str]] = None) -> int:
                 if value is not None:
                     setattr(config, attribute, value)
             cmd_sample(config, force=args.force)
-        else:
+        elif args.command == "attach_aspects":
             cmd_attach_aspects(args.sample, args.aspects, args.out)
+        elif args.command == "crag_tune":
+            cmd_crag_tune(args.rows, args.out, args.write_config)
+        else:
+            out = reuse_s2_outputs(args.s2, args.no_context, args.threshold,
+                                   args.label)
+            destination = Path(args.out)
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            out.to_csv(destination, index=False)
+            print(f"[CRAG] {len(out)} rows -> {destination}")
     except (FileNotFoundError, ValueError, AssertionError) as exc:
         print(f"error: {exc}")
         return 2

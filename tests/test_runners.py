@@ -203,12 +203,18 @@ def test_a_resumed_run_skips_the_rows_already_done(monkeypatch, sample_df,
     assert out.iloc[0]["generated_answer"] == "earlier reply"
 
 
-def test_crag_is_not_available_before_step_9(monkeypatch, sample_df, tmp_path):
+def test_crag_records_a_route_for_every_row(monkeypatch, sample_df, tmp_path):
+    """The router itself is covered in tests/test_crag.py; here it only has to
+    reach every row of the runner."""
     _patch_runner(monkeypatch, _FakeRetriever())
-    config = GenerationConfig(output_dir=str(tmp_path))
+    config = GenerationConfig(output_dir=str(tmp_path), generation_batch_size=2,
+                              max_input_tokens=4096, crag_threshold=0.5)
 
-    with pytest.raises(NotImplementedError, match="CRAG"):
-        run_rag_aspect(sample_df, None, None, False, config, crag=True)
+    out = run_rag_aspect(sample_df, None, None, False, config, label="s3",
+                         crag=True)
+
+    # the fake retriever returns ce_score 0.83, so both rows clear 0.5
+    assert list(out["route"]) == ["rag", "rag"]
 
 
 # ── modes ────────────────────────────────────────────────────────────────────
