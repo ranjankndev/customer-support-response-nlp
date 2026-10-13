@@ -8,7 +8,8 @@ Legend: `[x]` done (date, sha) · `[~]` in progress · `[ ]` todo
 - [x] 2026-10-05 graphify installed (project scope) and code graph built
 - [x] 2026-10-05 Plan extended: Aspect v2 (§A) + automation (§K); `CLAUDE.md` + this file added
 - [x] 2026-10-05 Kaggle CLI upgraded to 2.2.4 (auth OK, user `ranjankumarnayak`); T4×2 = `machine_shape: NvidiaTeslaT4`
-- [x] 2026-10-05 Work branch `v3-minimal-run` created and pushed. **Next agent starts at §10 step 0.**
+- [x] 2026-10-05 Work branch `v3-minimal-run` created and pushed.
+- [x] 2026-10-13 §10 steps 0-12 implemented on CPU; PR #1 open. **Next agent: fix Kaggle auth, then run the four pending GPU acceptance checks (steps 0, 3, 8, 11) and the two jobs.**
 
 ## §10 steps
 - [~] 0. Automation scaffold: `scripts/kaggle_job.py`, `kaggle/hello`, `tests/` + fixtures — code done 2026-10-13 (46d5405), `pytest -q` green; the `hello` GPU acceptance run is **blocked on Kaggle auth** (see open issues)
@@ -24,7 +25,7 @@ Legend: `[x]` done (date, sha) · `[~]` in progress · `[ ]` todo
 - [x] 2026-10-13 (b7a6f55) 9. CRAG router + `crag_tune` — `--mode rag_aspect_crag` stores `route`; `crag_tune` replays the router over tau 0.05-0.60 from paired generations (no sweep re-runs) and `crag_reuse` builds S3 from S2's outputs. `tests/test_crag.py` covers all three
 - [x] 2026-10-13 (5b9fccb) 10. `minimal_run report` (+ ACS/AAS, aspect table) — the plan's acceptance test (2 fake systems x 20 rows, CI columns present) is in `tests/test_report.py`; writes `per_row_metrics.csv`, `results_table.csv`, `results.md`, `results_chart.png`
 - [~] 11. Kaggle jobs `prep_train`, `generate_eval` (+ optional notebook mirrors) — scripts + `requirements-kaggle.txt` done 2026-10-13 (2c92185), validated by `tests/test_kaggle_job.py` (17 tests). **Neither job has been pushed: blocked on Kaggle auth.** The notebook mirrors (plan §9) are optional and not written
-- [~] 12. README + figures — done 2026-10-13 (7d38c2d): architecture figure embedded, pipeline replaced with the Kaggle minimal run, model/system/metric tables, indexer command fixed. PR next
+- [x] 2026-10-13 (7d38c2d) 12. README + figures; **PR #1 open** <https://github.com/ranjankndev/customer-support-response-nlp/pull/1> — the human reviews and merges
 
 ## Kaggle runs
 | Date | Job | Commit | Result | Notes |
