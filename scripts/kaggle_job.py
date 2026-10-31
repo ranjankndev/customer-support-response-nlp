@@ -178,6 +178,8 @@ def main() -> int:
         elif name == "pull":
             sub.add_argument("--out", help="Output directory (default: runs/<job>/<timestamp>)")
     args = parser.parse_args()
+    for stream in (sys.stdout, sys.stderr):
+        stream.reconfigure(errors="replace")  # Kaggle output has non-cp1252 chars on Windows
     try:
         if args.command == "push":
             push(args.job, args.commit)

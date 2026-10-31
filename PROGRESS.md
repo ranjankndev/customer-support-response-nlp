@@ -30,6 +30,7 @@ Legend: `[x]` done (date, sha) · `[~]` in progress · `[ ]` todo
 ## Kaggle runs
 | Date | Job | Commit | Result | Notes |
 |---|---|---|---|---|
+| 2026-10-31 | hello | 1194a2b | OK (2x T4, exact-sha checkout) | attempt 1; `wait` crashed on cp1252 and titles mis-slugged; both fixed |
 
 ## Open issues / decisions
 - Which raw CSV of the Kaggle dataset reproduces the report's 28,237 EN+DE rows? (resolve in step 11)

@@ -1,6 +1,6 @@
 {
   "id": "ranjankumarnayak/aspectforge-prep-train",
-  "title": "AspectForge prep + RAFT train",
+  "title": "AspectForge prep train",
   "code_file": "run.py",
   "language": "python",
   "kernel_type": "script",
