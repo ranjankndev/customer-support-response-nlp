@@ -22,6 +22,7 @@ import datetime as dt
 import json
 import os
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 import traceback
@@ -144,6 +145,12 @@ def install() -> None:
 
 def gpu_check() -> None:
     shell(["nvidia-smi"], step="gpu_check")
+
+
+def smoke() -> None:
+    """Plan §10 step 3 acceptance: bos / German / budget on the real GPU models."""
+    shell([sys.executable, "kaggle/prep_train/smoke.py"], step="smoke")
+    shutil.copy(CODE / "smoke_results.json", WORK / "smoke_results.json")
 
 
 def find_raw_csv() -> Path:
@@ -286,6 +293,7 @@ def main() -> None:
         for name, function in (("checkout", checkout),
                                ("gpu_check", gpu_check),
                                ("install", install),
+                               ("smoke", smoke),
                                ("splits", splits),
                                ("sample", sample),
                                ("aspects", aspects),
