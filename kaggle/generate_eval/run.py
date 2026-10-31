@@ -34,7 +34,9 @@ WORK = Path("/kaggle/working")
 CODE = WORK / "Code"
 LOG_DIR = WORK / "logs"
 STATUS_PATH = WORK / "STATUS.json"
-JOB1_INPUT = Path("/kaggle/input/aspectforge-prep-train")
+INPUT_ROOT = Path("/kaggle/input")
+JOB1_SLUG = "aspectforge-prep-train"      # mount path varies by Kaggle version
+JOB1_INPUT = INPUT_ROOT / JOB1_SLUG
 GENERATION_DIR = "output/generation"
 SAMPLE = "data/minimal/test_500_with_aspects.csv"
 VAL_SAMPLE = "data/minimal/val_500_with_aspects.csv"
@@ -156,6 +158,12 @@ def gpu_check() -> None:
 
 def copy_job1_outputs() -> None:
     """Samples, index and adapter come from job 1's kernel output."""
+    global JOB1_INPUT
+    if not JOB1_INPUT.exists():
+        found = [p for p in INPUT_ROOT.rglob(JOB1_SLUG) if p.is_dir()]
+        log(f"Under {INPUT_ROOT}: {[str(p) for p in INPUT_ROOT.glob('*')]}")
+        if found:
+            JOB1_INPUT = found[0]
     if not JOB1_INPUT.exists():
         raise RuntimeError(
             f"Job 1's output is not attached at {JOB1_INPUT}; add "

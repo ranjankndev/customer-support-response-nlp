@@ -36,7 +36,9 @@ WORK = Path("/kaggle/working")
 CODE = WORK / "Code"
 LOG_DIR = WORK / "logs"
 STATUS_PATH = WORK / "STATUS.json"
-RAW_DIR = Path("/kaggle/input/multilingual-customer-support-tickets")
+INPUT_ROOT = Path("/kaggle/input")
+RAW_SLUG = "multilingual-customer-support-tickets"   # mount path varies by Kaggle version
+RAW_DIR = INPUT_ROOT
 OVERRIDES = "config/kaggle.yaml"
 
 _STATE: dict = {"job": JOB, "branch": BRANCH, "commit": COMMIT, "steps": []}
@@ -161,7 +163,9 @@ def find_raw_csv() -> Path:
     """
     import pandas as pd
 
-    candidates = sorted(RAW_DIR.rglob("*.csv"))
+    everything = sorted(INPUT_ROOT.rglob("*.csv"))
+    log(f"CSV files under {INPUT_ROOT}: {[str(p) for p in everything][:20]}")
+    candidates = [p for p in everything if RAW_SLUG in str(p)] or everything
     if not candidates:
         raise RuntimeError(f"No CSV under {RAW_DIR}")
     best, best_rows = None, -1
