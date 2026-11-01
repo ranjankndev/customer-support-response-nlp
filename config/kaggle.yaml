@@ -21,8 +21,9 @@ generation:
   skip_metrics         : true          # metrics computed once by minimal_run report
 
 retrieval:
-  device     : cuda
-  batch_size : 32
+  device           : cuda
+  batch_size       : 32
+  rerank_batch_size: 16      # 64 x 512 tokens OOMed the T4 in attempt 5
 
 raft:
   n_train    : 3000

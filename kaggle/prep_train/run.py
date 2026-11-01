@@ -41,6 +41,20 @@ RAW_SLUG = "aspectforge-cs-support"      # mount path varies by Kaggle version
 # the aspect SFT adapter (HF ranjan56cse/cs-support-labels is private and no
 # HF token lives on Kaggle), copied into a private dataset
 ADAPTER_SLUG = "aspectforge-aspect-sft"
+# optional: aspects + index from an earlier run of this job (a private dataset),
+# reused only when the fresh samples are byte-identical to the cached ones
+CACHE_SLUG = "aspectforge-prep-cache"
+CACHED_SAMPLES = ("test_500", "val_500", "raft_train_3000")
+
+# The Kaggle image ships TensorFlow and JAX; either can grab most of a T4 the
+# moment it initialises, which starved the reranker (attempt 5 OOM). Every
+# child process inherits these.
+os.environ.setdefault("XLA_PYTHON_CLIENT_PREALLOCATE", "false")
+os.environ.setdefault("TF_FORCE_GPU_ALLOW_GROWTH", "true")
+os.environ.setdefault("USE_TF", "0")
+os.environ.setdefault("USE_FLAX", "0")
+os.environ.setdefault("USE_JAX", "0")
+os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
 RAW_DIR = INPUT_ROOT
 OVERRIDES = "config/kaggle.yaml"
 
@@ -205,6 +219,65 @@ def find_adapter_dir() -> Path:
     return preferred[0].parent
 
 
+def _cache_file(name: str) -> Path | None:
+    hits = [p for p in INPUT_ROOT.rglob(name) if CACHE_SLUG in str(p)]
+    return hits[0] if hits else None
+
+
+def restore_cached_aspects() -> bool:
+    """Copy cached *_aspects / *_with_aspects CSVs if the samples match."""
+    minimal = CODE / "data" / "minimal"
+    pairs = []
+    for name in CACHED_SAMPLES:
+        cached = _cache_file(f"{name}.csv")
+        fresh = minimal / f"{name}.csv"
+        if cached is None:
+            return False
+        if not fresh.is_file() or cached.read_bytes() != fresh.read_bytes():
+            log(f"Cache ignored: {name}.csv differs from the cached sample")
+            return False
+        for suffix in ("_aspects.csv", "_with_aspects.csv"):
+            source = _cache_file(f"{name}{suffix}")
+            if source is None:
+                log(f"Cache ignored: no {name}{suffix}")
+                return False
+            pairs.append((source, minimal / f"{name}{suffix}"))
+    for source, target in pairs:
+        shutil.copy(source, target)
+    log(f"Aspects restored from {CACHE_SLUG} ({len(pairs)} files)")
+    return True
+
+
+CACHED_INDEX_FILES = ("faiss_index.bin", "metadata.json", "dense.npy",
+                      "aspect_heads.joblib")
+
+
+def restore_cached_index() -> bool:
+    """Files are found by name: Kaggle may flatten the dataset's folders."""
+    files = {name: _cache_file(name) for name in CACHED_INDEX_FILES}
+    bm25_params = _cache_file("params.index.json")
+    table = _cache_file("aspect_table.csv")
+    missing = [n for n, p in files.items() if p is None]
+    if missing or bm25_params is None or table is None:
+        log(f"Index cache incomplete (missing {missing or 'bm25/table'}); rebuilding")
+        return False
+    index_dir = CODE / "data" / "index"
+    if index_dir.exists():
+        shutil.rmtree(index_dir)
+    index_dir.mkdir(parents=True)
+    for name, source in files.items():
+        shutil.copy(source, index_dir / name)
+    shutil.copytree(bm25_params.parent, index_dir / "bm25")
+    report = CODE / "output" / "report"
+    report.mkdir(parents=True, exist_ok=True)
+    shutil.copy(table, report / "aspect_table.csv")
+    log(f"Index + aspect heads restored from {CACHE_SLUG}")
+    return True
+
+
+_RESTORED = {"aspects": False}
+
+
 def splits() -> None:
     raw = find_raw_csv()
     data_dir = CODE / "data" / "raw"
@@ -232,6 +305,9 @@ def aspects() -> None:
             continue
         jobs.append((name, device, source))
 
+    if restore_cached_aspects():
+        _RESTORED["aspects"] = True
+        return
     adapter = find_adapter_dir()
     # the two 500-row samples run together, the big one on its own afterwards
     for batch in (jobs[:2], jobs[2:]):
@@ -257,6 +333,9 @@ def aspects() -> None:
 
 
 def index() -> None:
+    # same samples => same seed-42 splits, so the cached index still matches
+    if _RESTORED["aspects"] and restore_cached_index():
+        return
     # The train aspects are the index's own; the evaluation samples must not be
     # in it, and the indexer asserts that.
     shell([sys.executable, "-m", "src.retrieval.indexer",
@@ -274,6 +353,7 @@ def eval_retrieval() -> None:
     shell([sys.executable, "-m", "src.retrieval.eval_retrieval",
            "--config", "config/inference_retrieval_config.yaml",
            "--input", "data/minimal/val_500_with_aspects.csv",
+           "--overrides", OVERRIDES,
            "--label", "m3_hybrid_rerank"], step="eval_retrieval")
 
 
