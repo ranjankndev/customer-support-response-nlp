@@ -38,7 +38,8 @@ Legend: `[x]` done (date, sha) · `[~]` in progress · `[ ]` todo
 | 2026-11-01 | prep_train | 484dafc | ERROR at eval_retrieval | attempt 5; aspects OK (51 min, 2 GPUs), index OK (25,319 docs), aspect heads: intent 7 values (top share 0.41). Reranker OOM: 14.5 GB in use, 3.4 GB torch -> TF/JAX preallocation suspected |
 | 2026-11-01 | prep_train | ec2bb69 | ERROR at raft_train | attempt 6; cache restore OK, eval_retrieval OK (val top1_rougeL EN 0.539 / DE 0.221, top1_cos 0.857; intent@3 0.000 = metric bug), raft_build OK (3000 ex., distractor 0.20, aspects 0.81, prompt p95 710 tok). TRL bf16 default refused on T4 |
 | 2026-11-01 | prep_train | 894d9b2 | ERROR at raft_train | attempt 7; cached RAFT examples OK; intent@3 = 0.551 [0.525, 0.581] (EN 0.551 / DE 0.552). Unsloth loaded bf16 weights under the fp16 grad scaler |
-| 2026-11-01 | prep_train | (next) | running | attempt 8; Unsloth dtype follows precision (fp16 on T4) |
+| 2026-11-01 | prep_train | dfd47f9 | ERROR at raft_train | attempt 8; same fp16-scaler error: Unsloth forces float32 for Gemma-3 and keeps bf16 layers |
+| 2026-11-01 | prep_train | (next) | running | attempt 9; fp32 without AMP on T4, LoRA params fp32 |
 
 ## Open issues / decisions
 - RESOLVED 2026-11-01: raw CSV = the human's `data/cs-support-multi.csv` (25,072 EN / 11,087 DE), uploaded as private dataset `ranjankumarnayak/aspectforge-cs-support`. `data/cs-support-multi_old_discard.csv.csv` is not used. Row counts differ from the old report's 28,237, so v3 numbers are a fresh run.
