@@ -10,7 +10,8 @@
   "machine_shape": "NvidiaTeslaT4",
   "dataset_sources": ["ranjankumarnayak/aspectforge-cs-support",
                       "ranjankumarnayak/aspectforge-aspect-sft",
-                      "ranjankumarnayak/aspectforge-prep-cache"],
+                      "ranjankumarnayak/aspectforge-prep-cache",
+                      "ranjankumarnayak/aspectforge-raft-cache"],
   "competition_sources": [],
   "kernel_sources": []
 }

@@ -44,6 +44,7 @@ ADAPTER_SLUG = "aspectforge-aspect-sft"
 # optional: aspects + index from an earlier run of this job (a private dataset),
 # reused only when the fresh samples are byte-identical to the cached ones
 CACHE_SLUG = "aspectforge-prep-cache"
+RAFT_CACHE_SLUG = "aspectforge-raft-cache"      # raft_train.jsonl of a run
 CACHED_SAMPLES = ("test_500", "val_500", "raft_train_3000")
 
 # The Kaggle image ships TensorFlow and JAX; either can grab most of a T4 the
@@ -219,8 +220,8 @@ def find_adapter_dir() -> Path:
     return preferred[0].parent
 
 
-def _cache_file(name: str) -> Path | None:
-    hits = [p for p in INPUT_ROOT.rglob(name) if CACHE_SLUG in str(p)]
+def _cache_file(name: str, slug: str = CACHE_SLUG) -> Path | None:
+    hits = [p for p in INPUT_ROOT.rglob(name) if slug in str(p)]
     return hits[0] if hits else None
 
 
@@ -358,6 +359,16 @@ def eval_retrieval() -> None:
 
 
 def raft_build() -> None:
+    # the build reads only the samples and the index, so it is reusable
+    # exactly when those were restored
+    cached = (_cache_file("raft_train.jsonl", RAFT_CACHE_SLUG)
+              if _RESTORED["aspects"] else None)
+    if cached is not None:
+        target = CODE / "output" / "raft" / "raft_train.jsonl"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(cached, target)
+        log(f"RAFT examples restored from {RAFT_CACHE_SLUG}")
+        return
     shell([sys.executable, "-m", "src.step3_raft", "build",
            "--config", "config/config_raft.yaml"], step="raft_build")
 

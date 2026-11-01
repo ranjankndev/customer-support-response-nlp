@@ -66,3 +66,22 @@ def test_index_cache_incomplete_rebuilds(job, tmp_path):
     module, _ = job
     (tmp_path / "input" / module.CACHE_SLUG / "index" / "dense.npy").unlink()
     assert not module.restore_cached_index()
+
+
+def test_raft_examples_restored_only_after_the_aspects(job, tmp_path):
+    module, _ = job
+    raft = tmp_path / "input" / module.RAFT_CACHE_SLUG
+    raft.mkdir(parents=True)
+    (raft / "raft_train.jsonl").write_text("{}")
+    calls = []
+    module.shell = lambda command, **kw: calls.append(command)
+    target = module.CODE / "output" / "raft" / "raft_train.jsonl"
+
+    module._RESTORED["aspects"] = False
+    module.raft_build()
+    assert calls and not target.exists()        # built from scratch
+
+    calls.clear()
+    module._RESTORED["aspects"] = True
+    module.raft_build()
+    assert not calls and target.read_text() == "{}"

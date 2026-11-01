@@ -454,3 +454,24 @@ def test_the_raft_config_keeps_relative_paths_locally():
     assert config.raft_jsonl == "output/raft/raft_train.jsonl"
     assert "/kaggle/" not in Path("config/config_raft.yaml").read_text(
         encoding="utf-8")
+
+
+def test_precision_follows_the_gpu():
+    """attempt 6: TRL defaulted to bf16 and the T4 (sm 7.5) refused to train."""
+    from src.step3_raft import resolve_precision
+
+    assert resolve_precision("auto", 7) == "fp16"
+    assert resolve_precision("auto", 8) == "bf16"
+    assert resolve_precision("auto", None) == "fp16"
+    assert resolve_precision("bf16", 7) == "bf16"
+
+
+def test_sft_kwargs_set_precision_and_warmup_steps():
+    from src.step3_raft import RaftConfig, sft_config_kwargs
+
+    config = RaftConfig()
+    config.batch, config.grad_accum, config.epochs = 2, 8, 1
+    config.warmup_ratio = 0.03
+    kwargs = sft_config_kwargs(config, False, precision="fp16", n_train=2850)
+    assert kwargs["fp16"] is True and kwargs["bf16"] is False
+    assert kwargs["warmup_steps"] == 6          # ceil(0.03 * ceil(2850 / 16))

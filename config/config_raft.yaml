@@ -36,6 +36,8 @@ save_steps        : 50
 eval_steps        : 50
 logging_steps     : 10
 warmup_ratio      : 0.03
+# auto = bf16 on Ampere+, fp16 on older GPUs (Kaggle T4); or force bf16 / fp16
+precision         : "auto"
 out_dir           : "output/raft/gemma3-4b-aspect-raft"
 # Pushed from the local machine after `kaggle_job.py pull` (no secrets on Kaggle).
 # The local HF login is user `ranjankn`; ranjan56cse is read-only for us.

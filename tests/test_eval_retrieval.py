@@ -57,6 +57,17 @@ def test_intent_at_3_matches_a_predicted_intent_against_gold_queue():
     assert intent_at_k("technical support", hits) == 1.0
 
 
+def test_intent_at_3_compares_queue_with_queue_when_the_query_has_one():
+    """attempt 6: SFT intents ('general_inquiry') never equal queue names, so
+    an index that stores only gold queues scored 0.000 on every row."""
+    hits = [{"aspects": {"queue": "Technical Support", "intent": None}},
+            {"aspects": {"queue": "Billing and Payments"}},
+            {"aspects": {"queue": "Technical Support"}}]
+
+    assert intent_at_k("general_inquiry", hits, "Technical Support") ==         pytest.approx(2 / 3)
+    assert intent_at_k("", hits, "Billing and Payments") == pytest.approx(1 / 3)
+
+
 def test_intent_at_3_is_none_when_it_cannot_be_judged():
     """A row that cannot be scored is excluded from the mean, not counted as 0."""
     assert intent_at_k("", [{"aspects": {"intent": "billing"}}]) is None

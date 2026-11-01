@@ -11,8 +11,11 @@ Per row (top-3 hits):
                right one"
   top1_cos     cosine between the same pair, with the index's own embedder --
                the same question without lexical overlap
-  intent@3     share of the top-3 hits whose stored intent (or gold queue)
-               equals the query's intent; skipped when either side has none
+  intent@3     share of the top-3 hits on the query's intent: a hit with a
+               stored intent is compared with the query's intent, a hit with
+               only a gold queue with the query's gold queue (the predicted
+               intent labels and queue names are different vocabularies);
+               skipped when nothing can be compared
 
 USAGE
     python -m src.retrieval.eval_retrieval \
@@ -69,28 +72,35 @@ def cosine(embedder, text_a: str, text_b: str) -> float:
     return float(np.dot(a, b) / denominator)
 
 
-def _hit_intent(hit: Dict) -> str:
-    aspects = hit.get("aspects") or {}
-    for key in ("intent", "queue"):
-        value = str(aspects.get(key, "") or "").strip().lower()
-        if value and value != "none":
-            return value
-    return ""
+def _label(value) -> str:
+    value = str(value or "").strip().lower()
+    return "" if value in ("none", "nan") else value
 
 
-def intent_at_k(query_intent: str, hits: List[Dict]) -> Optional[float]:
+def intent_at_k(query_intent: str, hits: List[Dict],
+                query_queue: str = "") -> Optional[float]:
     """
-    Share of hits whose intent matches the query's. None (not 0) when the query
-    has no intent or the index carries none, so rows that cannot be judged are
-    excluded from the mean instead of dragging it down.
+    Share of hits whose intent matches the query's. A hit with a stored intent
+    is compared with query_intent; a hit with only a gold queue is compared
+    with query_queue when given (else with query_intent, the old behaviour).
+    None (not 0) when no hit can be judged, so such rows are excluded from the
+    mean instead of dragging it down.
     """
-    wanted = str(query_intent or "").strip().lower()
-    if not wanted or wanted == "none" or not hits:
+    wanted_intent = _label(query_intent)
+    wanted_queue = _label(query_queue)
+    if not (wanted_intent or wanted_queue) or not hits:
         return None
-    hit_intents = [_hit_intent(hit) for hit in hits]
-    if not any(hit_intents):
+    judged = []
+    for hit in hits:
+        aspects = hit.get("aspects") or {}
+        intent, queue = _label(aspects.get("intent")), _label(aspects.get("queue"))
+        if intent and wanted_intent:
+            judged.append(intent == wanted_intent)
+        elif queue and (wanted_queue or wanted_intent):
+            judged.append(queue == (wanted_queue or wanted_intent))
+    if not judged:
         return None
-    return sum(1 for intent in hit_intents if intent == wanted) / len(hits)
+    return sum(judged) / len(hits)
 
 
 def evaluate_rows(retriever, df: pd.DataFrame, top_k: int = 3,
@@ -124,7 +134,8 @@ def evaluate_rows(retriever, df: pd.DataFrame, top_k: int = 3,
             "top1_rougeL": rouge_l(top1_response, gold) if hits else 0.0,
             "top1_cos"   : (cosine(retriever.embedder, top1_response, gold)
                             if hits and gold else 0.0),
-            "intent@3"   : intent_at_k(spans.get("intent", ""), hits),
+            "intent@3"   : intent_at_k(spans.get("intent", ""), hits,
+                                       str(row.get("queue", "") or "")),
             "top1_ce"    : top1.get("ce_score", ""),
         })
     return pd.DataFrame(records)

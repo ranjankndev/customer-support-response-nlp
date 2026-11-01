@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import random
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -67,6 +68,8 @@ class RaftConfig:
     eval_steps       : int = 50
     logging_steps    : int = 10
     warmup_ratio     : float = 0.03
+    # auto = bf16 on Ampere+ (sm >= 8), fp16 otherwise (Kaggle T4 is sm 7.5)
+    precision        : str = "auto"
     out_dir          : str = "output/raft/gemma3-4b-aspect-raft"
     hf_repo          : str = ""
     # samples that must never appear in training (plan §7.4)
@@ -384,13 +387,28 @@ def latest_checkpoint(out_dir: str) -> Optional[str]:
     return str(newest)
 
 
+def resolve_precision(precision: str, capability_major: Optional[int]) -> str:
+    """'bf16' or 'fp16'. TRL defaults to bf16, which a T4 cannot train in."""
+    precision = (precision or "auto").lower()
+    if precision in ("bf16", "fp16"):
+        return precision
+    return "bf16" if (capability_major or 0) >= 8 else "fp16"
+
+
 def sft_config_kwargs(config: RaftConfig, has_eval: bool,
-                      max_steps: Optional[int] = None) -> Dict:
+                      max_steps: Optional[int] = None,
+                      precision: str = "bf16",
+                      n_train: Optional[int] = None) -> Dict:
     """
     SFTConfig arguments. TRL renamed a few of these between versions, so
     `train` filters them against the installed signature rather than pinning a
-    version (plan §7.3).
+    version (plan §7.3). warmup_steps is set as well because some SFTConfig
+    versions drop warmup_ratio.
     """
+    steps = max_steps
+    if not steps and n_train:
+        per_step = max(1, config.batch * config.grad_accum)
+        steps = math.ceil(n_train / per_step) * max(1, int(config.epochs))
     kwargs = {
         "dataset_text_field": "text",
         "per_device_train_batch_size": config.batch,
@@ -407,7 +425,11 @@ def sft_config_kwargs(config: RaftConfig, has_eval: bool,
         "report_to": "none",
         "seed": config.seed,
         "max_seq_length": config.max_seq_len,
+        "bf16": precision == "bf16",
+        "fp16": precision == "fp16",
     }
+    if steps:
+        kwargs["warmup_steps"] = max(1, math.ceil(config.warmup_ratio * steps))
     if has_eval:
         kwargs["eval_strategy"] = "steps"
         kwargs["eval_steps"] = config.eval_steps
@@ -495,8 +517,14 @@ def cmd_train(config: RaftConfig, limit: Optional[int] = None,
     print(f"[RAFT] train={len(train_dataset)} "
           f"val={len(val_dataset) if val_dataset else 0}")
 
+    import torch
+    major = (torch.cuda.get_device_capability()[0]
+             if torch.cuda.is_available() else None)
+    precision = resolve_precision(config.precision, major)
+    print(f"[RAFT] precision={precision} (sm major {major})")
     args = SFTConfig(**filter_kwargs(
-        SFTConfig, sft_config_kwargs(config, bool(val_dataset), max_steps)))
+        SFTConfig, sft_config_kwargs(config, bool(val_dataset), max_steps,
+                                     precision, len(train_dataset))))
     trainer_kwargs = filter_kwargs(SFTTrainer, {
         "model": model, "tokenizer": tokenizer,
         "processing_class": tokenizer,
