@@ -460,10 +460,18 @@ def test_precision_follows_the_gpu():
     """attempt 6: TRL defaulted to bf16 and the T4 (sm 7.5) refused to train."""
     from src.step3_raft import resolve_precision
 
-    assert resolve_precision("auto", 7) == "fp16"
+    assert resolve_precision("auto", 7) == "fp32"
     assert resolve_precision("auto", 8) == "bf16"
-    assert resolve_precision("auto", None) == "fp16"
+    assert resolve_precision("auto", None) == "fp32"
     assert resolve_precision("bf16", 7) == "bf16"
+    assert resolve_precision("fp16", 7) == "fp16"
+
+
+def test_fp32_turns_amp_off():
+    from src.step3_raft import RaftConfig, sft_config_kwargs
+
+    kwargs = sft_config_kwargs(RaftConfig(), False, precision="fp32")
+    assert kwargs["fp16"] is False and kwargs["bf16"] is False
 
 
 def test_sft_kwargs_set_precision_and_warmup_steps():

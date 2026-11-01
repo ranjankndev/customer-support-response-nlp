@@ -36,7 +36,8 @@ save_steps        : 50
 eval_steps        : 50
 logging_steps     : 10
 warmup_ratio      : 0.03
-# auto = bf16 on Ampere+, fp16 on older GPUs (Kaggle T4); or force bf16 / fp16
+# auto = bf16 on Ampere+, plain fp32 on older GPUs (Kaggle T4: Unsloth refuses
+# fp16 for Gemma-3); or force bf16 / fp16 / fp32
 precision         : "auto"
 out_dir           : "output/raft/gemma3-4b-aspect-raft"
 # Pushed from the local machine after `kaggle_job.py pull` (no secrets on Kaggle).

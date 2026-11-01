@@ -388,11 +388,16 @@ def latest_checkpoint(out_dir: str) -> Optional[str]:
 
 
 def resolve_precision(precision: str, capability_major: Optional[int]) -> str:
-    """'bf16' or 'fp16'. TRL defaults to bf16, which a T4 cannot train in."""
+    """
+    'bf16', 'fp16' or 'fp32'. TRL defaults to bf16, which a T4 cannot train
+    in; Unsloth refuses fp16 for Gemma-3 ("won't work! Using float32") and the
+    checkpoint keeps bf16 layers, so the fp16 grad scaler fails (attempts 7-8).
+    auto = bf16 on Ampere+ (sm >= 8), plain fp32 (no AMP) below.
+    """
     precision = (precision or "auto").lower()
-    if precision in ("bf16", "fp16"):
+    if precision in ("bf16", "fp16", "fp32"):
         return precision
-    return "bf16" if (capability_major or 0) >= 8 else "fp16"
+    return "bf16" if (capability_major or 0) >= 8 else "fp32"
 
 
 def sft_config_kwargs(config: RaftConfig, has_eval: bool,
@@ -467,9 +472,9 @@ def filter_kwargs(target, kwargs: Dict) -> Dict:
 
 def cmd_train(config: RaftConfig, limit: Optional[int] = None,
               max_steps: Optional[int] = None, push: bool = True) -> str:
+    from unsloth import FastModel        # before trl/transformers (Unsloth patches them)
     from datasets import Dataset
     from trl import SFTConfig, SFTTrainer
-    from unsloth import FastModel
     from unsloth.chat_templates import get_chat_template, train_on_responses_only
 
     from src.utils import get_hf_token
@@ -494,7 +499,8 @@ def cmd_train(config: RaftConfig, limit: Optional[int] = None,
     model, tokenizer = FastModel.from_pretrained(
         config.base_model, max_seq_length=config.max_seq_len,
         load_in_4bit=True, token=token,
-        dtype=torch.bfloat16 if precision == "bf16" else torch.float16)
+        dtype={"bf16": torch.bfloat16, "fp16": torch.float16}.get(
+            precision, torch.float32))
     model = FastModel.get_peft_model(
         model,
         finetune_vision_layers=False,      # text only: the tickets have no images
@@ -507,6 +513,11 @@ def cmd_train(config: RaftConfig, limit: Optional[int] = None,
         bias="none", random_state=config.seed)
     tokenizer = get_chat_template(tokenizer, chat_template="gemma-3")
 
+    if precision != "bf16":
+        # LoRA weights inherit the checkpoint's bf16; keep the trained ones fp32
+        for parameter in model.parameters():
+            if parameter.requires_grad and parameter.dtype == torch.bfloat16:
+                parameter.data = parameter.data.float()
     trainable = [name for name, parameter in model.named_parameters()
                  if parameter.requires_grad]
     vision = [name for name in trainable if "vision" in name.lower()]
