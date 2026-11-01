@@ -43,6 +43,16 @@ VAL_SAMPLE = "data/minimal/val_500_with_aspects.csv"
 ADAPTER = "output/raft/gemma3-4b-aspect-raft"
 GEMMA2 = "unsloth/gemma-2-2b-it"
 GEMMA3 = "unsloth/gemma-3-4b-it"
+
+# Same guards as job 1: the Kaggle image's JAX/TF grab most of a T4 when they
+# initialise (generate_eval attempt 1 OOMed loading the models). Every child
+# process inherits these.
+os.environ.setdefault("XLA_PYTHON_CLIENT_PREALLOCATE", "false")
+os.environ.setdefault("TF_FORCE_GPU_ALLOW_GROWTH", "true")
+os.environ.setdefault("USE_TF", "0")
+os.environ.setdefault("USE_FLAX", "0")
+os.environ.setdefault("USE_JAX", "0")
+os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
 SYSTEMS = ["s1_gemma2", "s2_gemma3", "s3_gemma3_crag", "s4_raft_aspect",
            "s5_raft_noaspect", "s6_gemma3_noaspect"]
 

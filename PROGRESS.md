@@ -40,7 +40,8 @@ Legend: `[x]` done (date, sha) · `[~]` in progress · `[ ]` todo
 | 2026-11-01 | prep_train | 894d9b2 | ERROR at raft_train | attempt 7; cached RAFT examples OK; intent@3 = 0.551 [0.525, 0.581] (EN 0.551 / DE 0.552). Unsloth loaded bf16 weights under the fp16 grad scaler |
 | 2026-11-01 | prep_train | dfd47f9 | ERROR at raft_train | attempt 8; same fp16-scaler error: Unsloth forces float32 for Gemma-3 and keeps bf16 layers |
 | 2026-11-01 | prep_train | 4338cc9 | OK | attempt 9; fp32 without AMP on T4. raft_train 179 steps in 72.8 min, train_loss 1.189, eval_loss 1.127; EN/DE sanity replies on-topic. Adapter pushed (private) to HF ranjankn/aspectforge-raft-gemma3 |
-| 2026-11-01 | generate_eval | 4338cc9 | running | attempt 1 (report will lack the trainer-log section; copy fixed in the next commit) |
+| 2026-11-01 | generate_eval | 4338cc9 | ERROR | attempt 1: stage_a OOM loading models on both T4s, JAX/XLA preallocated (same as prep_train attempt 5); job 2 lacked the env guards -> added |
+| 2026-11-01 | generate_eval | (next) | running | attempt 2 |
 
 ## Open issues / decisions
 - RESOLVED 2026-11-01: raw CSV = the human's `data/cs-support-multi.csv` (25,072 EN / 11,087 DE), uploaded as private dataset `ranjankumarnayak/aspectforge-cs-support`. `data/cs-support-multi_old_discard.csv.csv` is not used. Row counts differ from the old report's 28,237, so v3 numbers are a fresh run.

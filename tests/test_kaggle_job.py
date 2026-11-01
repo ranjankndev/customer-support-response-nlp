@@ -173,3 +173,11 @@ def test_the_kaggle_requirements_leave_the_unsloth_stack_alone():
             "matplotlib"} <= packages
     for managed in ("torch", "transformers", "trl", "peft", "unsloth"):
         assert managed not in packages
+
+
+@pytest.mark.parametrize("job_dir", ["prep_train", "generate_eval"])
+def test_job_scripts_stop_jax_tf_grabbing_the_gpu(job_dir):
+    source = (Path(__file__).resolve().parents[1] / "kaggle" / job_dir
+              / "run.py").read_text(encoding="utf-8")
+    for name in ("XLA_PYTHON_CLIENT_PREALLOCATE", "USE_JAX", "USE_TF"):
+        assert f'os.environ.setdefault("{name}"' in source
