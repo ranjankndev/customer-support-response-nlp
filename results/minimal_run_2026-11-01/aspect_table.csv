@@ -1,0 +1,12 @@
+head,gold_column,split,n,accuracy,f1_macro,majority_label,majority_accuracy,majority_f1_macro,beats_majority,source,label,distinct_values,top_value,top_share,collapsed_share
+intent,queue,all,500,0.3,0.256,Technical Support,0.3,0.0462,True,heads,,,,,
+intent,queue,de,250,0.28,0.227,Technical Support,0.308,0.0471,True,heads,,,,,
+intent,queue,en,250,0.32,0.2717,Technical Support,0.292,0.0452,True,heads,,,,,
+ticket_type,type,all,500,0.804,0.8043,Incident,0.402,0.1434,True,heads,,,,,
+ticket_type,type,de,250,0.824,0.8122,Incident,0.408,0.1449,True,heads,,,,,
+ticket_type,type,en,250,0.784,0.7913,Incident,0.396,0.1418,True,heads,,,,,
+urgency,priority,all,500,0.462,0.4481,medium,0.362,0.1772,True,heads,,,,,
+urgency,priority,de,250,0.448,0.4337,medium,0.368,0.1793,True,heads,,,,,
+urgency,priority,en,250,0.476,0.4603,medium,0.356,0.175,True,heads,,,,,
+,,,500,,,,,,,sft_labels,intent,7.0,general_inquiry,0.406,0.406
+,,,500,,,,,,,sft_labels,ticket_type_nli,4.0,complaint,0.504,
