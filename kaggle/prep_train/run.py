@@ -38,6 +38,9 @@ LOG_DIR = WORK / "logs"
 STATUS_PATH = WORK / "STATUS.json"
 INPUT_ROOT = Path("/kaggle/input")
 RAW_SLUG = "aspectforge-cs-support"      # mount path varies by Kaggle version
+# the aspect SFT adapter (HF ranjan56cse/cs-support-labels is private and no
+# HF token lives on Kaggle), copied into a private dataset
+ADAPTER_SLUG = "aspectforge-aspect-sft"
 RAW_DIR = INPUT_ROOT
 OVERRIDES = "config/kaggle.yaml"
 
@@ -191,6 +194,17 @@ def find_raw_csv() -> Path:
     return best
 
 
+def find_adapter_dir() -> Path:
+    """The folder holding adapter_config.json in the attached adapter dataset."""
+    configs = sorted(INPUT_ROOT.rglob("adapter_config.json"))
+    preferred = [p for p in configs if ADAPTER_SLUG in str(p)] or configs
+    if not preferred:
+        raise RuntimeError(f"No adapter_config.json under {INPUT_ROOT}; attach "
+                           f"the {ADAPTER_SLUG} dataset")
+    log(f"Aspect adapter: {preferred[0].parent}")
+    return preferred[0].parent
+
+
 def splits() -> None:
     raw = find_raw_csv()
     data_dir = CODE / "data" / "raw"
@@ -218,6 +232,7 @@ def aspects() -> None:
             continue
         jobs.append((name, device, source))
 
+    adapter = find_adapter_dir()
     # the two 500-row samples run together, the big one on its own afterwards
     for batch in (jobs[:2], jobs[2:]):
         commands = []
@@ -228,8 +243,7 @@ def aspects() -> None:
                 [sys.executable, "-m", "src.aspect.aspect_extractor",
                  "--input", str(source.relative_to(CODE)), "--out", out,
                  "--labels", "sft",
-                 "--adapter", "ranjan56cse/cs-support-labels",
-                 "--adapter_subfolder", "sft_checkpoint"],
+                 "--adapter", str(adapter)],
                 {"CUDA_VISIBLE_DEVICES": device}))
         if commands:
             parallel(commands)

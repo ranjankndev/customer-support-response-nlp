@@ -57,8 +57,13 @@ def test_the_pipeline_jobs_are_valid_t4x2_script_kernels(job, kernel_id):
     assert metadata["enable_internet"] is True
     assert metadata["is_private"] is True
     # the raw CSV comes from the private dataset built from data/cs-support-multi.csv
-    assert metadata["dataset_sources"] == [
-        "ranjankumarnayak/aspectforge-cs-support"]
+    assert "ranjankumarnayak/aspectforge-cs-support" in metadata["dataset_sources"]
+    if job == "prep_train":
+        # the private HF aspect adapter, copied to a private Kaggle dataset
+        assert ("ranjankumarnayak/aspectforge-aspect-sft"
+                in metadata["dataset_sources"])
+        run_py = (folder / "run.py").read_text(encoding="utf-8")
+        assert '"ranjan56cse/cs-support-labels"' not in run_py
     assert (folder / "run.py").is_file()
 
 

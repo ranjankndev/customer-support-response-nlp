@@ -8,7 +8,8 @@
   "enable_gpu": true,
   "enable_internet": true,
   "machine_shape": "NvidiaTeslaT4",
-  "dataset_sources": ["ranjankumarnayak/aspectforge-cs-support"],
+  "dataset_sources": ["ranjankumarnayak/aspectforge-cs-support",
+                      "ranjankumarnayak/aspectforge-aspect-sft"],
   "competition_sources": [],
   "kernel_sources": []
 }

@@ -21,7 +21,7 @@ v3 adds Aspect v2, multilingual Gemma-3, hybrid retrieval, Aspect-RAFT and a CRA
 - **Never push a Kaggle job unless `pytest -q` passes.** Push the commit first; `run.py` checks out the exact sha.
 - Wait in the background (`wait` in a background shell or `/loop` at 10–20 min), never foreground polling.
 - After `pull`, read `STATUS.json` and `logs/` before anything else. Max 3 attempts per job, then stop and report.
-- No secrets on Kaggle. Models must come from ungated repos (`unsloth/gemma-3-4b-it`, `unsloth/gemma-2-2b-it`, `BAAI/*`, `ranjan56cse/cs-support-labels`). HF pushes happen locally.
+- No secrets on Kaggle. Models must come from ungated public repos (`unsloth/gemma-3-4b-it`, `unsloth/gemma-2-2b-it`, `BAAI/*`, `Qwen/Qwen2.5-1.5B-Instruct`) or a private Kaggle dataset. HF pushes happen locally.
 
 ## Ask the human only for
 credentials or licences, anything that costs money (vast.ai via `C:\dev\gpu-shuttle` is a paid fallback: ask first), deleting data, merging to `main`, or after 3 failed attempts.
@@ -29,7 +29,7 @@ credentials or licences, anything that costs money (vast.ai via `C:\dev\gpu-shut
 ## Useful facts
 - Raw data: private Kaggle dataset `ranjankumarnayak/aspectforge-cs-support` (`cs-support-multi.csv`, 36,159 rows: 25,072 EN / 11,087 DE; upstream `tobiasbueck/multilingual-customer-support-tickets`); splits come from `src/preprocessing.py` (seed 42, stratified by language). Root `preprocessing.py` is the older cleaning/PII pipeline (has `fix_encoding`, entity regexes).
 - Test fixtures: `docs/samples/*.csv` (10 real rows: raw, aspects, two system outputs).
-- Aspect SFT adapter: HF `ranjan56cse/cs-support-labels` (subfolder `sft_checkpoint`).
+- Aspect SFT adapter: HF `ranjan56cse/cs-support-labels` (subfolder `sft_checkpoint`) is **private**; Kaggle reads a copy from the private dataset `ranjankumarnayak/aspectforge-aspect-sft` (`prep_train/run.py: find_adapter_dir`).
 - Old report and slides: `docs/report/`. New architecture figure: `docs/architecture_v3.{svg,png}`.
 
 ## graphify
