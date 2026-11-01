@@ -37,7 +37,7 @@ CODE = WORK / "Code"
 LOG_DIR = WORK / "logs"
 STATUS_PATH = WORK / "STATUS.json"
 INPUT_ROOT = Path("/kaggle/input")
-RAW_SLUG = "multilingual-customer-support-tickets"   # mount path varies by Kaggle version
+RAW_SLUG = "aspectforge-cs-support"      # mount path varies by Kaggle version
 RAW_DIR = INPUT_ROOT
 OVERRIDES = "config/kaggle.yaml"
 

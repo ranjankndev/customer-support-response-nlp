@@ -27,7 +27,7 @@ v3 adds Aspect v2, multilingual Gemma-3, hybrid retrieval, Aspect-RAFT and a CRA
 credentials or licences, anything that costs money (vast.ai via `C:\dev\gpu-shuttle` is a paid fallback: ask first), deleting data, merging to `main`, or after 3 failed attempts.
 
 ## Useful facts
-- Raw data: Kaggle dataset `tobiasbueck/multilingual-customer-support-tickets`; splits come from `src/preprocessing.py` (seed 42, stratified by language). Root `preprocessing.py` is the older cleaning/PII pipeline (has `fix_encoding`, entity regexes).
+- Raw data: private Kaggle dataset `ranjankumarnayak/aspectforge-cs-support` (`cs-support-multi.csv`, 36,159 rows: 25,072 EN / 11,087 DE; upstream `tobiasbueck/multilingual-customer-support-tickets`); splits come from `src/preprocessing.py` (seed 42, stratified by language). Root `preprocessing.py` is the older cleaning/PII pipeline (has `fix_encoding`, entity regexes).
 - Test fixtures: `docs/samples/*.csv` (10 real rows: raw, aspects, two system outputs).
 - Aspect SFT adapter: HF `ranjan56cse/cs-support-labels` (subfolder `sft_checkpoint`).
 - Old report and slides: `docs/report/`. New architecture figure: `docs/architecture_v3.{svg,png}`.

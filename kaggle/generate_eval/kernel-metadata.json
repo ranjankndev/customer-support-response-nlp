@@ -8,7 +8,7 @@
   "enable_gpu": true,
   "enable_internet": true,
   "machine_shape": "NvidiaTeslaT4",
-  "dataset_sources": ["tobiasbueck/multilingual-customer-support-tickets"],
+  "dataset_sources": ["ranjankumarnayak/aspectforge-cs-support"],
   "competition_sources": [],
   "kernel_sources": ["ranjankumarnayak/aspectforge-prep-train"]
 }

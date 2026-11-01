@@ -56,9 +56,9 @@ def test_the_pipeline_jobs_are_valid_t4x2_script_kernels(job, kernel_id):
     assert metadata["enable_gpu"] is True
     assert metadata["enable_internet"] is True
     assert metadata["is_private"] is True
-    # the raw data comes straight from Kaggle, nothing is uploaded
+    # the raw CSV comes from the private dataset built from data/cs-support-multi.csv
     assert metadata["dataset_sources"] == [
-        "tobiasbueck/multilingual-customer-support-tickets"]
+        "ranjankumarnayak/aspectforge-cs-support"]
     assert (folder / "run.py").is_file()
 
 
