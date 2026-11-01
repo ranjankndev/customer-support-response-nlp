@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import re
 from dataclasses import dataclass, field
 from pathlib import Path, PurePosixPath
 from typing import Dict, List, Optional
@@ -940,6 +941,16 @@ def results_chart(table: pd.DataFrame, path: str) -> Optional[str]:
     return str(out)
 
 
+def _trainer_log_summary(text: str, keep: int = 60) -> str:
+    """Loss lines and the [RAFT] sanity check, last `keep` of them (no tqdm)."""
+    progress = re.compile(r"\d+/\d+ \[[^\]]*(it/s|s/it)")
+    lines = [line.strip() for line in re.split(r"[\r\n]+", text)]
+    lines = [line for line in lines
+             if ("loss" in line or line.startswith("[RAFT]"))
+             and not progress.search(line)]
+    return "\n".join(lines[-keep:])
+
+
 def _metrics_calculator(bertscore_model: str = "xlm-roberta-large",
                         bertscore_batch: int = 16):
     from src.utils import MetricsCalculator
@@ -994,7 +1005,8 @@ def cmd_report(output_dir: str, systems: List[str], report_dir: str,
     heads = (pd.read_csv(aspect_table_path)
              if aspect_table_path and Path(aspect_table_path).is_file()
              else None)
-    trainer_log = (Path(trainer_log_path).read_text(encoding="utf-8")[-4000:]
+    trainer_log = (_trainer_log_summary(
+                       Path(trainer_log_path).read_text(encoding="utf-8"))
                    if trainer_log_path and Path(trainer_log_path).is_file()
                    else "")
 

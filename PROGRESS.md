@@ -24,7 +24,7 @@ Legend: `[x]` done (date, sha) · `[~]` in progress · `[ ]` todo
 - [~] 8. `step3_raft build` + `train` — code done 2026-10-13 (8d34db4), `tests/test_raft.py` covers the build, the leakage guards and the TRL-argument shim. `build --limit 20` needs the index and `train --limit 64 --max_steps 5` needs Kaggle: **both blocked on Kaggle auth**
 - [x] 2026-10-13 (b7a6f55) 9. CRAG router + `crag_tune` — `--mode rag_aspect_crag` stores `route`; `crag_tune` replays the router over tau 0.05-0.60 from paired generations (no sweep re-runs) and `crag_reuse` builds S3 from S2's outputs. `tests/test_crag.py` covers all three
 - [x] 2026-10-13 (5b9fccb) 10. `minimal_run report` (+ ACS/AAS, aspect table) — the plan's acceptance test (2 fake systems x 20 rows, CI columns present) is in `tests/test_report.py`; writes `per_row_metrics.csv`, `results_table.csv`, `results.md`, `results_chart.png`
-- [~] 11. Kaggle jobs `prep_train`, `generate_eval` (+ optional notebook mirrors) — scripts + `requirements-kaggle.txt` done 2026-10-13 (2c92185), validated by `tests/test_kaggle_job.py` (17 tests). prep_train OK 2026-11-01 (attempt 9); generate_eval running. The notebook mirrors (plan §9) are optional and not written
+- [~] 11. Kaggle jobs `prep_train`, `generate_eval` (+ optional notebook mirrors) — scripts + `requirements-kaggle.txt` done 2026-10-13 (2c92185), validated by `tests/test_kaggle_job.py` (17 tests). prep_train OK 2026-11-01 (attempt 9); generate_eval OK 2026-11-01 (attempt 2, 2h02m on T4x2); report in output/report/results.md (git-ignored; copy of runs/generate_eval/20261101T174501). The notebook mirrors (plan §9) are optional and not written
 - [x] 2026-10-13 (7d38c2d) 12. README + figures; **PR #1 open** <https://github.com/ranjankndev/customer-support-response-nlp/pull/1> — the human reviews and merges
 
 ## Kaggle runs
@@ -41,7 +41,14 @@ Legend: `[x]` done (date, sha) · `[~]` in progress · `[ ]` todo
 | 2026-11-01 | prep_train | dfd47f9 | ERROR at raft_train | attempt 8; same fp16-scaler error: Unsloth forces float32 for Gemma-3 and keeps bf16 layers |
 | 2026-11-01 | prep_train | 4338cc9 | OK | attempt 9; fp32 without AMP on T4. raft_train 179 steps in 72.8 min, train_loss 1.189, eval_loss 1.127; EN/DE sanity replies on-topic. Adapter pushed (private) to HF ranjankn/aspectforge-raft-gemma3 |
 | 2026-11-01 | generate_eval | 4338cc9 | ERROR | attempt 1: stage_a OOM loading models on both T4s, JAX/XLA preallocated (same as prep_train attempt 5); job 2 lacked the env guards -> added |
-| 2026-11-01 | generate_eval | (next) | running | attempt 2 |
+| 2026-11-01 | generate_eval | 17dc54c | OK | attempt 2; all 6 systems x 500 rows. rougeL: S1 0.282, S2=S3 0.233, S4 0.430, S5 0.424, S6 0.270. RAFT +0.197 vs S2 (sig.); aspects: S2-S6 -0.037, S4-S5 +0.006; RAFT lowers ACS 0.805->0.693. CRAG grid 0.05-0.60 below every CE score (median 0.998) -> S3==S2; offline wide sweep: always-retrieve best, CRAG no gain |
+
+## Findings to act on (2026-11-01)
+
+- Aspects in the prompt do not help: they hurt the untuned model (S2 < S6) and the RAFT gain with aspects (S4 - S5 +0.006 rougeL) is within noise.
+- RAFT lowers aspect coverage (ACS/AAS) while raising overlap metrics: it imitates the gold style rather than echoing aspects.
+- CRAG_THRESHOLDS (src/minimal_run.py) must span the reranker's real range (0.9-0.999); on this data CRAG gives no gain, see output/report/crag_tuning_wide.csv.
+- HF ranjankn/aspectforge-raft-gemma3 is private; owner decides whether to publish.
 
 ## Open issues / decisions
 - RESOLVED 2026-11-01: raw CSV = the human's `data/cs-support-multi.csv` (25,072 EN / 11,087 DE), uploaded as private dataset `ranjankumarnayak/aspectforge-cs-support`. `data/cs-support-multi_old_discard.csv.csv` is not used. Row counts differ from the old report's 28,237, so v3 numbers are a fresh run.

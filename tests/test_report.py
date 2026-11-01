@@ -440,3 +440,13 @@ def test_the_report_folds_in_the_retrieval_and_head_tables(output_dir, tmp_path,
     assert "## Retrieval" in markdown and "m3_hybrid" in markdown
     assert "## Aspect heads" in markdown and "intent" in markdown
     assert "## RAFT training" in markdown and "step 50 loss 1.23" in markdown
+
+
+def test_trainer_log_summary_drops_progress_bars():
+    from src.minimal_run import _trainer_log_summary
+    text = (" 50%|#####     | 90/179 [36:00<35:00, 24.0s/it]\r"
+            "{'loss': '1.106', 'epoch': '0.5'}\n"
+            "09:31:30 | INFO | HTTP Request: HEAD https://huggingface.co\n"
+            "[RAFT] Adapter saved -> output/raft\n")
+    assert _trainer_log_summary(text).splitlines() == [
+        "{'loss': '1.106', 'epoch': '0.5'}", "[RAFT] Adapter saved -> output/raft"]
