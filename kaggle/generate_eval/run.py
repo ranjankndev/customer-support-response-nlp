@@ -180,6 +180,12 @@ def copy_job1_outputs() -> None:
             log(f"  {relative}: already present")
             continue
         shell(["cp", "-r", str(source), str(destination)], step="copy_inputs")
+    # the report quotes the tail of job 1's training log
+    trainer_logs = list(JOB1_INPUT.rglob("raft_train.log"))
+    if trainer_logs:
+        (CODE / "logs").mkdir(parents=True, exist_ok=True)
+        shell(["cp", str(trainer_logs[0]), str(CODE / "logs/raft_train.log")],
+              step="copy_inputs")
     for required in (SAMPLE, "data/index/faiss_index.bin",
                      "data/index/metadata.json"):
         if not (CODE / required).exists():

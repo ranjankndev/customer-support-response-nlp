@@ -24,7 +24,7 @@ Legend: `[x]` done (date, sha) · `[~]` in progress · `[ ]` todo
 - [~] 8. `step3_raft build` + `train` — code done 2026-10-13 (8d34db4), `tests/test_raft.py` covers the build, the leakage guards and the TRL-argument shim. `build --limit 20` needs the index and `train --limit 64 --max_steps 5` needs Kaggle: **both blocked on Kaggle auth**
 - [x] 2026-10-13 (b7a6f55) 9. CRAG router + `crag_tune` — `--mode rag_aspect_crag` stores `route`; `crag_tune` replays the router over tau 0.05-0.60 from paired generations (no sweep re-runs) and `crag_reuse` builds S3 from S2's outputs. `tests/test_crag.py` covers all three
 - [x] 2026-10-13 (5b9fccb) 10. `minimal_run report` (+ ACS/AAS, aspect table) — the plan's acceptance test (2 fake systems x 20 rows, CI columns present) is in `tests/test_report.py`; writes `per_row_metrics.csv`, `results_table.csv`, `results.md`, `results_chart.png`
-- [~] 11. Kaggle jobs `prep_train`, `generate_eval` (+ optional notebook mirrors) — scripts + `requirements-kaggle.txt` done 2026-10-13 (2c92185), validated by `tests/test_kaggle_job.py` (17 tests). **Neither job has been pushed: blocked on Kaggle auth.** The notebook mirrors (plan §9) are optional and not written
+- [~] 11. Kaggle jobs `prep_train`, `generate_eval` (+ optional notebook mirrors) — scripts + `requirements-kaggle.txt` done 2026-10-13 (2c92185), validated by `tests/test_kaggle_job.py` (17 tests). prep_train OK 2026-11-01 (attempt 9); generate_eval running. The notebook mirrors (plan §9) are optional and not written
 - [x] 2026-10-13 (7d38c2d) 12. README + figures; **PR #1 open** <https://github.com/ranjankndev/customer-support-response-nlp/pull/1> — the human reviews and merges
 
 ## Kaggle runs
@@ -39,7 +39,8 @@ Legend: `[x]` done (date, sha) · `[~]` in progress · `[ ]` todo
 | 2026-11-01 | prep_train | ec2bb69 | ERROR at raft_train | attempt 6; cache restore OK, eval_retrieval OK (val top1_rougeL EN 0.539 / DE 0.221, top1_cos 0.857; intent@3 0.000 = metric bug), raft_build OK (3000 ex., distractor 0.20, aspects 0.81, prompt p95 710 tok). TRL bf16 default refused on T4 |
 | 2026-11-01 | prep_train | 894d9b2 | ERROR at raft_train | attempt 7; cached RAFT examples OK; intent@3 = 0.551 [0.525, 0.581] (EN 0.551 / DE 0.552). Unsloth loaded bf16 weights under the fp16 grad scaler |
 | 2026-11-01 | prep_train | dfd47f9 | ERROR at raft_train | attempt 8; same fp16-scaler error: Unsloth forces float32 for Gemma-3 and keeps bf16 layers |
-| 2026-11-01 | prep_train | (next) | running | attempt 9; fp32 without AMP on T4, LoRA params fp32 |
+| 2026-11-01 | prep_train | 4338cc9 | OK | attempt 9; fp32 without AMP on T4. raft_train 179 steps in 72.8 min, train_loss 1.189, eval_loss 1.127; EN/DE sanity replies on-topic. Adapter pushed (private) to HF ranjankn/aspectforge-raft-gemma3 |
+| 2026-11-01 | generate_eval | 4338cc9 | running | attempt 1 (report will lack the trainer-log section; copy fixed in the next commit) |
 
 ## Open issues / decisions
 - RESOLVED 2026-11-01: raw CSV = the human's `data/cs-support-multi.csv` (25,072 EN / 11,087 DE), uploaded as private dataset `ranjankumarnayak/aspectforge-cs-support`. `data/cs-support-multi_old_discard.csv.csv` is not used. Row counts differ from the old report's 28,237, so v3 numbers are a fresh run.
