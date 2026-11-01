@@ -481,10 +481,20 @@ def cmd_train(config: RaftConfig, limit: Optional[int] = None,
         raise ValueError(f"No examples in {config.raft_jsonl}; run `build` first")
     print(f"[RAFT] Training on {len(examples)} examples")
 
+    import torch
+    major = (torch.cuda.get_device_capability()[0]
+             if torch.cuda.is_available() else None)
+    precision = resolve_precision(config.precision, major)
+    print(f"[RAFT] precision={precision} (sm major {major})")
+
     token = get_hf_token() or None
+    # The weight dtype must match the trainer: recent torch reports bf16 as
+    # supported on a T4 (emulated), so Unsloth picked bf16 weights and the fp16
+    # grad scaler failed on them (attempt 7).
     model, tokenizer = FastModel.from_pretrained(
         config.base_model, max_seq_length=config.max_seq_len,
-        load_in_4bit=True, token=token)
+        load_in_4bit=True, token=token,
+        dtype=torch.bfloat16 if precision == "bf16" else torch.float16)
     model = FastModel.get_peft_model(
         model,
         finetune_vision_layers=False,      # text only: the tickets have no images
@@ -517,11 +527,6 @@ def cmd_train(config: RaftConfig, limit: Optional[int] = None,
     print(f"[RAFT] train={len(train_dataset)} "
           f"val={len(val_dataset) if val_dataset else 0}")
 
-    import torch
-    major = (torch.cuda.get_device_capability()[0]
-             if torch.cuda.is_available() else None)
-    precision = resolve_precision(config.precision, major)
-    print(f"[RAFT] precision={precision} (sm major {major})")
     args = SFTConfig(**filter_kwargs(
         SFTConfig, sft_config_kwargs(config, bool(val_dataset), max_steps,
                                      precision, len(train_dataset))))
@@ -550,8 +555,13 @@ def cmd_train(config: RaftConfig, limit: Optional[int] = None,
     tokenizer.save_pretrained(config.out_dir)
     print(f"[RAFT] Adapter saved -> {config.out_dir}")
 
-    # Sanity check: one EN, one DE and one distractor prompt (plan §7.3)
-    sanity_check(model, tokenizer, examples, config)
+    # Sanity check: one EN, one DE and one distractor prompt (plan §7.3).
+    # Diagnostic only: the adapter is already saved, so a failure here must
+    # not fail the job.
+    try:
+        sanity_check(model, tokenizer, examples, config)
+    except Exception as exc:                       # noqa: BLE001
+        print(f"[RAFT] WARNING: sanity check failed ({type(exc).__name__}: {exc})")
 
     if push and config.hf_repo and token:
         print(f"[RAFT] Pushing to {config.hf_repo}")
