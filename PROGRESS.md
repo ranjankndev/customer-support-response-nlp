@@ -31,9 +31,12 @@ Legend: `[x]` done (date, sha) · `[~]` in progress · `[ ]` todo
 | Date | Job | Commit | Result | Notes |
 |---|---|---|---|---|
 | 2026-10-31 | hello | 1194a2b | OK (2x T4, exact-sha checkout) | attempt 1; `wait` crashed on cp1252 and titles mis-slugged; both fixed |
+| 2026-10-31 | prep_train | 8fc4a40 | ERROR at splits | attempt 1; smoke OK (Gemma-3 + Gemma-2: 1 bos, German reply, budget); public dataset mount had no CSV |
+| 2026-11-01 | prep_train | 7284a07 | ERROR at sample | attempt 2; raw = private dataset `ranjankumarnayak/aspectforge-cs-support` (36,159 rows); splits OK 25,319/5,420/5,420; leakage guard: per-split idx renumbering collided -> fixed in 3fb543b (`split.renumber_idx`) |
+| 2026-11-01 | prep_train | 3fb543b | running | attempt 3 (last before asking the human) |
 
 ## Open issues / decisions
-- Which raw CSV of the Kaggle dataset reproduces the report's 28,237 EN+DE rows? (resolve in step 11)
+- RESOLVED 2026-11-01: raw CSV = the human's `data/cs-support-multi.csv` (25,072 EN / 11,087 DE), uploaded as private dataset `ranjankumarnayak/aspectforge-cs-support`. `data/cs-support-multi_old_discard.csv.csv` is not used. Row counts differ from the old report's 28,237, so v3 numbers are a fresh run.
 - 2026-10-13 HF login fixed: local `hf auth whoami` = `ranjankn`. Upload the RAFT adapter to `ranjankn/aspectforge-raft-gemma3`. `ranjan56cse/cs-support-labels` (aspect SFT) stays read-only/public.
 - Human one-time: Kaggle phone verification (GPU + Internet).
 - **2026-10-31 RESOLVED — Kaggle auth.** `kaggle auth login` (OAuth) wrote `~/.kaggle/credentials.json`; the stale legacy key was renamed to `~/.kaggle/kaggle.json.old` because the CLI preferred it over OAuth. `kaggle kernels list --mine` works. Steps 0/3/8/11 are unblocked.
