@@ -243,7 +243,7 @@ def aspects() -> None:
                 [sys.executable, "-m", "src.aspect.aspect_extractor",
                  "--input", str(source.relative_to(CODE)), "--out", out,
                  "--labels", "sft",
-                 "--adapter", str(adapter)],
+                 "--adapter", str(adapter), "--adapter_subfolder", ""],
                 {"CUDA_VISIBLE_DEVICES": device}))
         if commands:
             parallel(commands)

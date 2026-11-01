@@ -1287,8 +1287,10 @@ if __name__ == '__main__':
         student_base      = (args.student_base
                              or cfg.get('student_base', STUDENT_BASE_DEFAULT)),
         adapter           = args.adapter or cfg.get('adapter', ADAPTER_DEFAULT),
+        # an explicit --adapter_subfolder "" means the adapter sits at the root
         adapter_subfolder = (args.adapter_subfolder
-                             or cfg.get('adapter_subfolder', ADAPTER_SUBF_DEFAULT)),
+                             if args.adapter_subfolder is not None
+                             else cfg.get('adapter_subfolder', ADAPTER_SUBF_DEFAULT)),
         batch_size        = int(args.batch or cfg.get('batch', 0) or 0),
         max_seq_len       = int(args.max_seq_len
                                 or cfg.get('max_seq_len', MAX_SEQ_LEN_DEFAULT)),
