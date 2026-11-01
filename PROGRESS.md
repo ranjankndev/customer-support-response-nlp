@@ -37,7 +37,7 @@ Legend: `[x]` done (date, sha) · `[~]` in progress · `[ ]` todo
 | 2026-11-01 | prep_train | 8975945 | ERROR at aspects | attempt 4; adapter dataset found at /kaggle/input/aspectforge-aspect-sft but the extractor still appended subfolder `sft_checkpoint` |
 | 2026-11-01 | prep_train | 484dafc | ERROR at eval_retrieval | attempt 5; aspects OK (51 min, 2 GPUs), index OK (25,319 docs), aspect heads: intent 7 values (top share 0.41). Reranker OOM: 14.5 GB in use, 3.4 GB torch -> TF/JAX preallocation suspected |
 | 2026-11-01 | prep_train | ec2bb69 | ERROR at raft_train | attempt 6; cache restore OK, eval_retrieval OK (val top1_rougeL EN 0.539 / DE 0.221, top1_cos 0.857; intent@3 0.000 = metric bug), raft_build OK (3000 ex., distractor 0.20, aspects 0.81, prompt p95 710 tok). TRL bf16 default refused on T4 |
-| 2026-11-01 | prep_train | (next) | pending | attempt 7; fp16 on T4, intent@3 fix, RAFT examples from `aspectforge-raft-cache` |
+| 2026-11-01 | prep_train | c01c1af | running | attempt 7; fp16 on T4, intent@3 fix, RAFT examples from `aspectforge-raft-cache` |
 
 ## Open issues / decisions
 - RESOLVED 2026-11-01: raw CSV = the human's `data/cs-support-multi.csv` (25,072 EN / 11,087 DE), uploaded as private dataset `ranjankumarnayak/aspectforge-cs-support`. `data/cs-support-multi_old_discard.csv.csv` is not used. Row counts differ from the old report's 28,237, so v3 numbers are a fresh run.
