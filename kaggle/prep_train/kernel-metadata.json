@@ -1,0 +1,17 @@
+{
+  "id": "ranjankumarnayak/aspectforge-prep-train",
+  "title": "AspectForge prep train",
+  "code_file": "run.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": true,
+  "machine_shape": "NvidiaTeslaT4",
+  "dataset_sources": ["ranjankumarnayak/aspectforge-cs-support",
+                      "ranjankumarnayak/aspectforge-aspect-sft",
+                      "ranjankumarnayak/aspectforge-prep-cache",
+                      "ranjankumarnayak/aspectforge-raft-cache"],
+  "competition_sources": [],
+  "kernel_sources": []
+}

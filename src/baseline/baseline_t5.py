@@ -319,14 +319,16 @@ def compute_metrics(df: pd.DataFrame, config: T5Config) -> Dict:
 
 def print_metrics(metrics: Dict):
     print(f"\n{'═'*65}\n  T5-Base Zero-Shot\n{'═'*65}")
-    for k in ["rouge1","rouge2","rougeL","bleu1","bleu4","bertscore_f1"]:
+    for k in ["rouge1","rouge2","rougeL","bleu","bleu_p1","bleu_p4",
+              "cls_cosine_mbert","bertscore_f1","lang_match"]:
         if k in metrics:
             print(f"    {k:<22}: {metrics[k]:.4f}")
     langs = sorted(set(k.split("_")[-1] for k in metrics
                        if k.startswith("rouge1_")))
     for lang in langs:
         print(f"  [{lang.upper()}]")
-        for base in ["rouge1","rouge2","rougeL","bleu1","bleu4","bertscore_f1"]:
+        for base in ["rouge1","rouge2","rougeL","bleu","bleu_p1","bleu_p4",
+                     "cls_cosine_mbert","bertscore_f1","lang_match"]:
             key = f"{base}_{lang}"
             if key in metrics:
                 print(f"    {key:<28}: {metrics[key]:.4f}")

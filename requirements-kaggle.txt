@@ -1,0 +1,29 @@
+# requirements-kaggle.txt — installed inside a Kaggle kernel (plan §9)
+#
+# Install order matters: `pip install unsloth` runs FIRST and is left to pick
+# compatible torch / transformers / trl / peft versions. Listing any of those
+# here would let pip resolve them a second time and break Unsloth's Gemma-3
+# fp16 path on the T4, so they are deliberately absent.
+
+# ── Retrieval ─────────────────────────────────────────────────────────────────
+sentence-transformers
+faiss-cpu
+bm25s
+
+# ── Metrics ───────────────────────────────────────────────────────────────────
+rouge-score
+sacrebleu
+bert-score
+langdetect
+
+# ── Data, config, report ──────────────────────────────────────────────────────
+pyyaml
+pandas
+matplotlib
+tabulate
+scikit-learn
+joblib
+
+# ── Text utilities ────────────────────────────────────────────────────────────
+ftfy
+vaderSentiment

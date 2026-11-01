@@ -1,0 +1,10 @@
+config,split,metric,mean,ci_low,ci_high,n
+m3_hybrid_rerank,all,top1_rougeL,0.38,0.3549,0.4066,500
+m3_hybrid_rerank,all,top1_cos,0.8573,0.8467,0.8679,500
+m3_hybrid_rerank,all,intent@3,0.5513,0.5246,0.5813,500
+m3_hybrid_rerank,de,top1_rougeL,0.221,0.1921,0.2481,250
+m3_hybrid_rerank,de,top1_cos,0.825,0.8113,0.839,250
+m3_hybrid_rerank,de,intent@3,0.552,0.508,0.5933,250
+m3_hybrid_rerank,en,top1_rougeL,0.539,0.5032,0.5748,250
+m3_hybrid_rerank,en,top1_cos,0.8895,0.8754,0.9039,250
+m3_hybrid_rerank,en,intent@3,0.5507,0.5093,0.5947,250

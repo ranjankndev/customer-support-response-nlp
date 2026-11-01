@@ -143,9 +143,14 @@ def main():
         "cs-support-multi-validate.csv": val_df,
         "cs-support-multi-test.csv"    : test_df,
     }
+    # v3: keep the global idx so ids are unique across splits (retrieval
+    # exclude_ids and the sample/RAFT leakage guards join on idx). The old
+    # per-split 0..n-1 renumbering stays reachable with renumber_idx: true.
+    renumber = bool(cfg.get("split", {}).get("renumber_idx", False))
     for fname, split_df in splits.items():
         split_df = split_df.copy()
-        split_df["idx"] = range(len(split_df))
+        if renumber:
+            split_df["idx"] = range(len(split_df))
         out_path = output_dir / fname
         split_df.to_csv(out_path, index=False, encoding="utf-8-sig")
         print(f"[Preprocessing] Saved → {out_path}  ({len(split_df)} rows)")

@@ -18,7 +18,7 @@ Example:
 
 from __future__ import annotations
 
-from dataclasses import dataclass, fields
+from dataclasses import dataclass, field, fields
 from typing import Optional, List, Dict, Any
 
 import yaml
@@ -40,10 +40,13 @@ class RetrievalConfig:
     col_body: str = "body"
     col_language: str = "language"
 
-    model_name: str = "intfloat/multilingual-e5-large"
+    model_name: str = "BAAI/bge-m3"
+    # prefixes must match the indexer's (plan §6.2/6.3)
+    query_prefix: str = ""
+    passage_prefix: str = ""
     device: str = "cuda"
     batch_size: int = 64
-    max_length: int = 512  # kept for compatibility; ST embedder ignores this unless you wire it in
+    max_length: int = 512          # sets SentenceTransformer.max_seq_length
     top_k: int = 5
     body_max_chars: int = 0           # 0 = full body for retrieval embedding
     # prompt-side truncation (independent of retrieval embedding truncation)
@@ -51,13 +54,39 @@ class RetrievalConfig:
     prompt_body_max_chars: int = 0
     filter_by_language: bool = False
     aspect_rerank_weight: float = 0.1    # reduced from 0.25 -- prevents aspect bonus flipping ranking
-    use_cross_encoder: bool = True        # EN: cross-encoder reranking; DE: pure dense
-    cross_encoder_model: str = "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1"
+    # ── hybrid retrieval (plan §6.2/6.3) ──────────────────────────────────────
+    retrieval_mode: str = "dense"        # dense | hybrid (adds BM25 + RRF)
+    bm25_path: str = "data/index/bm25"
+    rrf_k: int = 60
+    n_candidates: int = 50
+    # ── reranking ─────────────────────────────────────────────────────────────
+    use_cross_encoder: bool = True
+    cross_encoder_model: str = "BAAI/bge-reranker-v2-m3"
+    cross_encoder_max_length: int = 512
+    rerank_languages: List[str] = field(default_factory=lambda: ["en", "de"])
+    rerank_doc_field: str = "body"       # body | response
+    rerank_batch_size: int = 64
+    # languages whose aspect spans are trusted enough to weight the query vector
+    aspect_query_languages: List[str] = field(default_factory=lambda: ["en"])
+    # checklist = aspect instructions (plan A.3) | slots = legacy "Aspects : k: v" dump
+    aspect_prompt_style: str = "checklist"
+    # prompt budget: max chars per retrieved response (0 = full); plan §5.3
+    ctx_doc_max_chars: int = 0
+    # append "Write the reply in German, ..." before "Support reply:"; plan §5.4
+    reply_language_instruction: bool = True
 
 
-def load_retriever_config(path: str) -> RetrievalConfig:
-    with open(path, "r", encoding="utf-8") as f:
-        cfg = yaml.safe_load(f) or {}
+def load_retriever_config(path: str,
+                          overrides_path: Optional[str] = None) -> RetrievalConfig:
+    """Load the retrieval config, optionally merging the `retrieval` section of
+    an overrides file (config/kaggle.yaml) on top."""
+    try:
+        from src.utils import load_yaml_with_overrides
+
+        cfg = load_yaml_with_overrides(path, overrides_path, section="retrieval")
+    except ImportError:
+        with open(path, "r", encoding="utf-8") as f:
+            cfg = yaml.safe_load(f) or {}
     allowed = {f.name for f in fields(RetrievalConfig)}
     filtered = {k: v for k, v in cfg.items() if k in allowed}
     return RetrievalConfig(**filtered)
@@ -67,15 +96,17 @@ _retriever: Optional[TicketRetriever] = None
 _retriever_cfg_path: Optional[str] = None
 
 
-def get_retriever(config_path: str = "inference_retrieval_config.yaml") -> TicketRetriever:
+def get_retriever(config_path: str = "inference_retrieval_config.yaml",
+                  overrides_path: Optional[str] = None) -> TicketRetriever:
     """
     Cached retriever instance (loads FAISS + metadata + embedding model once).
     """
     global _retriever, _retriever_cfg_path
-    if _retriever is None or _retriever_cfg_path != config_path:
-        cfg = load_retriever_config(config_path)
+    key = (config_path, overrides_path)
+    if _retriever is None or _retriever_cfg_path != key:
+        cfg = load_retriever_config(config_path, overrides_path)
         _retriever = TicketRetriever(cfg)
-        _retriever_cfg_path = config_path
+        _retriever_cfg_path = key
     return _retriever
 
 
@@ -85,18 +116,21 @@ def retrieve_similar(
     language: str = "en",
     config_path: str = "inference_retrieval_config.yaml",
     top_k: Optional[int] = None,
+    exclude_ids: Optional[set] = None,
+    overrides_path: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """
     Retrieval-only helper (NO aspects required).
     Returns a list of dicts: subject/response/language/aspects + dense/final scores.
     """
-    retriever = get_retriever(config_path)
+    retriever = get_retriever(config_path, overrides_path)
     return retriever.retrieve(
         subject=subject,
         body=body,
         language=language,
         aspect_spans=None,
         top_k=top_k,
+        exclude_ids=exclude_ids,
     )
 
 
@@ -105,12 +139,13 @@ def run_file(
     input_path: Optional[str] = None,
     output_path: Optional[str] = None,
     n: Optional[int] = None,
+    overrides_path: Optional[str] = None,
 ) -> str:
     """
     Batch retrieval for a CSV/XLSX file.
     Reads subject/body/(language) and writes top-k hits per row.
     """
-    cfg = load_retriever_config(config_path)
+    cfg = load_retriever_config(config_path, overrides_path)
     in_path = input_path or cfg.input_path
     if not in_path:
         raise ValueError("Missing input_path (set in YAML or pass --input).")
@@ -126,7 +161,7 @@ def run_file(
     if cfg.col_language not in df.columns:
         df[cfg.col_language] = "en"
 
-    retriever = get_retriever(config_path)
+    retriever = get_retriever(config_path, overrides_path)
     top_k = int(getattr(cfg, "top_k", 5) or 5)
 
     rows: List[Dict[str, Any]] = []
@@ -153,6 +188,9 @@ def run_file(
                 "hit_subject": h.get("subject"),
                 "hit_response": h.get("response"),
                 "dense": h.get("dense"),
+                "rrf": h.get("rrf"),
+                "ce_score": h.get("ce_score"),
+                "a_score": h.get("a_score"),
                 "final": h.get("final"),
             })
 
@@ -166,12 +204,15 @@ def main():
 
     p = argparse.ArgumentParser(description="FAISS retrieval for inference tickets (no aspects required)")
     p.add_argument("--config", default="inference_retrieval_config.yaml")
+    p.add_argument("--overrides", default=None,
+                   help="YAML whose `retrieval` section is merged on top of --config")
     p.add_argument("--input", default=None, help="Override config input_path")
     p.add_argument("--out", default=None, help="Override config output_path")
     p.add_argument("--n", type=int, default=None, help="Sample N rows")
     args = p.parse_args()
 
-    out = run_file(config_path=args.config, input_path=args.input, output_path=args.out, n=args.n)
+    out = run_file(config_path=args.config, input_path=args.input,
+                   output_path=args.out, n=args.n, overrides_path=args.overrides)
     print(f"Saved: {out}")
 
 

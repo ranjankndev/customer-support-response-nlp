@@ -8,3 +8,4 @@ split:
   validate_size : 5420         # exact row count for validate set
   stratify_col  : "language"   # column to stratify on (en / de balance preserved)
   random_seed   : 42
+  renumber_idx  : false        # true = old per-split 0..n-1 idx (collides across splits)

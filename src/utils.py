@@ -5,6 +5,7 @@ utils.py — Shared DataLoader, ContextBuilder, Generator, Metrics, Pipeline
 from __future__ import annotations
 
 import re, json, logging, sys
+import yaml
 import pandas as pd
 import numpy as np
 from pathlib import Path
@@ -46,13 +47,11 @@ except ImportError:
             def summary(self) -> str:
                 return "(system_profiler not installed)"
 
-from rouge_score import rouge_scorer
-from sacrebleu.metrics import BLEU
-# removed: bert_score replaced with direct transformers implementation
-from sklearn.metrics import accuracy_score, f1_score
-
-import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM, AutoModelForSeq2SeqLM, BitsAndBytesConfig
+# Heavy dependencies (torch, transformers, rouge_score/nltk, sacrebleu, sklearn) are
+# imported inside the functions that need them: importing this module then costs a few
+# seconds instead of a minute and a half, which keeps the CPU test harness usable
+# (plan K.3) and lets config-only helpers run on a box without the ML stack.
+# bert_score is not used: BERTScore is computed directly with transformers.
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s | %(levelname)-8s | %(message)s',
@@ -126,6 +125,10 @@ class BaselineGenerator:
         self._seq2seq    = False
 
     def load(self):
+        import torch
+        from transformers import (AutoModelForCausalLM, AutoModelForSeq2SeqLM,
+                                  AutoTokenizer, BitsAndBytesConfig)
+
         log.info(f"[Generator] Loading  : {self.model_cfg.model_id}")
         log.info(f"[Generator] 4-bit    : {self.model_cfg.use_4bit}")
         log.info(f"[Generator] Batch    : {self.model_cfg.batch_size}")
@@ -220,6 +223,8 @@ class BaselineGenerator:
                 top_p       = self.model_cfg.top_p,
             )
 
+        import torch
+
         with torch.no_grad():
             outputs = self.model.generate(**inputs, **gen_kwargs)
 
@@ -280,29 +285,114 @@ class BaselineGenerator:
 # 4. METRICS CALCULATOR
 # ─────────────────────────────────────────────────────────────────────────────
 
+class _UnicodeTokenizer:
+    """
+    rouge_score's default tokenizer strips every non-ASCII character, which
+    destroys German text ("Größe ändern" -> "gr e ndern"). This one keeps any
+    Unicode word character, so EN and DE are scored on equal terms.
+    """
+
+    _re = re.compile(r"\w+", re.UNICODE)
+
+    def tokenize(self, text):
+        return self._re.findall((text or "").lower())
+
+
 class MetricsCalculator:
+    """
+    Response-quality metrics. Every metric also has a per-row form (`per_row=True`
+    adds `<metric>_rows` lists), because `minimal_run report` bootstraps paired
+    confidence intervals over row indices. BLEU is corpus-level by definition:
+    the report recomputes `bleu()` on each resample instead.
+    """
+
     def __init__(self, config):
         self.cfg = config
 
-    def rouge(self, hyps, refs):
-        scorer = rouge_scorer.RougeScorer(
-            self.cfg.rouge_types, use_stemmer=self.cfg.rouge_use_stemmer)
-        acc = {t: [] for t in self.cfg.rouge_types}
+    # ── ROUGE ────────────────────────────────────────────────────────────────
+    def rouge(self, hyps, refs, per_row: bool = False):
+        from rouge_score import rouge_scorer
+
+        types = list(self.cfg.rouge_types)
+        # Unicode tokenizer by default; set rouge_unicode_tokenizer: false to get
+        # the old ASCII-only behaviour back.
+        if getattr(self.cfg, "rouge_unicode_tokenizer", True):
+            scorer = rouge_scorer.RougeScorer(types, use_stemmer=False,
+                                              tokenizer=_UnicodeTokenizer())
+        else:
+            scorer = rouge_scorer.RougeScorer(
+                types, use_stemmer=getattr(self.cfg, "rouge_use_stemmer", True))
+        acc = {t: [] for t in types}
         for h, r in zip(hyps, refs):
             s = scorer.score(r, h)
-            for t in self.cfg.rouge_types:
-                acc[t].append(s[t].fmeasure)
-        return {t: round(float(np.mean(v)), 4) for t, v in acc.items()}
+            for t in types:
+                acc[t].append(float(s[t].fmeasure))
+        out = {t: round(float(np.mean(v)), 4) if v else 0.0 for t, v in acc.items()}
+        if per_row:
+            out.update({f"{t}_rows": acc[t] for t in types})
+        return out
 
+    # ── BLEU (corpus-level) ──────────────────────────────────────────────────
     def bleu(self, hyps, refs):
+        from sacrebleu.metrics import BLEU
+
         b = BLEU(tokenize=self.cfg.bleu_tokenizer)
         r = b.corpus_score(hyps, [refs])
-        return {"bleu1": round(r.precisions[0] / 100, 4),
-                "bleu4": round(r.precisions[3] / 100, 4)}
+        return {"bleu"   : round(float(r.score), 2),       # real sacreBLEU
+                "bleu_p1": round(r.precisions[0] / 100, 4),
+                "bleu_p4": round(r.precisions[3] / 100, 4)}
 
-    def bertscore(self, hyps, refs):
-        from transformers import AutoTokenizer, AutoModel
+    # ── BERTScore (true, token-alignment F1) ─────────────────────────────────
+    def bertscore_true(self, hyps, refs, model_type: str | None = None,
+                       batch_size: int | None = None, per_row: bool = False):
+        """
+        Real BERTScore via `bert_score.score` (greedy token alignment with IDF-free
+        F1), unlike `bertscore()` below which is only a CLS cosine. Defaults come
+        from the config (`bertscore_true_model`, `bertscore_true_batch`).
+        """
+        from bert_score import score as bert_score_fn
+
+        model_type = model_type or getattr(self.cfg, "bertscore_true_model",
+                                           "xlm-roberta-large")
+        batch_size = batch_size or getattr(self.cfg, "bertscore_true_batch", 16)
+        log.info(f"[Metrics] BERTScore ({model_type}) on {len(hyps)} rows ...")
+        _, _, f1 = bert_score_fn(hyps, refs, model_type=model_type,
+                                 batch_size=batch_size, verbose=False)
+        rows = [float(v) for v in f1.tolist()]
+        out = {"bertscore_f1": round(float(np.mean(rows)), 4) if rows else 0.0}
+        if per_row:
+            out["bertscore_f1_rows"] = rows
+        return out
+
+    # ── Reply language ───────────────────────────────────────────────────────
+    def lang_match(self, hyps, langs, per_row: bool = False):
+        """
+        Share of replies written in the language of the ticket. langdetect is
+        seeded, so the metric is reproducible; texts too short to detect count
+        as a miss.
+        """
+        from langdetect import DetectorFactory, LangDetectException, detect
+
+        DetectorFactory.seed = 0
+        rows = []
+        for hyp, lang in zip(hyps, langs):
+            want = str(lang or "").strip().lower()[:2]
+            text = (hyp or "").strip()
+            try:
+                got = detect(text)[:2] if text else ""
+            except LangDetectException:
+                got = ""
+            rows.append(1 if (want and got == want) else 0)
+        out = {"lang_match": round(float(np.mean(rows)), 4) if rows else 0.0}
+        if per_row:
+            out["lang_match_rows"] = rows
+        return out
+
+    # ── CLS cosine (cheap mBERT proxy, kept for continuity with the old report)
+    def bertscore(self, hyps, refs, per_row: bool = False):
+        import torch
         import torch.nn.functional as F
+        from transformers import AutoModel, AutoTokenizer
 
         log.info(f"[Metrics] BERTScore using {self.cfg.bertscore_model} ...")
         tokenizer = AutoTokenizer.from_pretrained(self.cfg.bertscore_model)
@@ -330,10 +420,16 @@ class MetricsCalculator:
             f1s.extend((h * r).sum(-1).cpu().tolist())
 
         del model
-        torch.cuda.empty_cache()
-        return {"bertscore_f1": round(float(sum(f1s)/len(f1s)), 4)}
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+        out = {"cls_cosine_mbert": round(float(np.mean(f1s)), 4) if f1s else 0.0}
+        if per_row:
+            out["cls_cosine_mbert_rows"] = [float(v) for v in f1s]
+        return out
 
     def classification(self, y_true, y_pred, label):
+        from sklearn.metrics import accuracy_score, f1_score
+
         return {
             f"{label}_accuracy"    : round(accuracy_score(y_true, y_pred), 4),
             f"{label}_f1_macro"    : round(f1_score(y_true, y_pred,
@@ -382,7 +478,8 @@ class MetricsCalculator:
     def print_table(label, metrics):
         print(f"\n{'═'*65}\n  {label}\n{'═'*65}")
         print("  RESPONSE QUALITY")
-        for k in ["rouge1","rouge2","rougeL","bleu1","bleu4","bertscore_f1"]:
+        for k in ["rouge1","rouge2","rougeL","bleu","bleu_p1","bleu_p4",
+                  "cls_cosine_mbert","bertscore_f1","lang_match"]:
             if k in metrics:
                 print(f"    {k:<22}: {metrics[k]}")
         print("  QUEUE CLASSIFICATION")
@@ -396,7 +493,8 @@ class MetricsCalculator:
         langs = sorted(set(k.split("_")[-1] for k in metrics if k.startswith("rouge1_")))
         for lang in langs:
             print(f"  LANGUAGE: {lang.upper()}")
-            for base in ["rouge1","rouge2","rougeL","bleu1","bleu4","bertscore_f1"]:
+            for base in ["rouge1","rouge2","rougeL","bleu","bleu_p1","bleu_p4",
+                         "cls_cosine_mbert","bertscore_f1","lang_match"]:
                 key = f"{base}_{lang}"
                 if key in metrics:
                     print(f"    {key:<28}: {metrics[key]}")
@@ -482,7 +580,159 @@ def get_hf_token() -> str:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 7. FILE LOADER
+# 7. CONFIG LOADING WITH OVERRIDES
+# ─────────────────────────────────────────────────────────────────────────────
+
+def deep_merge(base: Dict, override: Dict) -> Dict:
+    """
+    Recursively merge `override` on top of `base` and return a new dict.
+    Nested dicts are merged key by key; every other value is replaced wholesale.
+    """
+    merged = dict(base)
+    for key, value in (override or {}).items():
+        current = merged.get(key)
+        if isinstance(current, dict) and isinstance(value, dict):
+            merged[key] = deep_merge(current, value)
+        else:
+            merged[key] = value
+    return merged
+
+
+def load_yaml_with_overrides(path: str,
+                             overrides_path: str | None = None,
+                             section: str | None = None) -> Dict:
+    """
+    Load YAML; if overrides_path is given, deep-merge overrides[section] on top.
+
+    The base configs keep relative paths so local runs keep working, and an
+    overrides file (config/kaggle.yaml) supplies the environment-specific values:
+
+        cfg = load_yaml_with_overrides("config/generation_config.yaml",
+                                       "config/kaggle.yaml", section="generation")
+
+    `section` selects one block of the overrides file; without it the whole
+    overrides mapping is merged. A missing or empty overrides path is a no-op,
+    so callers can always pass `args.overrides` straight through.
+    """
+    with open(path, "r", encoding="utf-8") as stream:
+        base = yaml.safe_load(stream) or {}
+    if not isinstance(base, dict):
+        raise ValueError(f"{path} must contain a YAML mapping, got {type(base).__name__}")
+
+    if not (overrides_path and str(overrides_path).strip()):
+        return base
+
+    overrides_file = Path(str(overrides_path).strip())
+    if not overrides_file.is_file():
+        raise FileNotFoundError(f"Overrides file not found: {overrides_file}")
+    with overrides_file.open("r", encoding="utf-8") as stream:
+        overrides = yaml.safe_load(stream) or {}
+    if not isinstance(overrides, dict):
+        raise ValueError(f"{overrides_file} must contain a YAML mapping")
+
+    if section is not None:
+        overrides = overrides.get(section) or {}
+        if not isinstance(overrides, dict):
+            raise ValueError(f"{overrides_file}: section '{section}' must be a mapping")
+    if overrides:
+        log.info(f"[Config] {path} + {overrides_file}"
+                 f"{f'[{section}]' if section else ''}: "
+                 f"{', '.join(sorted(overrides))}")
+    return deep_merge(base, overrides)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 8. ASPECT CHECKLIST PROMPT  (plan A.3)
+# ─────────────────────────────────────────────────────────────────────────────
+
+_NONE_VALUES = ("", "none", "n/a", "na", "unknown", "general")
+
+
+def _aspect_value(spans: Dict, *keys: str) -> str:
+    """First usable value among `keys`; "none"/empty count as missing."""
+    for key in keys:
+        value = str(spans.get(key, "") or "").strip()
+        if value.lower() not in _NONE_VALUES:
+            return value
+    return ""
+
+
+def build_aspect_checklist(spans: Dict) -> str:
+    """
+    Turn extracted aspects into instructions the model can follow, instead of the
+    `Aspects : k: v | ...` dump it used to get: a dump tells the model what the
+    ticket is about, a checklist tells it what the reply has to do. Used by both
+    the RAG+aspect prompt and the aspect-only prompt, so Aspect-RAFT trains on
+    exactly the format that is used at inference.
+
+    Lines for missing aspects are dropped, and the remaining ones are renumbered.
+    Returns "" when no aspect survived, so callers can omit the block entirely.
+    """
+    spans = spans or {}
+    problem = _aspect_value(spans, "prob_sub", "prob_statement")
+    cause   = _aspect_value(spans, "cause")
+    action  = _aspect_value(spans, "action_taken")
+    urgency = _aspect_value(spans, "urgency").lower()
+    intent  = _aspect_value(spans, "intent")
+    ttype   = _aspect_value(spans, "ticket_type", "ticket_type_nli")
+    entities = _aspect_value(spans, "entities")
+
+    items = []
+    if problem:
+        items.append(f"Solve the problem: {problem}")
+    if cause:
+        items.append(f"Address the likely cause: {cause}")
+    if action:
+        items.append(f"Acknowledge what the customer already tried: {action}; "
+                     f"do not suggest it again")
+    if urgency:
+        tone = ("prioritise; give a concrete next step and timeline"
+                if urgency in ("high", "critical") else "friendly and concise")
+        items.append(f'Tone for urgency "{urgency}": {tone}')
+    if not items:
+        return ""
+
+    lines = ["Your reply must:"]
+    lines += [f"{i}. {item}" for i, item in enumerate(items, start=1)]
+
+    category = " / ".join(part for part in (intent, ttype) if part)
+    tail = f"Category: {category}." if category else ""
+    if entities:
+        tail = (f"{tail} Mention these products if relevant: {entities}."
+                if tail else f"Mention these products if relevant: {entities}.")
+    if tail:
+        lines.append(tail)
+    return "\n".join(lines)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 9. PROMPT BUDGET  (plan §5.3)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def fit_prompt(build_fn, retrieved, count_tokens, max_tokens):
+    """
+    Build the longest prompt that fits the budget, dropping the lowest-ranked
+    retrieved document at a time. Returns (prompt, n_docs_used).
+
+    The generator used to pass `truncation=True, max_length=2048` to the
+    tokenizer, which cut prompts mid-context and sometimes removed the final
+    "Support reply:" line, so the model had nothing to answer. Dropping whole
+    documents keeps the instruction and the ticket intact.
+
+    RAFT build uses this too, so a training prompt is identical to the prompt the
+    same row gets at inference.
+    """
+    docs = list(retrieved or [])
+    while True:
+        prompt = build_fn(docs)
+        # 16 tokens of headroom for the chat template's own wrapper
+        if count_tokens(prompt) + 16 <= max_tokens or not docs:
+            return prompt, len(docs)
+        docs = docs[:-1]
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 10. FILE LOADER
 # ─────────────────────────────────────────────────────────────────────────────
 
 def load_csv_or_excel(path: str, **kwargs) -> pd.DataFrame:
@@ -496,7 +746,7 @@ def load_csv_or_excel(path: str, **kwargs) -> pd.DataFrame:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 8. CHECKPOINTER
+# 11. CHECKPOINTER
 # ─────────────────────────────────────────────────────────────────────────────
 
 class Checkpointer:
@@ -505,14 +755,21 @@ class Checkpointer:
     Survives Kaggle/Vast session interruptions.
 
     Usage:
-        ckpt = Checkpointer("run_rag")
+        ckpt = Checkpointer("run_rag", dir="output/generation")
         done = ckpt.load()          # list of already-completed dicts
         ckpt.save_if_due(rows, n)   # save every N rows
         ckpt.clear()                # remove on clean finish
+
+    `dir` keeps the checkpoint next to the run's output (plan §5.6). On Kaggle
+    only /kaggle/working survives the session, and the checkpoint used to land
+    in whatever the current directory happened to be, so a resumed run found
+    nothing.
     """
 
-    def __init__(self, label: str, every: int = 50):
-        self.path  = Path(f".ckpt_{label}.csv")
+    def __init__(self, label: str, every: int = 50, dir: str | None = None):
+        directory = Path(dir) if dir else Path(".")
+        directory.mkdir(parents=True, exist_ok=True)
+        self.path  = directory / f".ckpt_{label}.csv"
         self.every = every
 
     def load(self) -> List[dict]:
@@ -537,7 +794,7 @@ class Checkpointer:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 9. COMPARISON TABLE
+# 12. COMPARISON TABLE
 # ─────────────────────────────────────────────────────────────────────────────
 
 def compare_models(results: Dict[str, pd.DataFrame],

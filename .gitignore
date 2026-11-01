@@ -29,3 +29,6 @@ runs/
 
 # local only (contains personal details; not published)
 docs/report/
+
+# minimal-run results (aggregate tables; no ticket text)
+!results/**/*.csv
