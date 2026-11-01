@@ -34,7 +34,8 @@ Legend: `[x]` done (date, sha) · `[~]` in progress · `[ ]` todo
 | 2026-10-31 | prep_train | 8fc4a40 | ERROR at splits | attempt 1; smoke OK (Gemma-3 + Gemma-2: 1 bos, German reply, budget); public dataset mount had no CSV |
 | 2026-11-01 | prep_train | 7284a07 | ERROR at sample | attempt 2; raw = private dataset `ranjankumarnayak/aspectforge-cs-support` (36,159 rows); splits OK 25,319/5,420/5,420; leakage guard: per-split idx renumbering collided -> fixed in 3fb543b (`split.renumber_idx`) |
 | 2026-11-01 | prep_train | 3fb543b | ERROR at aspects | attempt 3; sample OK (no idx overlap). HF `ranjan56cse/cs-support-labels` is private -> 401 on Kaggle. Human chose: copy adapter to private Kaggle dataset `ranjankumarnayak/aspectforge-aspect-sft` |
-| 2026-11-01 | prep_train | 8975945 | running | attempt 4 (approved by the human after the 3-attempt stop) |
+| 2026-11-01 | prep_train | 8975945 | ERROR at aspects | attempt 4; adapter dataset found at /kaggle/input/aspectforge-aspect-sft but the extractor still appended subfolder `sft_checkpoint` |
+| 2026-11-01 | prep_train | 484dafc | running | attempt 5; `--adapter_subfolder ""` now means root |
 
 ## Open issues / decisions
 - RESOLVED 2026-11-01: raw CSV = the human's `data/cs-support-multi.csv` (25,072 EN / 11,087 DE), uploaded as private dataset `ranjankumarnayak/aspectforge-cs-support`. `data/cs-support-multi_old_discard.csv.csv` is not used. Row counts differ from the old report's 28,237, so v3 numbers are a fresh run.
